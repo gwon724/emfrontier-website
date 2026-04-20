@@ -39,7 +39,7 @@ const emailWrapper = (content: string) => `
       <p style="color:#60A5FA; font-size:12px; font-weight:700; margin-bottom:8px;">EMFRONTIER LAB</p>
       <p style="color:#475569; font-size:11px; line-height:1.8;">
         경영컨설팅업 정식 등록 · 법인사업자 2024년 설립<br/>
-        본 메일은 발신 전용으로 회신이 불가합니다.<br/>
+        본 메일은 수신만 가능한 메일입니다. 회신이 불가합니다.<br/>
         문의사항은 담당 컨설턴트에게 직접 연락해 주세요.
       </p>
       <p style="color:#334155; font-size:10px; margin-top:12px;">© 2026 EMFRONTIER Operating Company, LLC. All Rights Reserved</p>
@@ -62,7 +62,7 @@ const infoBox = (color: string, bgColor: string, icon: string, title: string, ro
 const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, extra?: string, date?: string) => string }> = {
 
   "접수대기": {
-    subject: "[엠프론티어랩] 정책자금 상담 신청이 접수되었습니다",
+    subject: "[엠프론티어] 정책자금 상담 신청이 접수되었습니다",
     html: (name, extra, date) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">상담 신청이<br/>정상 접수되었습니다 ✅</p>
       ${divider}
@@ -97,7 +97,7 @@ const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, e
   },
 
   "상담예약": {
-    subject: "[엠프론티어랩] 상담 일정이 확정되었습니다",
+    subject: "[엠프론티어] 상담 일정이 확정되었습니다",
     html: (name, extra, date) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">상담 일정이<br/>확정되었습니다 📅</p>
       ${divider}
@@ -132,7 +132,7 @@ const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, e
   },
 
   "서류요청": {
-    subject: "[엠프론티어랩] 정책자금 신청을 위한 서류 제출을 요청드립니다",
+    subject: "[엠프론티어] 정책자금 신청을 위한 서류 제출을 요청드립니다",
     html: (name, extra) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">서류 제출을<br/>요청드립니다 📎</p>
       ${divider}
@@ -167,7 +167,7 @@ const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, e
   },
 
   "신청진행": {
-    subject: "[엠프론티어랩] 정책자금 신청이 진행 중입니다",
+    subject: "[엠프론티어] 정책자금 신청이 진행 중입니다",
     html: (name, extra) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">자금 신청이<br/>진행 중입니다 🔄</p>
       ${divider}
@@ -197,7 +197,7 @@ const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, e
   },
 
   "상담완료": {
-    subject: "[엠프론티어랩] 정책자금 신청이 완료되었습니다 🎉",
+    subject: "[엠프론티어] 정책자금 신청이 완료되었습니다 🎉",
     html: (name, extra) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">자금 신청이<br/>완료되었습니다 🎉</p>
       ${divider}
@@ -227,7 +227,7 @@ const STATUS_TEMPLATES: Record<string, { subject: string; html: (name: string, e
   },
 
   "종결": {
-    subject: "[엠프론티어랩] 상담이 종결되었습니다",
+    subject: "[엠프론티어] 상담이 종결되었습니다",
     html: (name, extra) => emailWrapper(`
       <p style="font-size:22px; font-weight:900; color:#0B1120; margin-bottom:6px;">상담이<br/>종결되었습니다</p>
       ${divider}
@@ -272,7 +272,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `엠프론티어랩 <${FROM}>`,
+        from: `엠프론티어 <${FROM}>`,
         to: [to],
         subject: tmpl.subject,
         html: tmpl.html(name, extra, date),
