@@ -1160,7 +1160,14 @@ ${name} 대표님!
                         <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "6px" }}>📧 이메일 템플릿</p>
                         <select
                           value={emailTemplate}
-                          onChange={e => setEmailTemplate(e.target.value)}
+                          onChange={e => {
+                            setEmailTemplate(e.target.value);
+                            if (e.target.value && selectedConsult) {
+                              setEmailText(buildAlimText(e.target.value, selectedConsult));
+                            } else {
+                              setEmailText("");
+                            }
+                          }}
                           style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #60A5FA", fontSize: "13px", fontFamily: "inherit", backgroundColor: "#1E2D47", color: "#E2E8F0", marginBottom: "8px" }}
                         >
                           {EMAIL_TEMPLATES.map(t => (
