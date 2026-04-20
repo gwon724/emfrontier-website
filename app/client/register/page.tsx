@@ -103,8 +103,8 @@ export default function RegisterPage() {
       `}</style>
       <div className="rg-wrap">
         <div className="rg-logo">
-          <img src={LOGO_B64} alt="EMFRONTIER LAB" />
-          <h1>EMFRONTIER LAB</h1>
+          <img src={LOGO_B64} alt="엠프론티어" />
+          <h1>엠프론티어</h1>
           <p className="sub">회원가입</p>
           <p className="desc">정책자금 신청을 위한 정보를 입력해주세요</p>
         </div>

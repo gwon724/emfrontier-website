@@ -202,7 +202,7 @@ export default function AdminConsultationsPage() {
               <Link href="/admin/dashboard" className="cp-brand">
                 <img src={LOGO_B64} alt="EF" width={28} height={28} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <p className="t1">EMFRONTIER LAB</p>
+                  <p className="t1">엠프론티어</p>
                   <p className="t2">상담 관리</p>
                 </div>
               </Link>

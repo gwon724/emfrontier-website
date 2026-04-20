@@ -103,8 +103,8 @@ export default function AdminLogin() {
       `}</style>
       <div className="al-wrap">
         <div className="al-logo">
-          <img src={LOGO_B64} alt="EMFRONTIER LAB" />
-          <h1>EMFRONTIER LAB</h1>
+          <img src={LOGO_B64} alt="엠프론티어" />
+          <h1>엠프론티어</h1>
           <p>관리자 포털</p>
         </div>
 

@@ -468,7 +468,7 @@ export default function AdminDashboard() {
               <div className="dash-brand">
                 <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
                 <div className="dash-brand-text">
-                  <p className="t1">EMFRONTIER LAB</p>
+                  <p className="t1">엠프론티어</p>
                   <p className="t2">관리자 대시보드</p>
                 </div>
               </div>

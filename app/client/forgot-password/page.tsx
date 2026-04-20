@@ -101,8 +101,8 @@ export default function ForgotPasswordPage() {
       {/* 헤더 */}
       <div style={{ textAlign: "center", marginBottom: "28px" }}>
         <h1 style={{ fontSize: "30px", fontWeight: "800", color: "#1E293B", marginBottom: "6px" }}>
-          <img src={LOGO_B64} alt="EMFRONTIER LAB" width={56} height={56} style={{ objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
-          EMFRONTIER LAB
+          <img src={LOGO_B64} alt="엠프론티어" width={56} height={56} style={{ objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
+          엠프론티어
         </h1>
         <p style={{ fontSize: "15px", fontWeight: "600", color: "#3B82F6", marginBottom: "4px" }}>
           비밀번호 찾기

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "EMFRONTIER LAB - 관리자",
+  title: "엠프론티어 - 관리자",
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

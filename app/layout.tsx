@@ -4,7 +4,7 @@ import "./globals.css";
 // 구글 폰트 import 제거 - 인라인 폰트 스택 사용 (네트워크 차단 방지)
 
 export const metadata: Metadata = {
-  title: "EMFRONTIER LAB - 정책자금 AI 진단",
+  title: "엠프론티어 - 정책자금 AI 진단",
   description: "정책자금 신청을 위한 AI 진단 시스템",
   icons: {
     icon: "/favicon.ico",

@@ -84,8 +84,8 @@ export default function LoginPage() {
       `}</style>
       <div className="cl-wrap">
         <div className="cl-logo">
-          <img src={LOGO_B64} alt="EMFRONTIER LAB" />
-          <h1>EMFRONTIER LAB</h1>
+          <img src={LOGO_B64} alt="엠프론티어" />
+          <h1>엠프론티어</h1>
           <p className="portal">클라이언트 포털</p>
           <p className="desc">정책자금 신청 및 조회 시스템</p>
         </div>
