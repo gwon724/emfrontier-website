@@ -100,6 +100,13 @@ const STEPS = [
     ],
   },
   {
+    id: "exactAmount",
+    question: "필요하신 정확한 금액을 작성해주세요.",
+    desc: "예) 5000만원, 1억 2천만원",
+    type: "text",
+    placeholder: "예) 5,000만원",
+  },
+  {
     id: "nice_score",
     question: "현재 신용점수는 어느 정도인가요?",
     desc: "정확하지 않아도 괜찮아요 — 대략적인 구간을 선택해주세요",
@@ -304,15 +311,31 @@ export default function SurveyPage() {
                   </p>
                 </div>
 
-                <div className={`sv-options-grid ${currentStepData.options.length <= 3 ? "sv-options-1" : currentStepData.options.length <= 4 ? "sv-options-2" : "sv-options-3"}`}>
-                  {currentStepData.options.map(opt => {
+                                {currentStepData.type === "text" ? (
+                  <input
+                    type="text"
+                    value={(form as unknown as Record<string, string>)[currentStepData.id] || ""}
+                    onChange={e => setField(currentStepData.id, e.target.value)}
+                    placeholder={currentStepData.placeholder || ""}
+                    style={{
+                      width: "100%", padding: "18px 20px", borderRadius: "14px",
+                      border: "2px solid #E8EDF5", fontSize: "16px", fontFamily: font,
+                      color: "#1E293B", outline: "none", boxSizing: "border-box",
+                      backgroundColor: "#FAFBFF",
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = "#2563EB"}
+                    onBlur={e => e.currentTarget.style.borderColor = "#E8EDF5"}
+                  />
+                ) : (
+                <div className={`sv-options-grid ${!currentStepData.options ? "sv-options-1" : currentStepData.options!.length <= 3 ? "sv-options-1" : currentStepData.options!.length <= 4 ? "sv-options-2" : "sv-options-3"}`}>
+                  {currentStepData.options!.map(opt => {
                     const selected = (form as unknown as Record<string, string>)[currentStepData.id] === opt.value;
                     return (
                       <button
                         key={opt.value}
                         onClick={() => handleSelect(currentStepData.id, opt.value)}
                         style={{
-                          padding: currentStepData.options.length <= 3 ? "18px 24px" : "16px 18px",
+                          padding: currentStepData.options!.length <= 3 ? "18px 24px" : "16px 18px",
                           borderRadius: "14px",
                           border: `2px solid ${selected ? "#2563EB" : "#E8EDF5"}`,
                           backgroundColor: selected ? "#EFF6FF" : "#FAFBFF",
@@ -340,7 +363,7 @@ export default function SurveyPage() {
                         }}
                       >
                         <div>
-                          <p style={{ fontSize: currentStepData.options.length <= 3 ? "16px" : "14px", fontWeight: "800", color: selected ? "#1D4ED8" : "#1E293B", fontFamily: font, marginBottom: "3px" }}>
+                          <p style={{ fontSize: currentStepData.options!.length <= 3 ? "16px" : "14px", fontWeight: "800", color: selected ? "#1D4ED8" : "#1E293B", fontFamily: font, marginBottom: "3px" }}>
                             {opt.label}
                           </p>
                           <p style={{ fontSize: "12px", color: selected ? "#3B82F6" : "#94A3B8", fontFamily: font, lineHeight: "1.4" }}>
@@ -360,6 +383,7 @@ export default function SurveyPage() {
                     );
                   })}
                 </div>
+                )}
 
                 {/* 이미 선택된 경우 다음 버튼 표시 */}
                 {(form as unknown as Record<string, string>)[currentStepData.id] && (
