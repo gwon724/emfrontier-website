@@ -84,7 +84,7 @@ function buildText(templateType: string, c: Record<string, string>): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { consultation, templateType, status } = body;
+    const { consultation, templateType, status, customText } = body;
 
     if (!consultation) {
       return NextResponse.json({ error: "consultation required" }, { status: 400 });
@@ -100,7 +100,8 @@ export async function POST(req: NextRequest) {
     // templateType 결정: 직접 지정 > 상태 기반 매핑 > 기본값(register)
     const resolvedType = templateType || STATUS_TO_TEMPLATE[status || c.status] || "register";
     const templateId = TEMPLATE_IDS[resolvedType];
-    const text = buildText(resolvedType, c as Record<string, string>);
+    // customText 있으면 직접 작성 내용 사용, 없으면 자동 템플릿
+    const text = customText || buildText(resolvedType, c as Record<string, string>);
 
     const { date, salt, signature } = makeSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 

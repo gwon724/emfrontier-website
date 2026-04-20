@@ -123,6 +123,7 @@ export default function AdminDashboard() {
   const [emailSent, setEmailSent] = useState(false);
   const [alimSending, setAlimSending] = useState(false);
   const [alimSent, setAlimSent] = useState(false);
+  const [alimText, setAlimText] = useState("");
 
   const sendAlimtalk = async () => {
     if (!selectedConsult?.phone) { alert("고객 전화번호가 없어요!"); return; }
@@ -131,10 +132,14 @@ export default function AdminDashboard() {
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consultation: { ...selectedConsult, name: cName || selectedConsult.name }, status: cNewStatus }),
+        body: JSON.stringify({
+          consultation: { ...selectedConsult, name: cName || selectedConsult.name },
+          status: cNewStatus,
+          customText: alimText.trim() || undefined,
+        }),
       });
       const data = await res.json();
-      if (data.ok) { setAlimSent(true); setTimeout(() => setAlimSent(false), 3000); }
+      if (data.ok) { setAlimSent(true); setAlimText(""); setTimeout(() => setAlimSent(false), 3000); }
       else alert(`알림톡 발송 실패: ${data.error || JSON.stringify(data)}`);
     } catch { alert("네트워크 오류로 발송에 실패했어요"); }
     setAlimSending(false);
@@ -962,6 +967,16 @@ export default function AdminDashboard() {
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: emailSending ? "not-allowed" : "pointer", backgroundColor: emailSent ? "#16A34A" : emailSending ? "#334155" : "#0F766E", color: "#FFF" }}>
                         {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 현재 상태로 이메일 발송 (${cNewStatus})`}
                       </button>
+                      <div style={{ marginTop: "12px" }}>
+                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>💬 알림톡 내용 직접 작성 (비워두면 상태 자동 템플릿)</p>
+                        <textarea
+                          value={alimText}
+                          onChange={e => setAlimText(e.target.value)}
+                          placeholder={`예) 안녕하세요 ${cName || selectedConsult?.name || ""} 대표님!\n정책자금 신청이 완료되었습니다.\n담당자가 곧 연락드리겠습니다.`}
+                          rows={4}
+                          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #F59E0B", fontSize: "13px", fontFamily: "inherit", resize: "vertical", backgroundColor: "#1E2D47", color: "#E2E8F0" }}
+                        />
+                      </div>
                       <button onClick={sendAlimtalk} disabled={alimSending}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: alimSending ? "not-allowed" : "pointer", backgroundColor: alimSent ? "#16A34A" : alimSending ? "#334155" : "#F59E0B", color: "#FFF", marginTop: "8px" }}>
                         {alimSent ? "✓ 알림톡 발송완료!" : alimSending ? "💬 전송 중..." : `💬 현재 상태로 알림톡 발송 (${cNewStatus})`}
