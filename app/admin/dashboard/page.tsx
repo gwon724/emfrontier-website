@@ -121,6 +121,18 @@ export default function AdminDashboard() {
   const [cSaved, setCSaved] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailTemplate, setEmailTemplate] = useState("");
+  const [emailText, setEmailText] = useState("");
+
+  const EMAIL_TEMPLATES = [
+    { value: "", label: "템플릿 선택..." },
+    { value: "접수대기", label: "상담 접수" },
+    { value: "상담예약", label: "상담 예약" },
+    { value: "서류요청", label: "서류 요청" },
+    { value: "신청진행", label: "신청 진행" },
+    { value: "상담완료", label: "상담 완료" },
+    { value: "종결", label: "상담 종결" },
+  ];
   const [alimSending, setAlimSending] = useState(false);
   const [alimSent, setAlimSent] = useState(false);
   const [alimText, setAlimText] = useState("");
@@ -322,13 +334,15 @@ ${name} 대표님!
         body: JSON.stringify({
           to: selectedConsult.email,
           name: cName || selectedConsult.name,
-          status: cNewStatus,
-          extra: cDate ? `상담 예약일시: ${cDate}` : cMemo || undefined,
+          status: emailTemplate || cNewStatus,
+          extra: emailText.trim() || (cDate ? `상담 예약일시: ${cDate}` : cMemo || undefined),
         }),
       });
       const data = await res.json();
       if (data.ok) {
         setEmailSent(true);
+        setEmailText("");
+        setEmailTemplate("");
         setTimeout(() => setEmailSent(false), 3000);
       } else {
         alert(`이메일 발송 실패: ${JSON.stringify(data.error)}`);
@@ -1132,9 +1146,28 @@ ${name} 대표님!
                         {cSaved ? "✓ 저장됨" : "💾 전체 저장"}
                       </button>
                       <button onClick={sendStatusEmail} disabled={emailSending}
-                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: emailSending ? "not-allowed" : "pointer", backgroundColor: emailSent ? "#16A34A" : emailSending ? "#334155" : "#0F766E", color: "#FFF" }}>
-                        {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 현재 상태로 이메일 발송 (${cNewStatus})`}
+                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: emailSending ? "not-allowed" : "pointer", backgroundColor: emailSent ? "#16A34A" : emailSending ? "#334155" : "#0F766E", color: "#FFF", marginTop: "8px" }}>
+                        {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 이메일 발송 (${emailTemplate || cNewStatus})`}
                       </button>
+                      <div style={{ marginTop: "12px" }}>
+                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "6px" }}>📧 이메일 템플릿</p>
+                        <select
+                          value={emailTemplate}
+                          onChange={e => setEmailTemplate(e.target.value)}
+                          style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #60A5FA", fontSize: "13px", fontFamily: "inherit", backgroundColor: "#1E2D47", color: "#E2E8F0", marginBottom: "8px" }}
+                        >
+                          {EMAIL_TEMPLATES.map(t => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                        <textarea
+                          value={emailText}
+                          onChange={e => setEmailText(e.target.value)}
+                          placeholder="추가 메모 또는 특이사항 (선택적)"
+                          rows={3}
+                          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #334155", fontSize: "13px", fontFamily: "inherit", resize: "vertical", backgroundColor: "#1E2D47", color: "#E2E8F0" }}
+                        />
+                      </div>
                       <div style={{ marginTop: "12px" }}>
                         <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>💬 알림톡 발송</p>
                         {/* 템플릿 선택 */}
