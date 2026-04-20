@@ -101,10 +101,10 @@ const STEPS = [
   },
   {
     id: "exactAmount",
-    question: "필요하신 정확한 금액을 작성해주세요.",
-    desc: "예) 5000만원, 1억 2천만원",
+    question: "정확한 희망 금액을 알려주세요 💰",
+    desc: "대략적인 금액도 괜찮아요 — 최대한 맞춤 자금을 찾아드릴게요",
     type: "text",
-    placeholder: "예) 5,000만원",
+    placeholder: "예) 8,000만원 / 1억 5천만원",
   },
   {
     id: "nice_score",
