@@ -159,7 +159,7 @@ export default function AdminDashboard() {
   };
 
   const ALIM_TEMPLATES = [
-    { value: "", label: "무작성 (상태 자동 템플릿)" },
+    { value: "", label: "템플릿 선택..." },
     { value: "register", label: "회원가입" },
     { value: "consult_reserve", label: "상담예약 완료" },
     { value: "docs_request", label: "서류요청" },
@@ -174,6 +174,31 @@ export default function AdminDashboard() {
     { value: "review", label: "후기 요청" },
     { value: "new_fund", label: "신규정책자금 출시" },
   ];
+
+  const buildAlimText = (type: string, c: Consultation) => {
+    const name = cName || c.name || "";
+    const id = c.id || "-";
+    const biz = c.businessType || "-";
+    const amount = c.desiredAmount || "-";
+    const phone = "010-0000-0000";
+    const manager = "담당 매니저";
+    const texts: Record<string, string> = {
+      register: `[엠프론티어랩] 회원가입을 환영합니다!\n\n안녕하세요, ${name} 대표님!\n엠프론티어랩 회원가입이 완료되었습니다.\n\n정책자금 맞춤 상담을 무료로 받아보세요.\n담당 매니저가 곧 연락드리겠습니다.\n\n감사합니다.\n엠프론티어랩`,
+      consult_reserve: `[엠프론티어랩] 상담 예약이 완료되었습니다.\n\n안녕하세요, ${name} 대표님!\n상담 일정이 확정되었습니다.\n\n편시일: ${id}\n프론 담당자: ${manager}\n현락처: ${phone}\n\n준비사항: 사업자등록증, 최근 3개월 매출 자료\n\n감사합니다.\n엠프론티어랩`,
+      docs_request: `[엠프론티어랩] 서류 제출 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 신청을 위한 서류 제출을 안내드립니다.\n\n필요 서류:\n• 사업자등록증\n• 최근 3개월 매출내역\n• 신분증 사본\n\n담당자: ${manager} (${phone})\n\n감사합니다.\n엠프론티어랩`,
+      fund_apply: `[엠프론티어랩] 자금 신청 진행 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 신청이 진행 중입니다.\n\n신청 자금: ${amount}\n진행 단계: 신청서 접수 완료\n\n결과는 실시간으로 안내드리겠습니다.\n담당자: ${manager} (${phone})\n\n엠프론티어랩`,
+      approved: `[엠프론티어랩] 정책자금 승인 완료! 🎉\n\n축하드립니다, ${name} 대표님!\n정책자금 승인이 완료되었습니다.\n\n승인 금액: ${amount}\n\n집행 절차를 안내하기 위해 담당자가 곧 연락드리겠습니다.\n\n감사합니다.\n엠프론티어랩`,
+      consult_done: `[엠프론티어랩] 상담 완료 안내\n\n안녕하세요, ${name} 대표님!\n오늘 상담 감사드립니다.\n\n업종: ${biz}\n희망금액: ${amount}\n\n추가 문의는 언제든지 연락 주세요.\n담당자: ${manager} (${phone})\n\n엠프론티어랩`,
+      reserve_done: `[엠프론티어랩] 예약이 완료되었습니다.\n\n안녕하세요, ${name} 대표님!\n상담 예약이 정상 처리되었습니다.\n\n접수번호: ${id}\n담당자: ${manager}\n\n영업일 기준 1일 이내 연락드리겠습니다.\n\n엠프론티어랩`,
+      rejected: `[엠프론티어랩] 심사 결과 안내\n\n안녕하세요, ${name} 대표님.\n신청하신 정책자금 심사 결과를 안내드립니다.\n\n심사 결과: 미승인\n\n미승인 사유와 재신청 방법을 담당자가 곧 안내드리겠습니다.\n착수금은 100% 환불 처리됩니다.\n\n엠프론티어랩`,
+      remind: `[엠프론티어랩] 상담 신청 확인 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 무료 상담을 신청하셨는데 아직 연락이 닿지 않았습니다.\n\n담당자가 다시 연락드리겠습니다.\n먼저 연락 주셔도 됩니다.\n\n폰: ${phone}\n엠프론티어랩`,
+      fund_execute: `[엠프론티어랩] 자금 집행 완료 안내 🎉\n\n축하드립니다, ${name} 대표님!\n정책자금 집행이 완료되었습니다.\n\n집행 금액: ${amount}\n\n사후 관리 서비스는 1년간 무상으로 제공됩니다.\n\n엠프론티어랩`,
+      extra_apply: `[엠프론티어랩] 추가 자금 신청 안내\n\n안녕하세요, ${name} 대표님!\n추가 정책자금 신청이 접수되었습니다.\n\n접수번호: ${id}\n희망금액: ${amount}\n\n영업일 1일 이내 연락드리겠습니다.\n\n엠프론티어랩`,
+      review: `[엠프론티어랩] 소중한 후기 부탁드립니다 😊\n\n안녕하세요, ${name} 대표님!\n서비스를 이용해 주셔서 감사합니다.\n\n대표님의 소중한 후기가 다른 사업자분들께 큰 도움이 됩니다.\n1분 내 후기 남겨주시면 감사하겠습니다!\n\n엠프론티어랩`,
+      new_fund: `[엠프론티어랩] 신규 정책자금 출시 안내 📢\n\n안녕하세요, ${name} 대표님!\n대표님께 맞는 신규 정책자금이 출시되었습니다.\n\n⚠️ 인기 자금은 빠르게 소진됩니다!\n지금 바로 무료 상담 신청하세요.\n\n폰: ${phone}\n엠프론티어랩`,
+    };
+    return texts[type] || "";
+  };
 
   const sendAlimtalk = async () => {
     if (!selectedConsult?.phone) { alert("고객 전화번호가 없어요!"); return; }
@@ -1027,7 +1052,14 @@ export default function AdminDashboard() {
                         {/* 템플릿 선택 */}
                         <select
                           value={alimTemplate}
-                          onChange={e => setAlimTemplate(e.target.value)}
+                          onChange={e => {
+                            setAlimTemplate(e.target.value);
+                            if (e.target.value && selectedConsult) {
+                              setAlimText(buildAlimText(e.target.value, selectedConsult));
+                            } else {
+                              setAlimText("");
+                            }
+                          }}
                           style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #F59E0B", fontSize: "13px", fontFamily: "inherit", backgroundColor: "#1E2D47", color: "#E2E8F0", marginBottom: "8px" }}
                         >
                           {ALIM_TEMPLATES.map(t => (
@@ -1038,8 +1070,8 @@ export default function AdminDashboard() {
                         <textarea
                           value={alimText}
                           onChange={e => setAlimText(e.target.value)}
-                          placeholder={`직접 작성하면 템플릿 대신 이 내용으로 발송될\n\n예) 안녕하세요 ${cName || selectedConsult?.name || ""} 대표님!\n정책자금 신청이 완료되었습니다.`}
-                          rows={4}
+                          placeholder="템플릿 선택 시 내용이 자동 입력됩니다.\n직접 수정하거나 새로 작성할 수 있어요."
+                          rows={7}
                           style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #334155", fontSize: "13px", fontFamily: "inherit", resize: "vertical", backgroundColor: "#1E2D47", color: "#E2E8F0" }}
                         />
                       </div>
