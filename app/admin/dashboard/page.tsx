@@ -124,6 +124,24 @@ export default function AdminDashboard() {
   const [alimSending, setAlimSending] = useState(false);
   const [alimSent, setAlimSent] = useState(false);
   const [alimText, setAlimText] = useState("");
+  const [alimTemplate, setAlimTemplate] = useState("");
+
+  const ALIM_TEMPLATES = [
+    { value: "", label: "무작성 (상태 자동 템플릿)" },
+    { value: "register", label: "회원가입" },
+    { value: "consult_reserve", label: "상담예약 완료" },
+    { value: "docs_request", label: "서류요청" },
+    { value: "fund_apply", label: "자금신청" },
+    { value: "approved", label: "정책자금 승인" },
+    { value: "consult_done", label: "상담완료" },
+    { value: "reserve_done", label: "예약완료" },
+    { value: "rejected", label: "심사 미승인" },
+    { value: "remind", label: "리마인드" },
+    { value: "fund_execute", label: "자금집행" },
+    { value: "extra_apply", label: "추가신청" },
+    { value: "review", label: "후기 요청" },
+    { value: "new_fund", label: "신규정책자금 출시" },
+  ];
 
   const sendAlimtalk = async () => {
     if (!selectedConsult?.phone) { alert("고객 전화번호가 없어요!"); return; }
@@ -135,11 +153,12 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           consultation: { ...selectedConsult, name: cName || selectedConsult.name },
           status: cNewStatus,
+          templateType: alimTemplate || undefined,
           customText: alimText.trim() || undefined,
         }),
       });
       const data = await res.json();
-      if (data.ok) { setAlimSent(true); setAlimText(""); setTimeout(() => setAlimSent(false), 3000); }
+      if (data.ok) { setAlimSent(true); setAlimText(""); setAlimTemplate(""); setTimeout(() => setAlimSent(false), 3000); }
       else alert(`알림톡 발송 실패: ${data.error || JSON.stringify(data)}`);
     } catch { alert("네트워크 오류로 발송에 실패했어요"); }
     setAlimSending(false);
@@ -968,13 +987,24 @@ export default function AdminDashboard() {
                         {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 현재 상태로 이메일 발송 (${cNewStatus})`}
                       </button>
                       <div style={{ marginTop: "12px" }}>
-                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>💬 알림톡 내용 직접 작성 (비워두면 상태 자동 템플릿)</p>
+                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>💬 알림톡 발송</p>
+                        {/* 템플릿 선택 */}
+                        <select
+                          value={alimTemplate}
+                          onChange={e => setAlimTemplate(e.target.value)}
+                          style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #F59E0B", fontSize: "13px", fontFamily: "inherit", backgroundColor: "#1E2D47", color: "#E2E8F0", marginBottom: "8px" }}
+                        >
+                          {ALIM_TEMPLATES.map(t => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                        {/* 직접 작성 (선택적) */}
                         <textarea
                           value={alimText}
                           onChange={e => setAlimText(e.target.value)}
-                          placeholder={`예) 안녕하세요 ${cName || selectedConsult?.name || ""} 대표님!\n정책자금 신청이 완료되었습니다.\n담당자가 곧 연락드리겠습니다.`}
+                          placeholder={`직접 작성하면 템플릿 대신 이 내용으로 발송될\n\n예) 안녕하세요 ${cName || selectedConsult?.name || ""} 대표님!\n정책자금 신청이 완료되었습니다.`}
                           rows={4}
-                          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #F59E0B", fontSize: "13px", fontFamily: "inherit", resize: "vertical", backgroundColor: "#1E2D47", color: "#E2E8F0" }}
+                          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #334155", fontSize: "13px", fontFamily: "inherit", resize: "vertical", backgroundColor: "#1E2D47", color: "#E2E8F0" }}
                         />
                       </div>
                       <button onClick={sendAlimtalk} disabled={alimSending}
