@@ -190,7 +190,7 @@ export default function AdminDashboard() {
       approved: `[엠프론티어] 정책자금 승인 완료!
 
 축하드립니다, ${name} 대표님! 🎉
-정책자금 승인이 완료되었습니다.
+신청하신 정책자금 승인이 완료되었습니다.
 
 💰 승인 자금: ${amount}
 ✅ 승인 금액: ${amount}
