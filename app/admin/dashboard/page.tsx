@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   LOGO_B64, getAllUsers, calcGrade, STATUS_COLORS, STATUS_LIST,
   FONT, UserRecord, deleteUser, getCurrentAdmin, AdminAccount,
-  getAllConsultations, updateConsultation,
+  getAllConsultations, updateConsultation, registerUser, upsertUser,
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
   syncAllToServer, restoreFromServer,
 } from "@/lib/store";
@@ -125,6 +125,38 @@ export default function AdminDashboard() {
   const [alimSent, setAlimSent] = useState(false);
   const [alimText, setAlimText] = useState("");
   const [alimTemplate, setAlimTemplate] = useState("");
+  const [convertDone, setConvertDone] = useState(false);
+
+  const convertToMember = () => {
+    if (!selectedConsult) return;
+    const email = selectedConsult.email;
+    if (!email) { alert("이메일 주소가 없어요! 이메일을 먼저 입력해주세요."); return; }
+    if (!window.confirm(`${selectedConsult.name} 대표님을 회원으로 전환하시겠어요?\n임시 비밀번호: emf2026! (로그인 후 변경 필요)`)) return;
+    try {
+      upsertUser({
+        id: email,
+        email,
+        password: "emf2026!",
+        name: selectedConsult.name,
+        age: selectedConsult.age || "",
+        gender: selectedConsult.gender || "",
+        annual_revenue: selectedConsult.annual_revenue || "",
+        debt_policy: "",
+        debt_bank1: "",
+        debt_bank2: "",
+        debt_card: "",
+        nice_score: selectedConsult.nice_score || "",
+        kcb_score: "",
+        registeredAt: new Date().toLocaleString("ko-KR"),
+        adminMemo: `상담 #${selectedConsult.id}에서 전환`,
+      });
+      setConvertDone(true);
+      setTimeout(() => setConvertDone(false), 3000);
+      alert(`✅ 회원 전환 완료!\n이메일: ${email}\n비밀번호: emf2026! (\ubcc0경 권장)`);
+    } catch(e) {
+      alert("회원 전환 실패: " + e);
+    }
+  };
 
   const ALIM_TEMPLATES = [
     { value: "", label: "무작성 (상태 자동 템플릿)" },
@@ -978,6 +1010,10 @@ export default function AdminDashboard() {
                             placeholder="내부 메모..." style={{ ...inp, width: "100%", resize: "vertical", lineHeight: "1.7" }} />
                         </div>
                       </div>
+                      <button onClick={convertToMember}
+                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: convertDone ? "#16A34A" : "#7C3AED", color: "#FFF", marginBottom: "8px" }}>
+                        {convertDone ? "✓ 회원 전환 완료!" : "👤 회원으로 전환"}
+                      </button>
                       <button onClick={saveConsult}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: cSaved ? "#16A34A" : "#2563EB", color: "#FFF", marginBottom: "8px" }}>
                         {cSaved ? "✓ 저장됨" : "💾 전체 저장"}
