@@ -121,6 +121,24 @@ export default function AdminDashboard() {
   const [cSaved, setCSaved] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [alimSending, setAlimSending] = useState(false);
+  const [alimSent, setAlimSent] = useState(false);
+
+  const sendAlimtalk = async () => {
+    if (!selectedConsult?.phone) { alert("고객 전화번호가 없어요!"); return; }
+    setAlimSending(true);
+    try {
+      const res = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consultation: { ...selectedConsult, name: cName || selectedConsult.name }, status: cNewStatus }),
+      });
+      const data = await res.json();
+      if (data.ok) { setAlimSent(true); setTimeout(() => setAlimSent(false), 3000); }
+      else alert(`알림톡 발송 실패: ${data.error || JSON.stringify(data)}`);
+    } catch { alert("네트워크 오류로 발송에 실패했어요"); }
+    setAlimSending(false);
+  };
 
   const sendStatusEmail = async () => {
     if (!selectedConsult || !selectedConsult.email) {
@@ -689,7 +707,7 @@ export default function AdminDashboard() {
                   } catch { /* ignore */ }
                   setNaverLoading(false);
                 }} style={{ padding: "8px 16px", backgroundColor: "#03C75A", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                  {naverLoading ? "로딩..." : "🔄 데이터 불러오기"}
+                  {naverLoading ? "로딩..." : "🔄 데이터 불러오기"}
                 </button>
               </div>
 
@@ -942,7 +960,11 @@ export default function AdminDashboard() {
                       </button>
                       <button onClick={sendStatusEmail} disabled={emailSending}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: emailSending ? "not-allowed" : "pointer", backgroundColor: emailSent ? "#16A34A" : emailSending ? "#334155" : "#0F766E", color: "#FFF" }}>
-                        {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 현재 상태로 이메일 발송 (${cNewStatus})`}
+                        {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 현재 상태로 이메일 발송 (${cNewStatus})`}
+                      </button>
+                      <button onClick={sendAlimtalk} disabled={alimSending}
+                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: alimSending ? "not-allowed" : "pointer", backgroundColor: alimSent ? "#16A34A" : alimSending ? "#334155" : "#F59E0B", color: "#FFF", marginTop: "8px" }}>
+                        {alimSent ? "✓ 알림톡 발송완료!" : alimSending ? "💬 전송 중..." : `💬 현재 상태로 알림톡 발송 (${cNewStatus})`}
                       </button>
                     </div>
                   </div>
@@ -999,7 +1021,7 @@ export default function AdminDashboard() {
                 </button>
                 <button onClick={handleAddUser} disabled={addUserSaving}
                   style={{ flex: 2, padding: "12px", backgroundColor: addUserSaving ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: addUserSaving ? "not-allowed" : "pointer" }}>
-                  {addUserSaving ? "저장 중..." : "➕ 회원 추가"}
+                  {addUserSaving ? "저장 중..." : "➕ 회원 추가"}
                 </button>
               </div>
             </div>
@@ -1096,7 +1118,7 @@ export default function AdminDashboard() {
                       cursor: userEmailSending ? "not-allowed" : "pointer",
                       backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E",
                       color: "#FFF" }}>
-                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
+                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
                   </button>
                 </div>
 
