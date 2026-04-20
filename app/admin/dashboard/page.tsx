@@ -189,7 +189,7 @@ export default function AdminDashboard() {
       fund_apply: `[엠프론티어] 자금 신청 진행 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 신청이 진행 중입니다.\n\n💼 신청 자금: ${amount}\n📊 진행 단계: 신청서 접수 완료\n⏰ 예상 결과: 영업일 3일 이내\n\n진행 상황은 실시간으로 안내드리겠습니다.\n\n담당자: ${manager} (${phone})\n엠프론티어`,
       approved: `[엠프론티어] 정책자금 승인 완료!
 
-축하드립니다, ${name} 대표님! 🎉
+${name} 대표님! 
 신청하신 정책자금 승인이 완료되었습니다.
 
 💰 승인 자금: ${amount}
