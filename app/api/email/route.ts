@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY!;
+const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const FROM_EMAIL = process.env.RESEND_FROM || "noreply@emfrontier.team";
 const FROM_NAME  = "엠프론티어";
 
@@ -109,23 +109,23 @@ export async function POST(req: NextRequest) {
     const subject  = SUBJECT_MAP[status] || "[엠프론티어] 안내 말씀 드립니다";
     const html     = emailWrapper(bodyText);
 
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "api-key": BREVO_API_KEY,
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL },
-        to: [{ email: to }],
+        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        to: [to],
         subject,
-        htmlContent: html,
+        html,
       }),
     });
 
     const data = await res.json();
     if (!res.ok) return NextResponse.json({ ok: false, error: data }, { status: 500 });
-    return NextResponse.json({ ok: true, id: data.messageId });
+    return NextResponse.json({ ok: true, id: data.id });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
   }
