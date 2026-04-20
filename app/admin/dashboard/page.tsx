@@ -126,12 +126,19 @@ export default function AdminDashboard() {
 
   const EMAIL_TEMPLATES = [
     { value: "", label: "템플릿 선택..." },
-    { value: "접수대기", label: "상담 접수" },
-    { value: "상담예약", label: "상담 예약" },
-    { value: "서류요청", label: "서류 요청" },
-    { value: "신청진행", label: "신청 진행" },
-    { value: "상담완료", label: "상담 완료" },
-    { value: "종결", label: "상담 종결" },
+    { value: "register",        label: "회원가입 (상담 접수)" },
+    { value: "consult_reserve", label: "상담 일정 확정" },
+    { value: "docs_request",    label: "서류 요청" },
+    { value: "fund_apply",      label: "자금 신청 진행" },
+    { value: "approved",        label: "정책자금 승인 완료" },
+    { value: "consult_done",    label: "상담 종결" },
+    { value: "reserve_done",    label: "예약 완료" },
+    { value: "rejected",        label: "심사 미승인" },
+    { value: "remind",          label: "리마인드" },
+    { value: "fund_execute",    label: "자금 집행 완료" },
+    { value: "extra_apply",     label: "재신청 가능 안내" },
+    { value: "review",          label: "후기 요청" },
+    { value: "new_fund",        label: "신규 정책자금 출시" },
   ];
   const [alimSending, setAlimSending] = useState(false);
   const [alimSent, setAlimSent] = useState(false);
