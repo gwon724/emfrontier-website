@@ -1787,10 +1787,7 @@ ${name} 대표님!
                                           key={st}
                                           onClick={() => {
                                             if (isActive) return;
-                                            const sendAlim = window.confirm(`"${st}" 상태로 변경할까요?
-
-알림톡 발송도 하시겠습니까?`);
-                                            handleFundStatus(fund.id, st as import("@/lib/store").FundStatus, sendAlim);
+                                            handleFundStatus(fund.id, st as import("@/lib/store").FundStatus, true);
                                           }}
                                           style={{
                                             padding: "5px 9px",
