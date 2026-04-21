@@ -50,16 +50,106 @@ function makeSignature(apiKey: string, apiSecret: string) {
   return { date, salt, signature };
 }
 
+function buildVariables(templateType: string, c: Record<string, string>): Record<string, string> {
+  const name = c.name || "고객";
+  const id = c.id || "-";
+  const biz = c.businessType || "-";
+  const amount = c.exactAmount || c.desiredAmount || "-";
+  const manager = c.manager || "담당 매니저";
+  const phone = c.managerPhone || "엠프론티어";
+
+  const varMaps: Record<string, Record<string, string>> = {
+    register: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+      "#{업종}": biz,
+      "#{희망금액}": amount,
+    },
+    consult_reserve: {
+      "#{이름}": name,
+      "#{상담일시}": id,
+      "#{담당매니저}": manager,
+      "#{연락처}": phone,
+    },
+    docs_request: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+    },
+    fund_apply: {
+      "#{이름}": name,
+      "#{신청자금}": amount,
+      "#{담당자}": manager,
+      "#{연락처}": phone,
+    },
+    approved: {
+      "#{이름}": name,
+      "#{승인금액}": amount,
+      "#{담당자}": manager,
+    },
+    consult_done: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+    },
+    reserve_done: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+      "#{담당자}": manager,
+    },
+    rejected: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+    },
+    remind: {
+      "#{이름}": name,
+      "#{접수번호}": id,
+      "#{담당자}": manager,
+      "#{연락처}": phone,
+    },
+    fund_execute: {
+      "#{이름}": name,
+      "#{집행금액}": amount,
+      "#{담당자}": manager,
+    },
+    extra_apply: {
+      "#{이름}": name,
+      "#{재신청가능일}": id,
+      "#{추천자금}": amount,
+    },
+    review: {
+      "#{이름}": name,
+      "#{후기링크}": id,
+    },
+    new_fund: {
+      "#{이름}": name,
+      "#{자금명}": amount,
+    },
+  };
+
+  return varMaps[templateType] || varMaps["register"];
+}
+
 function buildText(templateType: string, c: Record<string, string>): string {
   const name = c.name || "고객";
   const id = c.id || "-";
   const biz = c.businessType || "-";
-  const amount = c.desiredAmount || "-";
+  const amount = c.exactAmount || c.desiredAmount || "-";
   const manager = c.manager || "담당 매니저";
   const phone = c.managerPhone || "엠프론티어";
 
   const texts: Record<string, string> = {
-    register: `[엠프론티어] 상담 신청이 접수되었습니다.\n\n안녕하세요, ${name} 대표님!\n상담 신청이 정상 접수되었습니다.\n\n📋 접수번호: ${id}\n💼 업종: ${biz}\n💰 희망금액: ${amount}\n\n담당 매니저가 영업일 1일 이내 연락드립니다.\n\n감사합니다.\n엠프론티어`,
+    register: `[엠프론티어] 상담 신청이 접수되었습니다.
+
+안녕하세요, ${name} 대표님!
+상담 신청이 정상 접수되었습니다.
+
+📋 접수번호: ${id}
+💼 업종: ${biz}
+💰 희망금액: ${amount}
+
+담당 매니저가 영업일 1일 이내 연락드립니다.
+
+감사합니다.
+엠프론티어`,
 
     consult_reserve: `[엠프론티어] 상담 일정 확인
 
@@ -196,6 +286,7 @@ export async function POST(req: NextRequest) {
     const templateId = TEMPLATE_IDS[resolvedType];
     // customText 있으면 직접 작성 내용 사용, 없으면 자동 템플릿
     const text = customText || buildText(resolvedType, c as Record<string, string>);
+    const variables = buildVariables(resolvedType, c as Record<string, string>);
 
     const { date, salt, signature } = makeSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
@@ -208,6 +299,7 @@ export async function POST(req: NextRequest) {
           kakaoOptions: {
             pfId: KAKAO_CHANNEL_ID,
             templateId,
+            variables,
           }
         } : {}),
       },
