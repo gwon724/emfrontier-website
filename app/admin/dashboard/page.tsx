@@ -336,6 +336,18 @@ export default function AdminDashboard() {
   };
 
   // 자금 상태 변경
+  // 자금 상태별 템플릿 매핑
+  const FUND_STATUS_TEMPLATE: Record<string, string> = {
+    "준비":    "fund_apply",
+    "접수완료": "fund_apply",
+    "심사대기": "fund_apply",
+    "심사중":  "fund_apply",
+    "심사완료": "fund_apply",
+    "자금집행": "fund_execute",
+    "부결":    "rejected",
+    "승인":    "approved",
+  };
+
   const handleFundStatus = async (fundId: string, status: FundStatus, sendAlim: boolean) => {
     if (!selectedConsult) return;
     const funds = (selectedConsult.funds || []).map(f =>
@@ -353,38 +365,46 @@ export default function AdminDashboard() {
     }).catch(() => {});
     if (sendAlim && selectedConsult.phone) {
       const fund = funds.find(f => f.id === fundId);
-      const customText = `[엠프론티어] 자금 진행 현황 안내\n\n${selectedConsult.name} 대표님, 안녕하세요!\n\n평소 엠프론티어를 이용해주셔서 감사합니다.\n\n진행 자금: ${fund?.fundName || "-"}\n신청금액: ${fund?.amount || "-"}\n현재 상태: ${status}\n\n문의사항은 담당자에게 언제든지 연락주세요.\n담당자: ${admin?.name || "-"} (${admin?.phone || "-"})\n\n엠프론티어`;
+      const templateType = FUND_STATUS_TEMPLATE[status] || "fund_apply";
+      const enriched = {
+        ...selectedConsult,
+        manager: admin?.name,
+        managerPhone: admin?.phone,
+        fundName: fund?.fundName || "-",
+        fundLimit: fund?.amount || "담당자 안내 예정",
+        fundDeadline: "담당자 안내 예정",
+        step: status,
+        schedule: "담당자 안내 예정",
+        execAmount: fund?.amount || "-",
+        execDate: new Date().toLocaleDateString("ko-KR"),
+        amount: fund?.amount || "-",
+      };
       const alimRes = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone },
-          templateType: "fund_apply",
-          customText,
-        }),
+        body: JSON.stringify({ consultation: enriched, templateType }),
       }).then(r => r.json()).catch(() => ({ ok: false, error: "네트워크 오류" }));
-      if (alimRes.ok) showSuccess("✅ 자금 현황 알림톡 발송 완료");
+      if (alimRes.ok) showSuccess(`✅ [${status}] 알림톡 발송 완료`);
       else {
-        const capturedConsult = selectedConsult;
+        const capturedEnriched = enriched;
         showFailModal(
-          capturedConsult!.name,
-          capturedConsult!.phone,
+          selectedConsult.name,
+          selectedConsult.phone,
           alimRes.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: { ...capturedConsult, manager: admin?.name, managerPhone: admin?.phone }, templateType: "fund_apply", customText }),
+              body: JSON.stringify({ consultation: capturedEnriched, templateType }),
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
-            showSuccess("✅ 자금 현황 알림톡 재발송 성공");
+            showSuccess(`✅ [${status}] 알림톡 재발송 성공`);
           }
         );
       }
     }
   };
-
   const ALIM_TEMPLATES = [
     { value: "", label: "템플릿 선택..." },
     { value: "register", label: "회원가입" },
