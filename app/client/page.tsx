@@ -26,6 +26,32 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // 비밀번호 찾기
+  const [showReset, setShowReset] = useState(false);
+  const [resetName, setResetName] = useState("");
+  const [resetPhone, setResetPhone] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState("");
+  const [resetError, setResetError] = useState("");
+
+  const handleReset = async () => {
+    setResetError(""); setResetMsg("");
+    if (!resetName || !resetPhone) { setResetError("이름과 연락처를 입력해주세요."); return; }
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: resetName, phone: resetPhone }),
+      });
+      const data = await res.json();
+      if (data.ok) setResetMsg(`✅ ${data.email}로 임시 비밀번호를 발송했습니다.`);
+      else setResetError(data.error || "오류가 발생했습니다.");
+    } catch {
+      setResetError("네트워크 오류가 발생했습니다.");
+    }
+    setResetLoading(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,14 +116,46 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
             {loading ? "⏳ 로그인 중..." : "🔐 로그인"}
           </button>
           <div style={{ textAlign: "center", marginTop: "16px" }}>
-            <a
-              href="tel:01082114291"
-              style={{ fontSize: "12px", color: "#64748B", textDecoration: "none" }}
+            <button
+              type="button"
+              onClick={() => { setShowReset(p => !p); setResetMsg(""); setResetError(""); }}
+              style={{ background: "none", border: "none", fontSize: "12px", color: "#64748B", cursor: "pointer", fontFamily: font }}
             >
-              파스워드를 잊으셨나요? &nbsp;
-              <span style={{ color: "#3B82F6", fontWeight: "700" }}>담당자에게 연락하세요</span>
-            </a>
+              비밀번호를 잊으셨나요? &nbsp;<span style={{ color: "#3B82F6", fontWeight: "700" }}>비밀번호 찾기</span>
+            </button>
           </div>
+
+          {/* 비밀번호 찾기 폼 */}
+          {showReset && (
+            <div style={{ marginTop: "16px", borderTop: "1px solid #334155", paddingTop: "16px" }}>
+              <p style={{ fontSize: "12px", color: "#94A3B8", marginBottom: "12px", textAlign: "center" }}>등록하신 이름과 연락처를 입력하세요.<br/>가입 시 등록한 이메일로 임시 비밀번호를 발송해드립니다.</p>
+              <div style={{ marginBottom: "10px" }}>
+                <input
+                  value={resetName}
+                  onChange={e => setResetName(e.target.value)}
+                  placeholder="이름"
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "14px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", outline: "none" }}
+                />
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <input
+                  value={resetPhone}
+                  onChange={e => setResetPhone(e.target.value)}
+                  placeholder="연락처 (010-0000-0000)"
+                  style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "14px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", outline: "none" }}
+                />
+              </div>
+              {resetError && <p style={{ color: "#EF4444", fontSize: "12px", marginBottom: "8px" }}>{resetError}</p>}
+              {resetMsg && <p style={{ color: "#10B981", fontSize: "12px", marginBottom: "8px" }}>{resetMsg}</p>}
+              <button
+                onClick={handleReset}
+                disabled={resetLoading}
+                style={{ width: "100%", padding: "11px", backgroundColor: "#334155", color: "#F1F5F9", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer", fontFamily: font }}
+              >
+                {resetLoading ? "⏳ 발송 중..." : "📧 임시 비밀번호 발송"}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
