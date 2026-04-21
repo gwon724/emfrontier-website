@@ -3,7 +3,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   validateRegisterToken, markTokenUsed,
-  getAllUsers, upsertUser, LOGO_B64, FONT,
+  LOGO_B64, FONT,
 } from "@/lib/store";
 
 const font = FONT;
@@ -41,35 +41,24 @@ function RegisterForm() {
 
     setSubmitting(true);
     try {
-      const existing = getAllUsers().find(u => u.name === tokenData.name);
-      if (existing) {
-        upsertUser({ ...existing, password });
+      // clientUsers에서 이름+연락처로 기존 계정 찾아 비밀번호 업데이트, 없으면 신규 생성
+      const clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      const idx = clientUsers.findIndex((u: { name: string; phone: string }) =>
+        u.name === tokenData.name && u.phone === tokenData.phone
+      );
+      if (idx !== -1) {
+        clientUsers[idx].password = password;
       } else {
-        upsertUser({
-          id: `user_${Date.now()}`,
-          email: "",
-          password,
+        clientUsers.push({
+          id: Date.now().toString(),
           name: tokenData.name,
-          age: "",
-          gender: "",
-          annual_revenue: "",
-          debt_policy: "",
-          debt_bank1: "",
-          debt_bank2: "",
-          debt_card: "",
-          nice_score: "",
-          kcb_score: "",
-          registeredAt: new Date().toLocaleString("ko-KR"),
+          phone: tokenData.phone,
+          password,
+          createdAt: new Date().toISOString(),
         });
       }
+      localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
       markTokenUsed(tokenStr);
-      // 서버 동기화
-      const all = getAllUsers();
-      await fetch("/api/db", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "users", value: all }),
-      }).catch(() => {});
       setDone(true);
       setTimeout(() => router.replace("/client"), 2000);
     } catch (e) {

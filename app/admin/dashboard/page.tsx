@@ -216,30 +216,26 @@ export default function AdminDashboard() {
     if (!selectedConsult) return;
     const email = selectedConsult.email;
     if (!email) { alert("이메일 주소가 없어요! 이메일을 먼저 입력해주세요."); return; }
-    if (!window.confirm(`${selectedConsult.name} 대표님을 회원으로 전환하시겠어요?\n임시 비밀번호: emf2026! (로그인 후 변경 필요)`)) return;
+    if (!window.confirm(`${selectedConsult.name} 대표님을 포털 회원으로 등록하시겠어요?\n(비밀번호는 고객이 링크로 직접 설정합니다)`)) return;
     try {
-      upsertUser({
-        id: email,
-        email,
-        password: "emf2026!",
-        name: selectedConsult.name,
-        age: selectedConsult.age || "",
-        gender: selectedConsult.gender || "",
-        annual_revenue: selectedConsult.annual_revenue || "",
-        debt_policy: "",
-        debt_bank1: "",
-        debt_bank2: "",
-        debt_card: "",
-        nice_score: selectedConsult.nice_score || "",
-        kcb_score: "",
-        registeredAt: new Date().toLocaleString("ko-KR"),
-        adminMemo: `상담 #${selectedConsult.id}에서 전환`,
-      });
+      // 비밀번호 없이 이름+연락처로만 계정 생성 (비번은 register 링크로 고객이 설정)
+      const clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      const exists = clientUsers.find((u: { name: string; phone: string }) => u.name === selectedConsult.name && u.phone === selectedConsult.phone);
+      if (!exists) {
+        clientUsers.push({
+          id: Date.now().toString(),
+          name: selectedConsult.name,
+          phone: selectedConsult.phone,
+          password: "", // 링크로 직접 설정
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
+      }
       setConvertDone(true);
       setTimeout(() => setConvertDone(false), 3000);
-      alert(`✅ 회원 전환 완료!\n이메일: ${email}\n비밀번호: emf2026! (\ubcc0경 권장)`);
+      showSuccess("✅ 포털 회원 등록 완료! 회원가입 링크를 발송해주세요.");
     } catch(e) {
-      alert("회원 전환 실패: " + e);
+      alert("회원 등록 실패: " + e);
     }
   };
 
