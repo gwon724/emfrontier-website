@@ -336,9 +336,9 @@ export default function AdminDashboard() {
   const FUND_STATUS_TEMPLATE: Record<string, string> = {
     "준비":    "fund_apply",
     "접수완료": "fund_apply",
-    "심사대기": "fund_apply",
-    "심사중":  "fund_apply",
-    "심사완료": "fund_apply",
+    "심사대기": "fund_waiting",
+    "심사중":  "fund_reviewing",
+    "심사완료": "fund_reviewed",
     "자금집행": "fund_execute",
     "부결":    "rejected",
     "승인":    "approved",

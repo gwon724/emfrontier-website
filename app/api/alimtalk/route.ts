@@ -16,6 +16,9 @@ const TEMPLATE_IDS: Record<string, string> = {
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
+  fund_waiting:    "KA01TP260421144920873mw6XDuWLJ0i",
+  fund_reviewing:  "KA01TP260421144921369tJ0SbbI62zZ",
+  fund_reviewed:   "KA01TP260421144921550ea644yZoVOJ",
   approved:        "KA01TP260417161535606HdiLHSz5XXf",
   consult_done:    "KA01TP260417161717800dFkrLYiFkfQ",
   reserve_done:    "KA01TP260417161717800dFkrLYiFkfQ",
@@ -98,6 +101,28 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
       "#{자금명}":  fundName,
       "#{진행단계}": step,
       "#{예상일정}": schedule,
+      "#{담당자}":  manager,
+      "#{연락처}":  contact,
+    },
+    // 자금 심사대기/심사중/심사완료
+    fund_waiting: {
+      "#{이름}":    name,
+      "#{자금명}":  fundName,
+      "#{금액}":    c.fundLimit || amount,
+      "#{담당자}":  manager,
+      "#{연락처}":  contact,
+    },
+    fund_reviewing: {
+      "#{이름}":    name,
+      "#{자금명}":  fundName,
+      "#{금액}":    c.fundLimit || amount,
+      "#{담당자}":  manager,
+      "#{연락처}":  contact,
+    },
+    fund_reviewed: {
+      "#{이름}":    name,
+      "#{자금명}":  fundName,
+      "#{금액}":    c.fundLimit || amount,
       "#{담당자}":  manager,
       "#{연락처}":  contact,
     },
@@ -248,6 +273,51 @@ function buildText(templateType: string, c: Record<string, string>): string {
 진행 상황은 실시간으로 안내드리겠습니다.
 
 담당자: ${manager} (${contact})
+엠프론티어`,
+
+    fund_waiting:
+`[엠프론티어] 자금 심사 대기 안내
+
+안녕하세요, ${name} 대표님!
+신청하신 정책자금이 심사 대기 중입니다.
+
+💼 자금명: ${fundName}
+💰 신청금액: ${c.fundLimit || amount}
+📋 현재 상태: 심사 대기
+
+심사가 시작되면 즉시 안내드리겠습니다.
+담당자: ${manager} (${contact})
+
+엠프론티어`,
+
+    fund_reviewing:
+`[엠프론티어] 자금 심사 진행 안내
+
+안녕하세요, ${name} 대표님!
+신청하신 정책자금 심사가 진행 중입니다.
+
+💼 자금명: ${fundName}
+💰 신청금액: ${c.fundLimit || amount}
+📋 현재 상태: 심사 중
+
+심사 완료 시 결과를 바로 안내드리겠습니다.
+담당자: ${manager} (${contact})
+
+엠프론티어`,
+
+    fund_reviewed:
+`[엠프론티어] 자금 심사 완료 안내
+
+안녕하세요, ${name} 대표님!
+신청하신 정책자금 심사가 완료되었습니다.
+
+💼 자금명: ${fundName}
+💰 신청금액: ${c.fundLimit || amount}
+📋 현재 상태: 심사 완료
+
+담당자가 곧 최종 결과를 안내드리겠습니다.
+담당자: ${manager} (${contact})
+
 엠프론티어`,
 
     approved:
