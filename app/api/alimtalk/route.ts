@@ -411,6 +411,17 @@ export async function POST(req: NextRequest) {
             pfId: KAKAO_CHANNEL_ID,
             templateId,
             variables,
+            // register_portal: 버튼 링크를 실제 토큰 URL로 동적 주입
+            ...(resolvedType === "register_portal" && c.registerLink ? {
+              buttons: [
+                {
+                  buttonType: "WL",
+                  buttonName: "지금 가입하기",
+                  linkMo: c.registerLink,
+                  linkPc: c.registerLink,
+                }
+              ]
+            } : {}),
           }
         } : {}),
       },
