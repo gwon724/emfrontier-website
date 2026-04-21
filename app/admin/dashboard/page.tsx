@@ -199,13 +199,13 @@ export default function AdminDashboard() {
     const id = c.id || "-";
     const biz = c.businessType || "-";
     const amount = c.desiredAmount || "-";
-    const phone = "010-0000-0000";
-    const manager = "담당 매니저";
+    const managerName = admin?.name || "담당 매니저";
+    const managerPhone = admin?.phone || "1234-5678";
     const texts: Record<string, string> = {
       register: `[엠프론티어] 상담 신청이 접수되었습니다.\n\n안녕하세요, ${name} 대표님!\n상담 신청이 정상 접수되었습니다.\n\n📋 접수번호: ${id}\n💼 업종: ${biz}\n💰 희망금액: ${amount}\n\n담당 매니저가 영업일 1일 이내 연락드립니다.\n\n감사합니다.\n엠프론티어`,
-      consult_reserve: `[엠프론티어] 상담 일정 확인\n\n안녕하세요, ${name} 대표님!\n상담 일정이 확정되었습니다.\n\n📅 상담일시: ${id}\n👤 담당매니저: ${manager}\n📞 연락처: ${phone}\n\n준비사항: 사업자등록증, 최근 3개월 매출 자료\n\n궁금한 점은 언제든지 연락 주세요!\n엠프론티어`,
+      consult_reserve: `[엠프론티어] 상담 일정 확인\n\n안녕하세요, ${name} 대표님!\n상담 일정이 확정되었습니다.\n\n📅 상담일시: ${id}\n👤 담당매니저: ${managerName}\n📞 연락처: ${managerPhone}\n\n준비사항: 사업자등록증, 최근 3개월 매출 자료\n\n궁금한 점은 언제든지 연락 주세요!\n엠프론티어`,
       docs_request: `[엠프론티어] 서류 제출 안내\n\n안녕하세요, ${name} 대표님!\n신청하신 정책자금 상담 진행을 위해\n아래 서류 제출을 부탁드립니다.\n\n 필요 서류\n• 사업자등록증\n• 최근 3개월 매출내역\n• 신분증 사본\n\n서류 제출 후 빠르게 검토 도와드리겠습니다.\n\n엠프론티어`,
-      fund_apply: `[엠프론티어] 자금 신청 진행 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 신청이 진행 중입니다.\n\n💼 신청 자금: ${amount}\n📊 진행 단계: 신청서 접수 완료\n⏰ 예상 결과: 영업일 3일 이내\n\n진행 상황은 실시간으로 안내드리겠습니다.\n\n담당자: ${manager} (${phone})\n엠프론티어`,
+      fund_apply: `[엠프론티어] 자금 신청 진행 안내\n\n안녕하세요, ${name} 대표님!\n정책자금 신청이 진행 중입니다.\n\n💼 신청 자금: ${amount}\n📊 진행 단계: 신청서 접수 완료\n⏰ 예상 결과: 영업일 3일 이내\n\n진행 상황은 실시간으로 안내드리겠습니다.\n\n담당자: ${managerName} (${managerPhone})\n엠프론티어`,
       approved: `[엠프론티어] 정책자금 승인 완료!
 
 ${name} 대표님! 
@@ -228,7 +228,7 @@ ${name} 대표님!
 추후 다시 필요하신 경우 언제든지 찾아주세요!
 
 엠프론티어`,
-      reserve_done: `[엠프론티어] 상담 예약 완료 안내\n\n안녕하세요, ${name} 대표님!\n예약하신 정책자금 무료 상담이 정상 접수되었습니다.\n\n📋 접수번호: ${id}\n👤 담당자: ${manager}\n\n영업일 기준 1일 이내 연락드리겠습니다.\n\n엠프론티어`,
+      reserve_done: `[엠프론티어] 상담 일정 확인\n\n안녕하세요, ${name} 대표님!\n상담 일정이 확정되었습니다.\n\n📅 상담일시: 담당자 안내 예정\n👤 담당매니저: ${managerName}\n📞 연락처: ${managerPhone}\n\n준비사항: 사업자등록증, 최근 3개월 매출 자료\n\n궁금한 점은 언제든지 연락 주세요!\n엠프론티어`,
       rejected: `[엠프론티어] 심사 결과 안내
 
 안녕하세요, ${name} 대표님.
@@ -251,7 +251,7 @@ ${name} 대표님!
 혹시 편한 연락 시간이 있으시면
 아래 번호로 먼저 연락 주셔도 됩니다.
 
-📞 엠프론티어 담당자: ${phone}`,
+📞 엠프론티어 담당자: ${managerPhone}`,
       fund_execute: `[엠프론티어] 자금 집행 완료
 
 축하드립니다, ${name} 대표님! 
@@ -315,7 +315,12 @@ ${name} 대표님!
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          consultation: { ...selectedConsult, name: cName || selectedConsult.name },
+          consultation: {
+            ...selectedConsult,
+            name: cName || selectedConsult.name,
+            manager: admin?.name || undefined,
+            managerPhone: admin?.phone || undefined,
+          },
           status: cNewStatus,
           templateType: alimTemplate || undefined,
           customText: alimText.trim() || undefined,
