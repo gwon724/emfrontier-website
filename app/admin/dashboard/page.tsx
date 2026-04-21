@@ -252,14 +252,13 @@ export default function AdminDashboard() {
     try {
       const t = createRegisterToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
       const link = `https://emfrontier.team/register?token=${t.token}`;
-      const customText = `[엠프론티어] 회원가입 안내\n\n안녕하세요, ${selectedConsult.name} 대표님!\n아래 링크를 통해 회원가입을 완료해주세요.\n\n🔗 ${link}\n\n링크는 24시간 동안 유효합니다.\n\n엠프론티어`;
+      const enriched = { ...selectedConsult, registerLink: link };
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          consultation: { ...selectedConsult },
-          templateType: "register",
-          customText,
+          consultation: enriched,
+          templateType: "register_portal",
         }),
       });
       const data = await res.json();
@@ -273,7 +272,7 @@ export default function AdminDashboard() {
           const res2 = await fetch("/api/alimtalk", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ consultation: { ...selectedConsult }, templateType: "register", customText }),
+            body: JSON.stringify({ consultation: enriched, templateType: "register_portal" }),
           });
           const d2 = await res2.json();
           if (!d2.ok) throw new Error(d2.error || "오류");

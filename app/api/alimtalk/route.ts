@@ -12,6 +12,7 @@ const SENDER_PHONE = process.env.SENDER_PHONE || "01082114291";
 
 const TEMPLATE_IDS: Record<string, string> = {
   register:        "KA01TP2604171602263531CsEYLmE4wh",
+  register_portal:  "KA01TP2604211426533112Vr01NzRn2R",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
@@ -75,6 +76,10 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
       "#{접수번호}": id,
       "#{업종}":    biz,
       "#{희망금액}": amount,
+    },
+    register_portal: {
+      "#{이름}":  name,
+      "#{링크}":  c.registerLink || "",
     },
     // [엠프론티어] 상담 일정 확인 (= consult_reserve)
     consult_reserve: {
@@ -172,6 +177,18 @@ function buildText(templateType: string, c: Record<string, string>): string {
   const recommend  = c.recommendFund || fundName;
 
   const texts: Record<string, string> = {
+    register_portal:
+`[엠프론티어] 고객 포털 가입 안내
+
+안녕하세요, ${name} 대표님!
+엠프론티어 고객 포털 가입 링크를 안내드립니다.
+
+🔗 가입 링크: ${c.registerLink || ""}
+
+⏰ 링크 유효시간: 24시간
+가입 후 진행 현황 확인 및 서류 제출이 가능합니다.
+
+엠프론티어`,
     register:
 `[엠프론티어] 상담 신청이 접수되었습니다.
 
