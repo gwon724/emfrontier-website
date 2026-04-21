@@ -205,6 +205,7 @@ export default function SurveyPage() {
       businessPeriod: form.businessPeriod || "1~3년",
       annual_revenue: form.annual_revenue,
       desiredAmount: amountMap[form.desiredAmount] || "50000000",
+      exactAmount: (form as unknown as Record<string, string>).exactAmount || form.desiredAmount || "-",
       purposeType: form.purposeType || "운전자금",
       currentDebt: debtMap[form.currentDebt] || "0",
       nice_score: niceMap[form.nice_score] || "700",
@@ -213,6 +214,24 @@ export default function SurveyPage() {
       privacyAgreed: form.privacyAgreed,
     });
     localStorage.setItem("lastConsultId", result.id);
+
+    // 알림톡 발송 (비동기, 실패해도 페이지 이동)
+    fetch("/api/alimtalk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        consultation: {
+          id: result.id,
+          name: form.name,
+          phone: form.phone,
+          businessType: form.businessType || "기타",
+          desiredAmount: form.desiredAmount,
+          exactAmount: (form as unknown as Record<string, string>).exactAmount || form.desiredAmount || "-",
+        },
+        templateType: "register",
+      }),
+    }).catch(() => {}); // 실패해도 무시
+
     router.push("/consult/done");
   };
 

@@ -2940,7 +2940,8 @@ export interface Consultation {
   businessPeriod: string;       // 사업 기간
   annual_revenue: string;       // 연매출
   // 대출 정보
-  desiredAmount: string;        // 희망 대출금액
+  desiredAmount: string;        // 희망 대출금액 (선택지)
+  exactAmount?: string;         // 정확한 희망금액 (직접 입력)
   purposeType: string;          // 목적 (운전자금/시설자금/기타)
   currentDebt: string;          // 현재 총 기대출
   // 신용 정보

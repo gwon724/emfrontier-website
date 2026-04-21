@@ -1,33 +1,32 @@
 [
   {
-    "name": "test3",
-    "phone": "01011111111",
-    "email": "aaa@aaa.aaa",
+    "name": "테스트",
+    "phone": "01012341234",
+    "email": "son713119@naver.com",
     "age": "35",
     "gender": "남성",
-    "businessType": "음식점/카페",
+    "businessType": "의료/헬스케어",
     "businessPeriod": "1년 미만",
-    "annual_revenue": "11111111",
-    "desiredAmount": "25000000",
-    "purposeType": "운전자금",
-    "currentDebt": "0",
+    "annual_revenue": "10000000",
+    "desiredAmount": "40000000",
+    "purposeType": "시설자금",
+    "currentDebt": "50000000",
     "nice_score": "920",
     "kcb_score": "920",
     "inquiryContent": "",
     "privacyAgreed": true,
-    "id": "CS-20260420-9765",
+    "id": "CS-20260421-5713",
     "status": "접수대기",
     "adminMemo": "",
     "assignedTo": "",
     "consultDate": "",
-    "createdAt": "2026. 4. 20. 오후 1:47:33",
+    "createdAt": "2026. 4. 21. 오후 8:07:36",
     "aiAnalysis": {
-      "sohoGrade": "B",
-      "sohoScore": 60,
-      "summary": "SOHO 등급 B(우수) · 60점. 음식점/카페 1년 미만 사업체 기준 총 5개 정책자금 신청 가능. 신용점수 920점, 연매출 1111만원 기준 최대 4억원 규모 자금 활용 가능.",
+      "sohoGrade": "C",
+      "sohoScore": 50,
+      "summary": "SOHO 등급 C(보통) · 50점. 의료/헬스케어 1년 미만 사업체 기준 총 5개 정책자금 신청 가능. 신용점수 920점, 연매출 1000만원 기준 최대 4억원 규모 자금 활용 가능.",
       "strengths": [
         "신용점수 920점으로 최상위 등급 — 우대금리 적용 가능",
-        "기존 대출 없음 — 신규 대출 한도 최대치 활용 가능",
         "만 35세 청년 대표자 — 청년 전용 우대 자금 신청 가능"
       ],
       "weaknesses": [
@@ -35,8 +34,9 @@
         "업력 1년 미만 — 일부 경영안정자금 신청 제한"
       ],
       "opportunities": [
-        "음식점/카페 업종 맞춤 정책자금 다수 존재",
-        "희망 금액 0.3억원, 복수 자금 조합으로 목표 달성 가능",
+        "의료/헬스케어 업종 맞춤 정책자금 다수 존재",
+        "시설자금은 담보 설정으로 한도 확대 가능",
+        "희망 금액 0.4억원, 복수 자금 조합으로 목표 달성 가능",
         "정부 정책자금 + 보증부대출 병행 전략으로 총 한도 극대화 가능"
       ],
       "risks": [
@@ -52,8 +52,9 @@
       "fund_007",
       "fund_034",
       "fund_027",
-      "fund_004"
+      "fund_004",
+      "fund_035"
     ],
-    "updatedAt": "2026. 4. 20. 오후 1:47:34"
+    "updatedAt": "2026. 4. 21. 오후 8:07:37"
   }
 ]
