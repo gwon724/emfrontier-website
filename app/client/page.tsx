@@ -102,6 +102,36 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   const [extraDocName, setExtraDocName] = useState("");
   const [showFinance, setShowFinance] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false);
+  // 비밀번호 변경
+  const [showPwChange, setShowPwChange] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const handlePwChange = () => {
+    setPwError("");
+    const users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+    const consults = JSON.parse(localStorage.getItem("consultations") || "[]");
+    const myConsult = consults.find((c: {name: string}) => c.name === clientName);
+    const phone = myConsult?.phone || "";
+    const idx = users.findIndex((u: {name: string; phone: string; password: string}) =>
+      u.name === clientName && u.phone === phone
+    );
+    if (idx === -1) { setPwError("회원 정보를 찾을 수 없습니다."); return; }
+    // 현재 비밀번호 없으면(처음 설정) 생략 가능
+    if (users[idx].password && users[idx].password !== currentPw) {
+      setPwError("현재 비밀번호가 일치하지 않습니다."); return;
+    }
+    if (newPw.length < 4) { setPwError("비밀번호는 4자 이상이어야 합니다."); return; }
+    if (newPw !== confirmPw) { setPwError("새 비밀번호가 일치하지 않습니다."); return; }
+    users[idx].password = newPw;
+    localStorage.setItem("clientUsers", JSON.stringify(users));
+    setPwSuccess(true);
+    setCurrentPw(""); setNewPw(""); setConfirmPw("");
+    setTimeout(() => { setPwSuccess(false); setShowPwChange(false); }, 2000);
+  };
 
   // 담당자 telegramChatId 조회
   const [chatId, setChatId] = useState("");
@@ -360,6 +390,46 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* 비밀번호 변경 */}
+            <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginTop: "14px", border: "1px solid #334155" }}>
+              <button
+                onClick={() => { setShowPwChange(p => !p); setPwError(""); setPwSuccess(false); }}
+                style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              >
+                <span style={{ fontSize: "13px", fontWeight: "700", color: "#94A3B8", fontFamily: font }}>🔒 비밀번호 변경</span>
+                <span style={{ color: "#64748B", fontSize: "12px" }}>{showPwChange ? "▲" : "▼"}</span>
+              </button>
+              {showPwChange && (
+                <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    { label: "현재 비밀번호", value: currentPw, setter: setCurrentPw, placeholder: "현재 비밀번호 입력 (처음 설정이면 비워두세요)" },
+                    { label: "새 비밀번호", value: newPw, setter: setNewPw, placeholder: "새 비밀번호 (4자 이상)" },
+                    { label: "비밀번호 확인", value: confirmPw, setter: setConfirmPw, placeholder: "새 비밀번호 재입력" },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <label style={{ fontSize: "11px", color: "#64748B", display: "block", marginBottom: "4px", fontFamily: font }}>{f.label}</label>
+                      <input
+                        type="password"
+                        value={f.value}
+                        onChange={e => f.setter(e.target.value)}
+                        placeholder={f.placeholder}
+                        onKeyDown={e => e.key === "Enter" && handlePwChange()}
+                        style={{ width: "100%", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "10px 12px", color: "#F1F5F9", fontSize: "14px", fontFamily: font, boxSizing: "border-box", outline: "none" }}
+                      />
+                    </div>
+                  ))}
+                  {pwError && <p style={{ color: "#EF4444", fontSize: "12px", margin: 0 }}>{pwError}</p>}
+                  {pwSuccess && <p style={{ color: "#10B981", fontSize: "12px", margin: 0 }}>✅ 비밀번호가 변경되었습니다!</p>}
+                  <button
+                    onClick={handlePwChange}
+                    style={{ width: "100%", padding: "11px 0", backgroundColor: "#3B82F6", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer", fontFamily: font }}
+                  >
+                    비밀번호 변경
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}
