@@ -8,10 +8,12 @@ import {
   getAllConsultations, updateConsultation, registerUser, upsertUser,
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
   syncAllToServer, restoreFromServer, assignConsultation, getAllAdmins,
+  FundProgress, FundStatus, FUND_STATUS_LIST, FUND_STATUS_COLORS,
+  createRegisterToken,
 } from "@/lib/store";
 
 const font = FONT;
-type Tab = "members" | "consultations" | "naver";
+type Tab = "members" | "consultations" | "naver" | "manage" | "all-consults";
 type ConsultTab = "waiting" | "mine";
 
 function calcConsultGrade(c: Consultation): { grade: string; score: number } {
@@ -32,6 +34,10 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("members");
   const [mobileNav, setMobileNav] = useState(false);
+  const [manageSubTab, setManageSubTab] = useState<"all-consults" | "users">("all-consults");
+  const [manageSearch, setManageSearch] = useState("");
+  const [manageStatusFilter, setManageStatusFilter] = useState("");
+  const [manageAdminFilter, setManageAdminFilter] = useState("");
   const [naverData, setNaverData] = useState<{campaigns?: {data?: unknown}; trend?: {data?: unknown}; stat?: {data?: unknown}}>({});
   const [naverLoading, setNaverLoading] = useState(false);
 
@@ -152,6 +158,58 @@ export default function AdminDashboard() {
   const [alimText, setAlimText] = useState("");
   const [alimTemplate, setAlimTemplate] = useState("");
   const [convertDone, setConvertDone] = useState(false);
+  const [registerLinkSending, setRegisterLinkSending] = useState(false);
+  const [registerLinkSent, setRegisterLinkSent] = useState(false);
+  const [registerLinkToken, setRegisterLinkToken] = useState("");
+
+  // 자금 현황 상태
+  const [newFundName, setNewFundName] = useState("");
+  const [newFundAmount, setNewFundAmount] = useState("");
+
+  // 실패 모달
+  const [failModal, setFailModal] = useState<{
+    visible: boolean;
+    clientName: string;
+    phone: string;
+    error: string;
+    retryFn: () => Promise<void>;
+    registerLink?: string;
+  } | null>(null);
+  const [failModalRetrying, setFailModalRetrying] = useState(false);
+  const [failModalSuccess, setFailModalSuccess] = useState(false);
+
+  const showFailModal = (
+    clientName: string,
+    phone: string,
+    error: string,
+    retryFn: () => Promise<void>,
+    registerLink?: string
+  ) => {
+    setFailModal({ visible: true, clientName, phone, error, retryFn, registerLink });
+    setFailModalRetrying(false);
+    setFailModalSuccess(false);
+  };
+
+  const handleFailModalRetry = async () => {
+    if (!failModal) return;
+    setFailModalRetrying(true);
+    setFailModalSuccess(false);
+    try {
+      await failModal.retryFn();
+      setFailModalSuccess(true);
+      setFailModal(null);
+    } catch (e) {
+      setFailModal(prev => prev ? { ...prev, error: String(e) } : null);
+    }
+    setFailModalRetrying(false);
+  };
+
+  // 성공 토스트 (간단 배너)
+  const [successBanner, setSuccessBanner] = useState("");
+  const showSuccess = (msg: string) => {
+    setSuccessBanner(msg);
+    setTimeout(() => setSuccessBanner(""), 3000);
+  };
 
   const convertToMember = () => {
     if (!selectedConsult) return;
@@ -181,6 +239,149 @@ export default function AdminDashboard() {
       alert(`✅ 회원 전환 완료!\n이메일: ${email}\n비밀번호: emf2026! (\ubcc0경 권장)`);
     } catch(e) {
       alert("회원 전환 실패: " + e);
+    }
+  };
+
+  // 회원가입 링크 발송
+  const sendRegisterLink = async () => {
+    if (!selectedConsult) return;
+    setRegisterLinkSending(true);
+    setRegisterLinkSent(false);
+    setRegisterLinkToken("");
+    try {
+      const t = createRegisterToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
+      const link = `https://emfrontier.team/register?token=${t.token}`;
+      const customText = `[엠프론티어] 회원가입 안내\n\n안녕하세요, ${selectedConsult.name} 대표님!\n아래 링크를 통해 회원가입을 완료해주세요.\n\n🔗 ${link}\n\n링크는 24시간 동안 유효합니다.\n\n엠프론티어`;
+      const res = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: { ...selectedConsult },
+          templateType: "register",
+          customText,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRegisterLinkSent(true);
+        showSuccess("✅ 회원가입 링크 발송 완료");
+        setTimeout(() => setRegisterLinkSent(false), 4000);
+      } else {
+        setRegisterLinkToken(t.token);
+        const retryFn = async () => {
+          const res2 = await fetch("/api/alimtalk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ consultation: { ...selectedConsult }, templateType: "register", customText }),
+          });
+          const d2 = await res2.json();
+          if (!d2.ok) throw new Error(d2.error || "오류");
+          showSuccess("✅ 회원가입 링크 재발송 성공");
+        };
+        showFailModal(
+          selectedConsult.name,
+          selectedConsult.phone,
+          data.error || "알 수 없는 오류",
+          retryFn,
+          link
+        );
+      }
+    } catch {
+      showFailModal(selectedConsult?.name || "", selectedConsult?.phone || "", "네트워크 오류", async () => { await sendRegisterLink(); });
+    }
+    setRegisterLinkSending(false);
+  };
+
+  // 자금 추가
+  const handleFundAdd = async () => {
+    if (!selectedConsult || !newFundName.trim()) return;
+    const fund: FundProgress = {
+      id: Date.now().toString(),
+      fundName: newFundName.trim(),
+      amount: newFundAmount.trim(),
+      status: "준비",
+      updatedAt: new Date().toLocaleString("ko-KR"),
+    };
+    const existing = selectedConsult.funds || [];
+    const updated = { ...selectedConsult, funds: [...existing, fund] };
+    updateConsultation(selectedConsult.id, { funds: updated.funds });
+    const fresh = getAllConsultations();
+    setConsultations(fresh);
+    const found = fresh.find(c => c.id === selectedConsult.id);
+    if (found) setSelectedConsult(found);
+    setNewFundName("");
+    setNewFundAmount("");
+    await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "consultations", value: fresh }),
+    }).catch(() => {});
+  };
+
+  // 자금 삭제
+  const handleFundDelete = async (fundId: string) => {
+    if (!selectedConsult) return;
+    if (!window.confirm("이 자금을 삭제하시겠습니까?")) return;
+    const funds = (selectedConsult.funds || []).filter(f => f.id !== fundId);
+    updateConsultation(selectedConsult.id, { funds });
+    const fresh = getAllConsultations();
+    setConsultations(fresh);
+    const found = fresh.find(c => c.id === selectedConsult.id);
+    if (found) setSelectedConsult(found);
+    await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "consultations", value: fresh }),
+    }).catch(() => {});
+  };
+
+  // 자금 상태 변경
+  const handleFundStatus = async (fundId: string, status: FundStatus, sendAlim: boolean) => {
+    if (!selectedConsult) return;
+    const funds = (selectedConsult.funds || []).map(f =>
+      f.id === fundId ? { ...f, status, updatedAt: new Date().toLocaleString("ko-KR") } : f
+    );
+    updateConsultation(selectedConsult.id, { funds });
+    const fresh = getAllConsultations();
+    setConsultations(fresh);
+    const found = fresh.find(c => c.id === selectedConsult.id);
+    if (found) setSelectedConsult(found);
+    await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "consultations", value: fresh }),
+    }).catch(() => {});
+    if (sendAlim && selectedConsult.phone) {
+      const fund = funds.find(f => f.id === fundId);
+      const customText = `[엠프론티어] 자금 진행 현황 안내\n\n${selectedConsult.name} 대표님, 안녕하세요!\n\n평소 엠프론티어를 이용해주셔서 감사합니다.\n\n진행 자금: ${fund?.fundName || "-"}\n신청금액: ${fund?.amount || "-"}\n현재 상태: ${status}\n\n문의사항은 담당자에게 언제든지 연락주세요.\n담당자: ${admin?.name || "-"} (${admin?.phone || "-"})\n\n엠프론티어`;
+      const alimRes = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone },
+          templateType: "fund_apply",
+          customText,
+        }),
+      }).then(r => r.json()).catch(() => ({ ok: false, error: "네트워크 오류" }));
+      if (alimRes.ok) showSuccess("✅ 자금 현황 알림톡 발송 완료");
+      else {
+        const capturedConsult = selectedConsult;
+        showFailModal(
+          capturedConsult!.name,
+          capturedConsult!.phone,
+          alimRes.error || "오류",
+          async () => {
+            const r = await fetch("/api/alimtalk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consultation: { ...capturedConsult, manager: admin?.name, managerPhone: admin?.phone }, templateType: "fund_apply", customText }),
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            showSuccess("✅ 자금 현황 알림톡 재발송 성공");
+          }
+        );
+      }
     }
   };
 
@@ -334,9 +535,27 @@ ${name} 대표님!
         }),
       });
       const data = await res.json();
-      if (data.ok) { setAlimSent(true); setAlimText(""); setAlimTemplate(""); setTimeout(() => setAlimSent(false), 3000); }
-      else alert(`알림톡 발송 실패: ${data.error || JSON.stringify(data)}`);
-    } catch { alert("네트워크 오류로 발송에 실패했어요"); }
+      if (data.ok) {
+        setAlimSent(true); setAlimText(""); setAlimTemplate("");
+        showSuccess("✅ 알림톡 발송 완료");
+        setTimeout(() => setAlimSent(false), 3000);
+      } else {
+        const sc = selectedConsult;
+        const payload = {
+          consultation: { ...sc, name: cName || sc?.name, manager: admin?.name, managerPhone: admin?.phone },
+          status: cNewStatus, templateType: alimTemplate || undefined, customText: alimText.trim() || undefined,
+        };
+        showFailModal(
+          sc?.name || "", sc?.phone || "", data.error || "오류",
+          async () => {
+            const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            showSuccess("✅ 알림톡 재발송 성공");
+          }
+        );
+      }
+    } catch { showFailModal(selectedConsult?.name || "", selectedConsult?.phone || "", "네트워크 오류", async () => { throw new Error("네트워크 오류"); }); }
     setAlimSending(false);
   };
 
@@ -555,6 +774,24 @@ ${name} 대표님!
       const fresh = await syncFresh();
       const updated = fresh.find(x => x.id === c.id);
       if (updated) { setSelectedConsult(updated); setCNewStatus(updated.status); }
+      if (!alimOk) {
+        const capturedC = c;
+        showFailModal(
+          capturedC.name, capturedC.phone, alimErr,
+          async () => {
+            const r = await fetch("/api/alimtalk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consultation: { ...capturedC, manager: admin?.name, managerPhone: admin?.phone }, templateType: "consult_reserve" }),
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            updateConsultation(capturedC.id, { alimtalkStatus: "sent", alimtalkSentAt: new Date().toISOString(), alimtalkError: undefined });
+            await syncFresh();
+            showSuccess("✅ 알림톡 재발송 성공");
+          }
+        );
+      }
       // 접수대기 탭에서 제거되면 물어보기 닫기
       setShowConsultDetail(false);
       setConsultTab("mine");
@@ -611,9 +848,27 @@ ${name} 대표님!
       const fresh = await syncFresh();
       const updated = fresh.find(x => x.id === c.id);
       if (updated) setSelectedConsult(updated);
-      alert(data.ok ? "✅ 알림톡 재발송 성공" : `❌ 재발송 실패: ${data.error}`);
+      if (data.ok) showSuccess("✅ 알림톡 재발송 성공");
+      else {
+        const capturedC = c;
+        showFailModal(
+          capturedC.name, capturedC.phone, data.error || "오류",
+          async () => {
+            const r = await fetch("/api/alimtalk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consultation: { ...capturedC, manager: admin?.name, managerPhone: admin?.phone }, templateType: "consult_reserve" }),
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            updateConsultation(capturedC.id, { alimtalkStatus: "sent", alimtalkSentAt: new Date().toISOString(), alimtalkError: undefined });
+            await syncFresh();
+            showSuccess("✅ 알림톡 재발송 성공");
+          }
+        );
+      }
     } catch (e) {
-      alert("네트워크 오류로 재발송 실패: " + e);
+      showFailModal(c.name, c.phone, "네트워크 오류: " + e, async () => { throw new Error("네트워크 오류"); });
     }
   };
 
@@ -799,6 +1054,10 @@ ${name} 대표님!
           <Link href="/admin/dashboard" style={{ backgroundColor: "#2563EB", color: "#FFF" }} onClick={() => setMobileNav(false)}>📊 대시보드</Link>
           <Link href="/admin/funds" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💰 자금 관리</Link>
           <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💬 상담 관리</Link>
+          {admin?.role === "superadmin" && (<>
+            <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("all-consults"); setMobileNav(false); }}>📋 전체상담</button>
+            <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("manage"); setMobileNav(false); }}>👥 회원 관리</button>
+          </>)}
           <button className="mob-link" onClick={() => { setMobileNav(false); logout(); }}>로그아웃</button>
         </div>
 
@@ -817,6 +1076,12 @@ ${name} 대표님!
                 <Link href="/admin/dashboard" style={{ backgroundColor: "#2563EB", color: "#FFF" }}>📊 대시보드</Link>
                 <Link href="/admin/funds" style={{ backgroundColor: "#334155", color: "#CBD5E1" }}>💰 자금</Link>
                 <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }}>💬 상담</Link>
+                {admin?.role === "superadmin" && (
+                  <>
+                    <button onClick={() => setTab("all-consults")} style={{ backgroundColor: tab === "all-consults" ? "#1D4ED8" : "#334155", color: tab === "all-consults" ? "#FFF" : "#CBD5E1", border: "none", borderRadius: "6px", padding: "5px 12px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>📋 전체상담</button>
+                    <button onClick={() => setTab("manage")} style={{ backgroundColor: tab === "manage" ? "#1D4ED8" : "#334155", color: tab === "manage" ? "#FFF" : "#CBD5E1", border: "none", borderRadius: "6px", padding: "5px 12px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>👥 회원</button>
+                  </>
+                )}
               </nav>
             </div>
             <div className="dash-right">
@@ -892,15 +1157,19 @@ ${name} 대표님!
           </div>
 
           {/* Tabs */}
-          <div style={{ display: "flex", gap: 0, marginBottom: "12px", borderBottom: "2px solid #334155" }}>
+          <div style={{ display: "flex", gap: 0, marginBottom: "12px", borderBottom: "2px solid #334155", overflowX: "auto" }}>
             {([
               { key: "members", label: `👥 회원 (${total})` },
               { key: "consultations", label: `💬 상담 (${cTotal})` },
               { key: "naver", label: `📊 네이버 광고` },
+              ...(admin?.role === "superadmin" ? [
+                { key: "all-consults", label: `📋 전체상담 (${consultations.length})` },
+                { key: "manage", label: `👤 가입회원 (${users.length})` },
+              ] : []),
             ] as { key: Tab; label: string }[]).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 style={{
-                  padding: "9px 16px", fontSize: "13px", fontWeight: "700",
+                  padding: "9px 16px", fontSize: "13px", fontWeight: "700", whiteSpace: "nowrap",
                   border: "none", borderBottom: tab === t.key ? "2px solid #3B82F6" : "2px solid transparent",
                   marginBottom: "-2px", backgroundColor: "transparent",
                   color: tab === t.key ? "#60A5FA" : "#64748B",
@@ -1137,6 +1406,123 @@ ${name} 대표님!
             </div>
           )}
 
+          {/* ── All Consults Tab (superadmin) ── */}
+          {tab === "all-consults" && admin?.role === "superadmin" && (
+            <>
+              <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <input
+                  placeholder="🔍 이름 / 연락처"
+                  value={manageSearch}
+                  onChange={e => setManageSearch(e.target.value)}
+                  style={{ ...inp, flex: 1, minWidth: "130px" }}
+                />
+                <select value={manageStatusFilter} onChange={e => setManageStatusFilter(e.target.value)} style={{ ...inp, cursor: "pointer" }}>
+                  <option value="">전체 상태</option>
+                  {CONSULT_STATUS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={manageAdminFilter} onChange={e => setManageAdminFilter(e.target.value)} style={{ ...inp, cursor: "pointer" }}>
+                  <option value="">전체 담당자</option>
+                  {adminList.map(a => <option key={a.username} value={a.username}>{a.name}</option>)}
+                </select>
+                <button onClick={() => { setManageSearch(""); setManageStatusFilter(""); setManageAdminFilter(""); }}
+                  style={{ ...inp, cursor: "pointer", color: "#94A3B8", padding: "9px 14px" }}>🗑️ 필터제거</button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {consultations
+                  .filter(c => {
+                    const q = manageSearch.toLowerCase();
+                    const ms = !q || c.name.toLowerCase().includes(q) || c.phone.includes(q);
+                    const mst = !manageStatusFilter || c.status === manageStatusFilter;
+                    const mad = !manageAdminFilter || c.assignedTo === manageAdminFilter;
+                    return ms && mst && mad;
+                  })
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .map(c => {
+                    const sc = CONSULT_STATUS_COLORS[c.status] || CONSULT_STATUS_COLORS["접수대기"];
+                    const gr = calcConsultGrade(c);
+                    return (
+                      <div key={c.id} onClick={() => openConsult(c)}
+                        style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", cursor: "pointer" }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "#60A5FA")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "#334155")}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px" }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "15px", fontWeight: "800", color: "#F1F5F9" }}>{c.name}</span>
+                              <span style={{ fontSize: "12px", color: "#94A3B8" }}>{c.phone}</span>
+                              <span style={{ fontSize: "11px", backgroundColor: `${sc.darkBg}`, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>{c.status}</span>
+                              <span style={{ fontSize: "11px", color: gradeColor(gr.grade), fontWeight: "800" }}>{gr.grade}등급</span>
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#64748B", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                              <span>🏭 {c.businessType || "-"}</span>
+                              <span>💰 {c.desiredAmount || "-"}</span>
+                              <span>👤 {c.assignedName || "미배정"}</span>
+                              <span>📅 {c.createdAt?.slice(0, 10) || "-"}</span>
+                            </div>
+                          </div>
+                          {c.alimtalkStatus === "failed" && (
+                            <span style={{ fontSize: "11px", backgroundColor: "#450A0A", color: "#FCA5A5", padding: "2px 8px", borderRadius: "999px", fontWeight: "700", flexShrink: 0 }}>❌ 알림톡실패</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
+
+          {/* ── Manage (Users) Tab (superadmin) ── */}
+          {tab === "manage" && admin?.role === "superadmin" && (
+            <>
+              <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px" }}>
+                <input
+                  placeholder="🔍 이름 / 연락처 검색"
+                  value={manageSearch}
+                  onChange={e => setManageSearch(e.target.value)}
+                  style={{ ...inp, width: "100%" }}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {users
+                  .filter(u => {
+                    const q = manageSearch.toLowerCase();
+                    return !q || u.name.toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
+                  })
+                  .sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime())
+                  .map(u => {
+                    const linked = consultations.filter(c => c.name === u.name);
+                    const latest = linked.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+                    const sc = latest ? (CONSULT_STATUS_COLORS[latest.status] || CONSULT_STATUS_COLORS["접수대기"]) : null;
+                    return (
+                      <div key={u.id} style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "15px", fontWeight: "800", color: "#F1F5F9" }}>{u.name}</span>
+                              <span style={{ fontSize: "12px", color: "#94A3B8" }}>{u.email}</span>
+                              {sc && latest && (
+                                <span style={{ fontSize: "11px", backgroundColor: sc.darkBg, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>연결상담: {latest.status}</span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#64748B", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                              <span>📅 가입: {u.registeredAt?.slice(0, 10) || "-"}</span>
+                              <span>💬 상담 {linked.length}건</span>
+                              {u.annual_revenue && <span>💰 연매출 {Number(u.annual_revenue).toLocaleString()}원</span>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setDeleteConfirm(u.id)}
+                            style={{ padding: "7px 14px", backgroundColor: "#450A0A", color: "#FCA5A5", border: "1px solid #EF4444", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
+                            🗑️ 삭제
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
+
           {/* ── Consultations Tab ── */}
           {tab === "consultations" && (
             <>
@@ -1318,14 +1704,118 @@ ${name} 대표님!
                             placeholder="내부 메모..." style={{ ...inp, width: "100%", resize: "vertical", lineHeight: "1.7" }} />
                         </div>
                       </div>
-                      <button onClick={convertToMember}
-                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: convertDone ? "#16A34A" : "#7C3AED", color: "#FFF", marginBottom: "8px" }}>
-                        {convertDone ? "✓ 회원 전환 완료!" : "👤 회원으로 전환"}
-                      </button>
+                      {/* 회원가입 링크 발송 */}
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                        <button onClick={convertToMember}
+                          style={{ flex: 1, padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", backgroundColor: convertDone ? "#16A34A" : "#7C3AED", color: "#FFF" }}>
+                          {convertDone ? "✓ 회원 전환 완료!" : "👤 회원으로 전환"}
+                        </button>
+                        <button onClick={sendRegisterLink} disabled={registerLinkSending}
+                          style={{ flex: 1, padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: registerLinkSending ? "not-allowed" : "pointer", backgroundColor: registerLinkSent ? "#16A34A" : registerLinkSending ? "#334155" : "#0369A1", color: "#FFF" }}>
+                          {registerLinkSent ? "✅ 링크 발송완료" : registerLinkSending ? "⏳ 발송중..." : "📲 회원가입 링크 발송"}
+                        </button>
+                      </div>
+                      {registerLinkToken && (
+                        <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "10px 12px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                          <code style={{ fontSize: "11px", color: "#60A5FA", flex: 1, wordBreak: "break-all" }}>{`https://emfrontier.team/register?token=${registerLinkToken}`}</code>
+                          <button onClick={() => { navigator.clipboard.writeText(`https://emfrontier.team/register?token=${registerLinkToken}`); showSuccess("📋 링크 복사됨"); }}
+                            style={{ padding: "5px 12px", backgroundColor: "#1E3A5F", color: "#60A5FA", border: "1px solid #3B82F6", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                            📋 복사
+                          </button>
+                        </div>
+                      )}
+
                       <button onClick={saveConsult}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: cSaved ? "#16A34A" : "#2563EB", color: "#FFF", marginBottom: "8px" }}>
                         {cSaved ? "✓ 저장됨" : "💾 전체 저장"}
                       </button>
+
+                      {/* 📊 자금 현황 */}
+                      <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px", marginBottom: "8px" }}>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "12px" }}>📊 자금 현황</p>
+
+                        {/* 자금 추가 폼 */}
+                        <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap" }}>
+                          <input
+                            value={newFundName}
+                            onChange={e => setNewFundName(e.target.value)}
+                            placeholder="예: 소상공인 정책자금"
+                            style={{ ...inp, flex: 2, minWidth: "120px", fontSize: "12px" }}
+                          />
+                          <input
+                            value={newFundAmount}
+                            onChange={e => setNewFundAmount(e.target.value)}
+                            placeholder="예: 5,000만원"
+                            style={{ ...inp, flex: 1, minWidth: "90px", fontSize: "12px" }}
+                          />
+                          <button
+                            onClick={handleFundAdd}
+                            disabled={!newFundName.trim()}
+                            style={{ padding: "9px 14px", backgroundColor: newFundName.trim() ? "#2563EB" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: newFundName.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>
+                            + 자금 추가
+                          </button>
+                        </div>
+
+                        {/* 자금 목록 */}
+                        {(!selectedConsult.funds || selectedConsult.funds.length === 0) ? (
+                          <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "12px 0" }}>등록된 자금이 없습니다</p>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            {selectedConsult.funds.map(fund => {
+                              const statusColor = FUND_STATUS_COLORS[fund.status] || "#94A3B8";
+                              return (
+                                <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: `1px solid ${statusColor}40`, padding: "12px" }}>
+                                  {/* 자금명 + 삭제 */}
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                                    <div>
+                                      <p style={{ fontSize: "13px", fontWeight: "800", color: "#F1F5F9" }}>{fund.fundName}</p>
+                                      {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>💰 {fund.amount}</p>}
+                                    </div>
+                                    <button
+                                      onClick={() => handleFundDelete(fund.id)}
+                                      style={{ padding: "4px 10px", backgroundColor: "#450A0A", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "6px", fontSize: "12px", cursor: "pointer", flexShrink: 0 }}>
+                                      🗑️
+                                    </button>
+                                  </div>
+                                  {/* 상태 버튼 8개 */}
+                                  <div style={{ display: "flex", gap: "4px", overflowX: "auto", paddingBottom: "2px" }}>
+                                    {FUND_STATUS_LIST.map(st => {
+                                      const isActive = fund.status === st;
+                                      const col = FUND_STATUS_COLORS[st] || "#94A3B8";
+                                      return (
+                                        <button
+                                          key={st}
+                                          onClick={() => {
+                                            if (isActive) return;
+                                            const sendAlim = window.confirm(`"${st}" 상태로 변경할까요?
+
+알림톡 발송도 하시겠습니까?`);
+                                            handleFundStatus(fund.id, st as import("@/lib/store").FundStatus, sendAlim);
+                                          }}
+                                          style={{
+                                            padding: "5px 9px",
+                                            fontSize: "11px",
+                                            fontWeight: "700",
+                                            borderRadius: "6px",
+                                            border: isActive ? `2px solid ${col}` : "1px solid #334155",
+                                            backgroundColor: isActive ? `${col}25` : "#0F172A",
+                                            color: isActive ? col : "#64748B",
+                                            cursor: isActive ? "default" : "pointer",
+                                            whiteSpace: "nowrap",
+                                            flexShrink: 0,
+                                          }}>
+                                          {st}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <p style={{ fontSize: "10px", color: "#475569", marginTop: "6px" }}>마지막 업데이트: {fund.updatedAt}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
 
                       {/* ✅ 접수완료 버튼 (접수대기 상태일 때만) */}
                       {selectedConsult.status === "접수대기" && (
@@ -1613,6 +2103,53 @@ ${name} 대표님!
             </div>
           );
         })()}
+
+        {/* Success Banner */}
+        {successBanner && (
+          <div style={{ position: "fixed", top: "16px", right: "16px", zIndex: 100, backgroundColor: "#052E1C", border: "2px solid #10B981", borderRadius: "12px", padding: "14px 20px", color: "#34D399", fontSize: "14px", fontWeight: "700", fontFamily: font, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "320px" }}>
+            {successBanner}
+          </div>
+        )}
+
+        {/* Fail Modal */}
+        {failModal?.visible && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
+            <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "28px", maxWidth: "400px", width: "100%", border: "2px solid #EF4444", fontFamily: font }}>
+              <p style={{ fontSize: "18px", fontWeight: "800", color: "#EF4444", marginBottom: "16px" }}>❌ 알림톡 발송 실패</p>
+              <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>👤 고객명: <strong>{failModal.clientName}</strong></p>
+                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>📞 연락처: {failModal.phone}</p>
+                <p style={{ fontSize: "13px", color: "#FCA5A5" }}>❌ 실패사유: {failModal.error}</p>
+              </div>
+              {failModal.registerLink && (
+                <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
+                  <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "8px" }}>링크를 직접 복사해서 전달해주세요:</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <code style={{ fontSize: "11px", color: "#60A5FA", wordBreak: "break-all", flex: 1 }}>{failModal.registerLink}</code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(failModal.registerLink!); showSuccess("📋 링크 복사됨"); }}
+                      style={{ padding: "6px 14px", backgroundColor: "#1E3A5F", color: "#60A5FA", border: "1px solid #3B82F6", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
+                      📋 링크 복사
+                    </button>
+                  </div>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handleFailModalRetry}
+                  disabled={failModalRetrying}
+                  style={{ flex: 1, padding: "12px", backgroundColor: failModalRetrying ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: failModalRetrying ? "not-allowed" : "pointer" }}>
+                  {failModalRetrying ? "⏳ 재발송 중..." : "🔄 재발송"}
+                </button>
+                <button
+                  onClick={() => setFailModal(null)}
+                  style={{ flex: 1, padding: "12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>
+                  ✕ 닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Modal */}
         {deleteConfirm && (

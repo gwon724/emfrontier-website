@@ -16,7 +16,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
   approved:        "KA01TP260417161535606HdiLHSz5XXf",
-  consult_done:    "KA01TP260417161629056tyh8uzhss5Z",
+  consult_done:    "KA01TP260417161717800dFkrLYiFkfQ",
   reserve_done:    "KA01TP260417161717800dFkrLYiFkfQ",
   rejected:        "KA01TP260417161958704ibbzfHzxy5y",
   remind:          "KA01TP2604171621062160gbxFR1tGo1",

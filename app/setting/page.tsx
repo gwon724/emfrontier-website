@@ -17,9 +17,9 @@ export default function SettingPage() {
   const router = useRouter();
   const [me, setMe] = useState<AdminAccount | null>(null);
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
-  const [form, setForm] = useState({ username: "", password: "", name: "", phone: "", role: "admin" as "admin" | "superadmin" });
+  const [form, setForm] = useState({ username: "", password: "", name: "", phone: "", telegramChatId: "", role: "admin" as "admin" | "superadmin" });
   const [editId, setEditId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", password: "", phone: "", role: "admin" as "admin" | "superadmin" });
+  const [editForm, setEditForm] = useState({ name: "", password: "", phone: "", telegramChatId: "", role: "admin" as "admin" | "superadmin" });
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
@@ -39,9 +39,9 @@ export default function SettingPage() {
     if (!form.password.trim()) return showErr("비밀번호를 입력해주세요");
     if (!form.name.trim()) return showErr("이름을 입력해주세요");
     if (getAllAdmins().find(a => a.username === form.username)) return showErr("이미 존재하는 아이디입니다");
-    addAdmin({ username: form.username, password: form.password, name: form.name, phone: form.phone, role: form.role });
+    addAdmin({ username: form.username, password: form.password, name: form.name, phone: form.phone, telegramChatId: form.telegramChatId || undefined, role: form.role });
     setAdmins(getAllAdmins());
-    setForm({ username: "", password: "", name: "", phone: "", role: "admin" });
+    setForm({ username: "", password: "", name: "", phone: "", telegramChatId: "", role: "admin" });
     showMsg("✅ 어드민 계정이 추가되었습니다");
   };
 
@@ -55,12 +55,12 @@ export default function SettingPage() {
 
   const handleEdit = (a: AdminAccount) => {
     setEditId(a.id);
-    setEditForm({ name: a.name, password: "", phone: a.phone || "", role: a.role });
+    setEditForm({ name: a.name, password: "", phone: a.phone || "", telegramChatId: a.telegramChatId || "", role: a.role });
   };
 
   const handleEditSave = () => {
     if (!editId) return;
-    const data: Partial<AdminAccount> = { name: editForm.name, phone: editForm.phone, role: editForm.role };
+    const data: Partial<AdminAccount> = { name: editForm.name, phone: editForm.phone, telegramChatId: editForm.telegramChatId || undefined, role: editForm.role };
     if (editForm.password.trim()) data.password = editForm.password;
     updateAdmin(editId, data);
     setAdmins(getAllAdmins());
@@ -124,6 +124,12 @@ export default function SettingPage() {
                 style={{ width: "100%", padding: "10px 14px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px", fontFamily: font, boxSizing: "border-box" }} />
             </div>
             <div>
+              <label style={{ fontSize: "12px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "6px" }}>텔레그램 Chat ID</label>
+              <input value={form.telegramChatId} onChange={e => setForm(p => ({ ...p, telegramChatId: e.target.value }))}
+                placeholder="예: 123456789"
+                style={{ width: "100%", padding: "10px 14px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px", fontFamily: font, boxSizing: "border-box" }} />
+            </div>
+            <div>
               <label style={{ fontSize: "12px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "6px" }}>권한</label>
               <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value as "admin" | "superadmin" }))}
                 style={{ width: "100%", padding: "10px 14px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px", fontFamily: font, boxSizing: "border-box", backgroundColor: "#fff" }}>
@@ -156,6 +162,12 @@ export default function SettingPage() {
                         <label style={{ fontSize: "11px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "4px" }}>전화번호</label>
                         <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
                           placeholder="010-0000-0000"
+                          style={{ width: "100%", padding: "8px 12px", border: "2px solid #DBEAFE", borderRadius: "8px", fontSize: "13px", fontFamily: font, boxSizing: "border-box" }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "4px" }}>텔레그램 Chat ID</label>
+                        <input value={editForm.telegramChatId} onChange={e => setEditForm(p => ({ ...p, telegramChatId: e.target.value }))}
+                          placeholder="예: 123456789"
                           style={{ width: "100%", padding: "8px 12px", border: "2px solid #DBEAFE", borderRadius: "8px", fontSize: "13px", fontFamily: font, boxSizing: "border-box" }} />
                       </div>
                       <div>
@@ -198,6 +210,7 @@ export default function SettingPage() {
                         <p style={{ fontSize: "12px", color: "#64748B" }}>
                           @{a.username} · {a.role === "superadmin" ? "⭐ 최고관리자" : "👤 관리자"}
                           {a.phone && ` · 📞 ${a.phone}`}
+                          {a.telegramChatId && ` · 📱 TG: ${a.telegramChatId}`}
                         </p>
                         <p style={{ fontSize: "11px", color: "#94A3B8" }}>가입: {new Date(a.createdAt).toLocaleDateString("ko-KR")}{a.lastLogin && ` · 최근 로그인: ${new Date(a.lastLogin).toLocaleDateString("ko-KR")}`}</p>
                       </div>

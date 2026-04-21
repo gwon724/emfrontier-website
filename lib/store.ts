@@ -58,6 +58,7 @@ export interface AdminAccount {
   password: string;
   name: string;
   phone?: string;
+  telegramChatId?: string;
   role: "superadmin" | "admin";
   createdAt: string;
   lastLogin?: string;
@@ -2836,6 +2837,49 @@ export function updateUser(userId: string, data: Partial<UserRecord>) {
 }
 
 // ────────────────────────────────────────────
+// 클라이언트 포털 전용 사용자 (이름/연락처 기반)
+// ────────────────────────────────────────────
+
+export interface ClientUser {
+  id: string;
+  name: string;
+  phone: string;
+  password: string;
+  createdAt: string;
+}
+
+export function getAllClientUsers(): ClientUser[] {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem("clientUsers");
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function registerClientUser(data: { name: string; phone: string; password: string }): ClientUser {
+  const users = getAllClientUsers();
+  const existing = users.find(u => u.name === data.name && u.phone === data.phone);
+  if (existing) {
+    existing.password = data.password;
+    localStorage.setItem("clientUsers", JSON.stringify(users));
+    return existing;
+  }
+  const user: ClientUser = {
+    id: Date.now().toString(),
+    name: data.name,
+    phone: data.phone,
+    password: data.password,
+    createdAt: new Date().toISOString(),
+  };
+  users.push(user);
+  localStorage.setItem("clientUsers", JSON.stringify(users));
+  return user;
+}
+
+export function loginClientUser(name: string, phone: string, password: string): ClientUser | null {
+  const users = getAllClientUsers();
+  return users.find(u => u.name === name && u.phone === phone && u.password === password) || null;
+}
+
+// ────────────────────────────────────────────
 // 신청 관련
 // ────────────────────────────────────────────
 
@@ -2917,6 +2961,94 @@ export function calcGrade(u: UserRecord): { grade: string; score: number } {
 }
 
 // ────────────────────────────────────────────
+// 자금 진행 현황 (FundProgress)
+// ────────────────────────────────────────────
+
+export type FundStatus =
+  | "준비" | "접수완료" | "심사대기" | "심사중" | "심사완료" | "자금집행" | "부결" | "승인";
+
+export const FUND_STATUS_LIST: FundStatus[] = [
+  "준비", "접수완료", "심사대기", "심사중", "심사완료", "자금집행", "부결", "승인"
+];
+
+export const FUND_STATUS_COLORS: Record<string, string> = {
+  "준비":    "#94A3B8",
+  "접수완료": "#3B82F6",
+  "심사대기": "#F59E0B",
+  "심사중":  "#8B5CF6",
+  "심사완료": "#10B981",
+  "자금집행": "#06B6D4",
+  "부결":    "#EF4444",
+  "승인":    "#34D399",
+};
+
+export interface FundProgress {
+  id: string;
+  fundName: string;
+  institution?: string;
+  amount: string;
+  status: FundStatus;
+  updatedAt: string;
+  memo?: string;
+}
+
+// ────────────────────────────────────────────
+// 회원가입 토큰
+// ────────────────────────────────────────────
+
+export interface RegisterToken {
+  token: string;
+  consultationId: string;
+  name: string;
+  phone: string;
+  createdAt: string;
+  expiresAt: string;
+  used: boolean;
+}
+
+export function createRegisterToken(consultationId: string, name: string, phone: string): RegisterToken {
+  const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const now = new Date();
+  const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const t: RegisterToken = {
+    token,
+    consultationId,
+    name,
+    phone,
+    createdAt: now.toISOString(),
+    expiresAt: expires.toISOString(),
+    used: false,
+  };
+  if (typeof window !== "undefined") {
+    const tokens = getRegisterTokens();
+    tokens.push(t);
+    localStorage.setItem("registerTokens", JSON.stringify(tokens));
+  }
+  return t;
+}
+
+export function getRegisterTokens(): RegisterToken[] {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem("registerTokens");
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function validateRegisterToken(token: string): RegisterToken | null {
+  const tokens = getRegisterTokens();
+  const t = tokens.find(t => t.token === token && !t.used);
+  if (!t) return null;
+  if (new Date() > new Date(t.expiresAt)) return null;
+  return t;
+}
+
+export function markTokenUsed(token: string): void {
+  if (typeof window === "undefined") return;
+  const tokens = getRegisterTokens();
+  const idx = tokens.findIndex(t => t.token === token);
+  if (idx !== -1) { tokens[idx].used = true; localStorage.setItem("registerTokens", JSON.stringify(tokens)); }
+}
+
+// ────────────────────────────────────────────
 // 상담 신청 (Consultation)
 // ────────────────────────────────────────────
 
@@ -2924,11 +3056,16 @@ export type ConsultStatus =
   | "접수대기"
   | "접수완료"
   | "상담중"
+  | "서류진행"
+  | "심사중"
+  | "승인완료"
+  | "집행중"
+  | "사후관리"
+  | "종결"
+  // legacy 상태 (구 데이터 호환)
   | "서류요청"
   | "승인진행"
   | "자금집행"
-  | "종결"
-  // legacy 상태 (구 데이터 호환)
   | "상담예약"
   | "상담완료"
   | "신청진행";
@@ -2970,6 +3107,7 @@ export interface Consultation {
   };
   recommendedFundIds?: string[];  // AI 추천 자금 ID 목록
   selectedFundIds?: string[];     // 클라이언트가 최종 선택한 자금 ID 목록
+  funds?: FundProgress[];         // 자금 진행 현황 목록
   // 관리자 필드
   status: ConsultStatus;
   adminMemo: string;
@@ -2986,18 +3124,40 @@ export interface Consultation {
 }
 
 export const CONSULT_STATUS_LIST: ConsultStatus[] = [
-  "접수대기", "접수완료", "상담중", "서류요청", "승인진행", "자금집행", "종결",
+  "접수대기", "접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "사후관리", "종결",
 ];
+
+// 클라이언트 포털용 단계별 상태 색상
+export const CONSULT_STATUS_SIMPLE_COLORS: Record<string, string> = {
+  "접수대기": "#94A3B8",
+  "접수완료": "#3B82F6",
+  "상담중":   "#F59E0B",
+  "서류진행": "#8B5CF6",
+  "심사중":   "#EF4444",
+  "승인완료": "#10B981",
+  "집행중":   "#06B6D4",
+  "사후관리": "#34D399",
+  "종결":     "#64748B",
+  // legacy
+  "서류요청": "#8B5CF6",
+  "승인진행": "#10B981",
+  "자금집행": "#06B6D4",
+};
 
 export const CONSULT_STATUS_COLORS: Record<ConsultStatus, { bg: string; text: string; border: string; darkBg: string; darkText: string }> = {
   "접수대기": { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#94A3B8" },
   "접수완료": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
   "상담중":   { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D", darkBg: "#3B2A00",   darkText: "#F59E0B" },
+  "서류진행": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
+  "심사중":   { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
+  "승인완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
+  "집행중":   { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
+  "사후관리": { bg: "#D1FAE5", text: "#065F46", border: "#A7F3D0", darkBg: "#022C22",   darkText: "#34D399" },
+  "종결":     { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#64748B" },
+  // legacy
   "서류요청": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
   "승인진행": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
   "자금집행": { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
-  "종결":     { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
-  // legacy
   "상담예약": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
   "상담완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#34D399" },
   "신청진행": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#A78BFA" },
