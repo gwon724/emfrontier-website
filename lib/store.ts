@@ -2922,11 +2922,16 @@ export function calcGrade(u: UserRecord): { grade: string; score: number } {
 
 export type ConsultStatus =
   | "접수대기"
+  | "접수완료"
+  | "상담중"
+  | "서류요청"
+  | "승인진행"
+  | "자금집행"
+  | "종결"
+  // legacy 상태 (구 데이터 호환)
   | "상담예약"
   | "상담완료"
-  | "서류요청"
-  | "신청진행"
-  | "종결";
+  | "신청진행";
 
 export interface Consultation {
   id: string;                   // 고유 접수번호
@@ -2972,22 +2977,30 @@ export interface Consultation {
   assignedAt?: string;          // 배정 시각 ISO string
   assignedName?: string;        // 담당자 이름 (표시용)
   assignLog?: string;           // "누가 언제 배정" 로그 문자열
+  alimtalkStatus?: "sent" | "failed" | "none"; // 알림톡 발송 결과
+  alimtalkSentAt?: string;      // 알림톡 발송 시각
+  alimtalkError?: string;       // 알림톡 오류 메시지
   consultDate: string;          // 상담 예약일시
   createdAt: string;
   updatedAt?: string;
 }
 
 export const CONSULT_STATUS_LIST: ConsultStatus[] = [
-  "접수대기", "상담예약", "상담완료", "서류요청", "신청진행", "종결",
+  "접수대기", "접수완료", "상담중", "서류요청", "승인진행", "자금집행", "종결",
 ];
 
 export const CONSULT_STATUS_COLORS: Record<ConsultStatus, { bg: string; text: string; border: string; darkBg: string; darkText: string }> = {
-  "접수대기": { bg: "#F3F4F6", text: "#374151", border: "#D1D5DB", darkBg: "#1E293B",   darkText: "#94A3B8" },
+  "접수대기": { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#94A3B8" },
+  "접수완료": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
+  "상담중":   { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D", darkBg: "#3B2A00",   darkText: "#F59E0B" },
+  "서류요청": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
+  "승인진행": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
+  "자금집행": { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
+  "종결":     { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
+  // legacy
   "상담예약": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
-  "상담완료": { bg: "#DCFCE7", text: "#166534", border: "#86EFAC", darkBg: "#052E1C",   darkText: "#34D399" },
-  "서류요청": { bg: "#FEF9C3", text: "#92400E", border: "#FDE68A", darkBg: "#3B2A00",   darkText: "#FBBF24" },
+  "상담완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#34D399" },
   "신청진행": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#A78BFA" },
-  "종결":     { bg: "#F1F5F9", text: "#64748B", border: "#CBD5E1", darkBg: "#0F172A",   darkText: "#475569" },
 };
 
 export const PURPOSE_TYPES = ["운전자금", "시설자금", "창업자금", "기타"];
@@ -3150,7 +3163,7 @@ export function assignConsultation(id: string, admin: AdminAccount): void {
   const now = new Date().toISOString();
   list[idx] = {
     ...list[idx],
-    status: "상담예약",
+    status: "접수완료",
     assignedTo: admin.username,
     assignedName: admin.name,
     assignedAt: now,

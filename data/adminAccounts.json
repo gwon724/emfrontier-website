@@ -6,5 +6,15 @@
     "name": "슈퍼 관리자",
     "role": "superadmin",
     "createdAt": "2026-01-01 00:00:00"
+  },
+  {
+    "username": "son4291",
+    "password": "skc0724",
+    "name": "손권찬",
+    "phone": "01082680181",
+    "role": "superadmin",
+    "id": "1776773831744",
+    "createdAt": "2026. 4. 21. 오후 9:17:11",
+    "lastLogin": "2026. 4. 21. 오후 9:17:31"
   }
 ]

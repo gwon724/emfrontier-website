@@ -114,6 +114,8 @@ export default function AdminDashboard() {
   const [adminList, setAdminList] = useState<AdminAccount[]>([]);
   const [reassignTarget, setReassignTarget] = useState<string | null>(null); // consultation id
   const [reassignAdminId, setReassignAdminId] = useState("");
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [cSearch, setCSearch] = useState("");
   const [cStatusFilter, setCStatusFilter] = useState<ConsultStatus | "">("");
   const [cGradeFilter, setCGradeFilter] = useState("");
@@ -477,6 +479,7 @@ ${name} 대표님!
   const openConsult = (c: Consultation) => {
     setSelectedConsult(c); setCNewStatus(c.status);
     setCMemo(c.adminMemo || ""); setCAssigned(c.assignedTo || ""); setCDate(c.consultDate || ""); setCSaved(false);
+    setShowHistory(false);
     // 신청 내용 초기화
     setCName(c.name || ""); setCPhone(c.phone || ""); setCEmail(c.email || "");
     setCAge(c.age || ""); setCGender(c.gender || ""); setCBizType(c.businessType || "");
@@ -506,6 +509,112 @@ ${name} 대표님!
     const updated = fresh.find(c => c.id === selectedConsult.id);
     if (updated) setSelectedConsult(updated);
     setCSaved(true); setTimeout(() => setCSaved(false), 2500);
+  };
+
+  // 타사 업데이트 후 localStorage→서버 동기화 헬퍼
+  const syncFresh = async () => {
+    const fresh = getAllConsultations();
+    setConsultations(fresh);
+    await fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "consultations", value: fresh }),
+    }).catch(() => {});
+    return fresh;
+  };
+
+  // 타사 접수완료 (예약완료) 버튼
+  const handleAssign = async (c: Consultation) => {
+    if (!admin || assigningId === c.id) return;
+    setAssigningId(c.id);
+    try {
+      assignConsultation(c.id, admin);
+      // 알림톡 발송
+      let alimOk = false;
+      let alimErr = "";
+      try {
+        const res = await fetch("/api/alimtalk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            consultation: { ...c, manager: admin.name, managerPhone: admin.phone },
+            templateType: "consult_reserve",
+          }),
+        });
+        const data = await res.json();
+        alimOk = !!data.ok;
+        alimErr = data.ok ? "" : (data.error || "알 수 없는 오류");
+      } catch (e) {
+        alimErr = String(e);
+      }
+      updateConsultation(c.id, {
+        alimtalkStatus: alimOk ? "sent" : "failed",
+        alimtalkSentAt: alimOk ? new Date().toISOString() : undefined,
+        alimtalkError: alimErr || undefined,
+      });
+      const fresh = await syncFresh();
+      const updated = fresh.find(x => x.id === c.id);
+      if (updated) { setSelectedConsult(updated); setCNewStatus(updated.status); }
+      // 접수대기 탭에서 제거되면 물어보기 닫기
+      setShowConsultDetail(false);
+      setConsultTab("mine");
+    } finally {
+      setAssigningId(null);
+    }
+  };
+
+  // 타사 접수취소 (롤백)
+  const handleUnassign = async (c: Consultation) => {
+    if (!admin) return;
+    if (!window.confirm("접수를 취소하시겠습니까?\n고객에게 상담종결 알림톡이 발송됩니다.")) return;
+    // 알림톡 종결 발송
+    try {
+      await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: { ...c, manager: admin.name, managerPhone: admin.phone },
+          templateType: "consult_done",
+        }),
+      });
+    } catch { /* ignore */ }
+    updateConsultation(c.id, {
+      status: "접수대기",
+      assignedTo: "",
+      assignedName: undefined,
+      assignedAt: undefined,
+      assignLog: undefined,
+    });
+    await syncFresh();
+    setShowConsultDetail(false);
+    setConsultTab("waiting");
+  };
+
+  // 알림톡 재발송
+  const handleResendAlimtalk = async (c: Consultation) => {
+    if (!admin) return;
+    try {
+      const res = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: { ...c, manager: admin.name, managerPhone: admin.phone },
+          templateType: "consult_reserve",
+        }),
+      });
+      const data = await res.json();
+      updateConsultation(c.id, {
+        alimtalkStatus: data.ok ? "sent" : "failed",
+        alimtalkSentAt: data.ok ? new Date().toISOString() : undefined,
+        alimtalkError: data.ok ? undefined : (data.error || "오류"),
+      });
+      const fresh = await syncFresh();
+      const updated = fresh.find(x => x.id === c.id);
+      if (updated) setSelectedConsult(updated);
+      alert(data.ok ? "✅ 알림톡 재발송 성공" : `❌ 재발송 실패: ${data.error}`);
+    } catch (e) {
+      alert("네트워크 오류로 재발송 실패: " + e);
+    }
   };
 
   const filteredUsers = users
@@ -1029,14 +1138,35 @@ ${name} 대표님!
           {/* ── Consultations Tab ── */}
           {tab === "consultations" && (
             <>
-              {/* Filter */}
+              {/* 서브탭: 접수대기 / 내 고객 */}
+              <div style={{ display: "flex", gap: 0, marginBottom: "12px", borderBottom: "2px solid #334155" }}>
+                {([
+                  { key: "waiting" as ConsultTab, label: `⏳ 접수대기 (${filteredWaiting.length})` },
+                  { key: "mine"    as ConsultTab, label: `👤 내 고객 (${filteredMine.length})` },
+                ]).map(t => (
+                  <button key={t.key} onClick={() => { setConsultTab(t.key); setCStatusFilter(""); }}
+                    style={{
+                      padding: "9px 18px", fontSize: "13px", fontWeight: "700",
+                      border: "none", borderBottom: consultTab === t.key ? "2px solid #10B981" : "2px solid transparent",
+                      marginBottom: "-2px", backgroundColor: "transparent",
+                      color: consultTab === t.key ? "#34D399" : "#64748B",
+                      cursor: "pointer", fontFamily: font,
+                    }}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 필터/검색 */}
               <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px" }} className="filter-row">
-                <input value={cSearch} onChange={e => setCSearch(e.target.value)} placeholder="🔍 이름/연락처/이메일"
+                <input value={cSearch} onChange={e => setCSearch(e.target.value)} placeholder="🔍 이름/연락처"
                   style={{ ...inp, flex: 1, minWidth: "130px" }} />
-                <select value={cStatusFilter} onChange={e => setCStatusFilter(e.target.value as ConsultStatus | "")} style={{ ...inp, cursor: "pointer" }}>
-                  <option value="">전체 상태</option>
-                  {CONSULT_STATUS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {consultTab === "mine" && (
+                  <select value={cStatusFilter} onChange={e => setCStatusFilter(e.target.value as ConsultStatus | "")} style={{ ...inp, cursor: "pointer" }}>
+                    <option value="">전체 상태</option>
+                    {CONSULT_STATUS_LIST.filter(s => s !== "접수대기").map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
                 <select value={cGradeFilter} onChange={e => setCGradeFilter(e.target.value)} style={{ ...inp, cursor: "pointer" }}>
                   <option value="">전체 등급</option>
                   {["A","B","C","D"].map(g => <option key={g} value={g}>{g}등급</option>)}
@@ -1048,7 +1178,9 @@ ${name} 대표님!
                 {filteredConsults.length === 0 ? (
                   <div style={{ padding: "48px", textAlign: "center" }}>
                     <p style={{ fontSize: "32px", marginBottom: "10px" }}>📭</p>
-                    <p style={{ fontSize: "14px", color: "#64748B" }}>상담 신청 내역이 없습니다</p>
+                    <p style={{ fontSize: "14px", color: "#64748B" }}>
+                      {consultTab === "waiting" ? "접수대기 상담이 없습니다" : "담당 상담이 없습니다"}
+                    </p>
                     <Link href="/consult" target="_blank" style={{ fontSize: "13px", color: "#60A5FA", textDecoration: "none" }}>→ 상담 신청 페이지</Link>
                   </div>
                 ) : (
@@ -1058,24 +1190,43 @@ ${name} 대표님!
                       const { grade } = calcConsultGrade(c);
                       const gc = gradeColor(grade);
                       const isSelected = selectedConsult?.id === c.id;
+                      const isAssigning = assigningId === c.id;
                       return (
                         <div key={c.id}
                           onClick={() => openConsult(c)}
                           style={{ padding: "14px 16px", borderBottom: "1px solid #1A2235", backgroundColor: isSelected ? "#0F2540" : i % 2 === 0 ? "#1E293B" : "#172032", cursor: "pointer", WebkitTapHighlightColor: "transparent", userSelect: "none" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                               <span style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9" }}>{c.name}</span>
                               <span style={{ fontSize: "11px", fontWeight: "800", color: gc, padding: "2px 7px", borderRadius: "5px", backgroundColor: `${gc}20` }}>{grade}</span>
                               <span style={{ padding: "2px 8px", borderRadius: "999px", fontSize: "10px", fontWeight: "700", backgroundColor: sc.darkBg, color: sc.darkText, border: `1px solid ${sc.border}55` }}>{c.status}</span>
+                              {c.alimtalkStatus === "sent" && <span style={{ fontSize: "10px", color: "#34D399" }}>✅알림톡</span>}
+                              {c.alimtalkStatus === "failed" && <span style={{ fontSize: "10px", color: "#EF4444" }}>❌알림톡</span>}
                             </div>
-                            <button onClick={e => { e.stopPropagation(); openConsult(c); }}
-                              style={{ padding: "6px 14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>관리</button>
+                            <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                              {consultTab === "waiting" && (
+                                <button
+                                  disabled={isAssigning}
+                                  onClick={async (e) => { e.stopPropagation(); await handleAssign(c); }}
+                                  style={{ padding: "6px 12px", backgroundColor: isAssigning ? "#334155" : "#10B981", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: isAssigning ? "not-allowed" : "pointer" }}>
+                                  {isAssigning ? "⏳" : "✅ 예약완료"}
+                                </button>
+                              )}
+                              <button onClick={(e) => { e.stopPropagation(); openConsult(c); }}
+                                style={{ padding: "6px 14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>상세</button>
+                            </div>
                           </div>
                           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
                             <span style={{ fontSize: "12px", color: "#94A3B8" }}>📱 {c.phone}</span>
                             <span style={{ fontSize: "12px", color: "#94A3B8" }}>🏢 {c.businessType}</span>
                             <span style={{ fontSize: "12px", color: "#94A3B8" }}>📅 {c.createdAt.slice(0, 10)}</span>
                           </div>
+                          {consultTab === "mine" && c.assignedName && (
+                            <div style={{ marginTop: "6px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: "11px", color: "#60A5FA" }}>👤 담당: {c.assignedName}</span>
+                              {c.assignedAt && <span style={{ fontSize: "11px", color: "#94A3B8" }}>📅 배정: {new Date(c.assignedAt).toLocaleDateString("ko-KR")}</span>}
+                            </div>
+                          )}
                           <p style={{ fontSize: "10px", color: "#475569", marginTop: "4px" }}>{c.id}</p>
                         </div>
                       );
@@ -1173,6 +1324,71 @@ ${name} 대표님!
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: cSaved ? "#16A34A" : "#2563EB", color: "#FFF", marginBottom: "8px" }}>
                         {cSaved ? "✓ 저장됨" : "💾 전체 저장"}
                       </button>
+
+                      {/* ✅ 접수완료 버튼 (접수대기 상태일 때만) */}
+                      {selectedConsult.status === "접수대기" && (
+                        <button
+                          disabled={assigningId === selectedConsult.id}
+                          onClick={() => handleAssign(selectedConsult)}
+                          style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "800", cursor: assigningId === selectedConsult.id ? "not-allowed" : "pointer", backgroundColor: assigningId === selectedConsult.id ? "#334155" : "#10B981", color: "#FFF", marginBottom: "8px" }}>
+                          {assigningId === selectedConsult.id ? "⏳ 처리중..." : "✅ 예약완료"}
+                        </button>
+                      )}
+
+                      {/* ↩️ 접수취소 버튼 (접수대기 아닐 때 + 담당자 본인 또는 슈퍼어드민) */}
+                      {selectedConsult.status !== "접수대기" &&
+                        (selectedConsult.assignedTo === admin?.username || admin?.role === "superadmin") && (
+                        <button
+                          onClick={() => handleUnassign(selectedConsult)}
+                          style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: "#EF4444", color: "#FFF", marginBottom: "8px" }}>
+                          ↩️ 접수취소
+                        </button>
+                      )}
+
+                      {/* 알림톡 발송실패 재발송 */}
+                      {selectedConsult.alimtalkStatus === "failed" && (
+                        <div style={{ backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "10px", padding: "10px 14px", marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                          <span style={{ fontSize: "12px", color: "#FCA5A5" }}>❌ 알림톡 발송실패</span>
+                          <button
+                            onClick={() => handleResendAlimtalk(selectedConsult)}
+                            style={{ padding: "6px 14px", backgroundColor: "#F59E0B", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
+                            🔄 재발송
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 알림톡 성공 표시 */}
+                      {selectedConsult.alimtalkStatus === "sent" && (
+                        <div style={{ backgroundColor: "#052E1C", border: "1px solid #10B981", borderRadius: "10px", padding: "8px 14px", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "12px", color: "#34D399" }}>✅ 알림톡 발송완료 {selectedConsult.alimtalkSentAt ? new Date(selectedConsult.alimtalkSentAt).toLocaleString("ko-KR").slice(0, 16) : ""}</span>
+                        </div>
+                      )}
+
+                      {/* 확시 배정이력 토글 (superadmin 전용) */}
+                      {admin?.role === "superadmin" && selectedConsult.assignedAt && (
+                        <div style={{ marginBottom: "8px" }}>
+                          <button
+                            onClick={() => setShowHistory(h => !h)}
+                            style={{ width: "100%", padding: "8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", color: "#94A3B8", fontSize: "12px", fontWeight: "600", cursor: "pointer", textAlign: "left" }}>
+                            📋 배정 이력 보기 {showHistory ? "▲" : "▼"}
+                          </button>
+                          {showHistory && (
+                            <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "12px", marginTop: "6px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <p style={{ fontSize: "12px", color: "#94A3B8" }}>👤 담당자: {selectedConsult.assignedName || "-"} (@{selectedConsult.assignedTo || "-"})</p>
+                              <p style={{ fontSize: "12px", color: "#94A3B8" }}>📅 배정일시: {selectedConsult.assignedAt ? new Date(selectedConsult.assignedAt).toLocaleString("ko-KR") : "-"}</p>
+                              <p style={{ fontSize: "12px", color: "#94A3B8" }}>📝 배정로그: {selectedConsult.assignLog || "-"}</p>
+                              <p style={{ fontSize: "12px", color: "#94A3B8" }}>
+                                📱 알림톡: {selectedConsult.alimtalkStatus === "sent" ? "✅ 발송성공" : selectedConsult.alimtalkStatus === "failed" ? "❌ 발송실패" : "—"}
+                                {selectedConsult.alimtalkSentAt && ` / ${new Date(selectedConsult.alimtalkSentAt).toLocaleString("ko-KR").slice(0, 16)}`}
+                              </p>
+                              {selectedConsult.alimtalkError && (
+                                <p style={{ fontSize: "11px", color: "#EF4444" }}>오류: {selectedConsult.alimtalkError}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <button onClick={sendStatusEmail} disabled={emailSending}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: emailSending ? "not-allowed" : "pointer", backgroundColor: emailSent ? "#16A34A" : emailSending ? "#334155" : "#0F766E", color: "#FFF", marginTop: "8px" }}>
                         {emailSent ? "✓ 이메일 발송완료!" : emailSending ? "📧 전송 중..." : `📧 이메일 발송 (${emailTemplate || cNewStatus})`}
