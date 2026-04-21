@@ -17,9 +17,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260421-9768",
-    "status": "접수대기",
+    "status": "심사중",
     "adminMemo": "",
-    "assignedTo": "",
+    "assignedTo": "son4291",
     "consultDate": "",
     "createdAt": "2026. 4. 21. 오후 9:49:34",
     "aiAnalysis": {
@@ -55,7 +55,21 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 21. 오후 9:49:34"
+    "updatedAt": "2026. 4. 21. 오후 10:15:25",
+    "funds": [
+      {
+        "id": "1776777200468",
+        "fundName": "소진공",
+        "amount": "3000",
+        "status": "심사대기",
+        "updatedAt": "2026. 4. 21. 오후 10:13:46"
+      }
+    ],
+    "assignedName": "손권찬",
+    "assignedAt": "2026-04-21T13:13:31.786Z",
+    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 21. 오후 10:13:31",
+    "alimtalkStatus": "sent",
+    "alimtalkSentAt": "2026-04-21T13:13:33.018Z"
   },
   {
     "name": "테스트",

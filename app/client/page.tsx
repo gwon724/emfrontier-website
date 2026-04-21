@@ -232,67 +232,65 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
               </div>
             </div>
 
-            {/* 진행 단계 타임라인 */}
-            <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-              <p style={{ fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "16px" }}>📊 진행 단계</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
-                {PROGRESS_STEPS.map((step, i) => {
-                  const done = stepIdx > i;
-                  const current = stepIdx === i;
-                  const color = done ? "#10B981" : current ? "#3B82F6" : "#334155";
-                  return (
-                    <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                        <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#FFF", fontWeight: "800", flexShrink: 0 }}>
-                          {done ? "✓" : i + 1}
-                        </div>
-                        <span style={{ fontSize: "9px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
+            {/* 진행 단계 타임라인 — 자금별 */}
+            {consult.funds && consult.funds.length > 0 ? (
+              consult.funds.map(fund => {
+                const fundStepIdx = getStepIndex(consult.status);
+                return (
+                  <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
+                    {/* 자금명 + 금액 */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                      <div>
+                        <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
+                        {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}</p>}
                       </div>
-                      {i < PROGRESS_STEPS.length - 1 && (
-                        <div style={{ width: "20px", height: "2px", backgroundColor: done ? "#10B981" : "#1E293B", borderRadius: "1px", margin: "0 2px", marginBottom: "14px", flexShrink: 0 }} />
-                      )}
+                      <span style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}20`, color: FUND_STATUS_COLORS[fund.status] || "#94A3B8", fontSize: "11px", fontWeight: "800", border: `1px solid ${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}40`, flexShrink: 0 }}>
+                        {fund.status}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 자금 집행 현황 */}
-            {consult.funds && consult.funds.length > 0 && (
+                    <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>📍 진행 단계</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
+                      {PROGRESS_STEPS.map((step, i) => {
+                        const done = fundStepIdx > i;
+                        const current = fundStepIdx === i;
+                        const color = done ? "#10B981" : current ? "#3B82F6" : "#334155";
+                        return (
+                          <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#FFF", fontWeight: "800", flexShrink: 0 }}>
+                                {done ? "✓" : i + 1}
+                              </div>
+                              <span style={{ fontSize: "9px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
+                            </div>
+                            {i < PROGRESS_STEPS.length - 1 && (
+                              <div style={{ width: "20px", height: "2px", backgroundColor: done ? "#10B981" : "#1E293B", borderRadius: "1px", margin: "0 2px", marginBottom: "14px", flexShrink: 0 }} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              // 자금 없으면 기존 방식 (상담 전체 진행단계)
               <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-                <p style={{ fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "14px" }}>💰 자금 집행 현황</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {consult.funds.map(fund => {
-                    const color = FUND_STATUS_COLORS[fund.status] || "#94A3B8";
-                    const isRejected = fund.status === "부결";
-                    const isApproved = fund.status === "승인" || fund.status === "자금집행";
-                    const progW = fundProgressWidth(fund.status);
+                <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>📍 진행 단계</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
+                  {PROGRESS_STEPS.map((step, i) => {
+                    const done = stepIdx > i;
+                    const current = stepIdx === i;
+                    const color = done ? "#10B981" : current ? "#3B82F6" : "#334155";
                     return (
-                      <div key={fund.id} style={{ backgroundColor: "#0F172A", borderRadius: "12px", padding: "14px", border: `1px solid ${color}30` }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                          <div>
-                            <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9" }}>{fund.fundName}</p>
-                            {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>신청금액: {fund.amount}</p>}
+                      <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                          <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#FFF", fontWeight: "800", flexShrink: 0 }}>
+                            {done ? "✓" : i + 1}
                           </div>
-                          <span style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${color}20`, color, fontSize: "11px", fontWeight: "800", border: `1px solid ${color}40`, flexShrink: 0 }}>
-                            {fund.status}
-                          </span>
+                          <span style={{ fontSize: "9px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
                         </div>
-                        {isRejected ? (
-                          <div style={{ backgroundColor: "#450A0A", borderRadius: "8px", padding: "8px 12px" }}>
-                            <p style={{ fontSize: "12px", color: "#FCA5A5", fontWeight: "700" }}>❌ 이 자금은 부결 처리되었습니다</p>
-                          </div>
-                        ) : (
-                          <div>
-                            <div style={{ height: "6px", backgroundColor: "#1E293B", borderRadius: "999px", overflow: "hidden" }}>
-                              <div style={{ height: "100%", backgroundColor: isApproved ? "#10B981" : color, borderRadius: "999px", width: progW, transition: "width 0.5s ease" }} />
-                            </div>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
-                              <span style={{ fontSize: "10px", color: "#475569" }}>준비</span>
-                              <span style={{ fontSize: "10px", color: isApproved ? "#10B981" : color, fontWeight: "700" }}>{fund.status}</span>
-                              <span style={{ fontSize: "10px", color: "#475569" }}>자금집행</span>
-                            </div>
-                          </div>
+                        {i < PROGRESS_STEPS.length - 1 && (
+                          <div style={{ width: "20px", height: "2px", backgroundColor: done ? "#10B981" : "#1E293B", borderRadius: "1px", margin: "0 2px", marginBottom: "14px", flexShrink: 0 }} />
                         )}
                       </div>
                     );
