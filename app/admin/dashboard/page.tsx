@@ -655,7 +655,9 @@ ${name} 대표님!
   const applied = users.filter(u => u.application).length;
   const inProgress = users.filter(u => u.application?.status === "진행중").length;
   const done = users.filter(u => u.application?.status === "집행완료").length;
-  const cTotal = consultations.length;
+  const cTotal = admin?.role === "superadmin"
+    ? consultations.filter(c => c.status !== "접수대기").length
+    : consultations.filter(c => c.assignedTo === admin?.username).length;
   const cWaiting = consultations.filter(c => c.status === "접수대기").length;
   const cInProg = consultations.filter(c => ["상담예약", "서류요청", "신청진행"].includes(c.status)).length;
   const cDone = consultations.filter(c => ["상담완료", "종결"].includes(c.status)).length;
