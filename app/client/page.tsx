@@ -32,8 +32,8 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
     setError("");
     setLoading(true);
     try {
-      const users = getAllUsers();
-      const user = users.find(u => u.name === name.trim() && u.password === password);
+      const users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      const user = users.find((u: {name: string; password: string}) => u.name === name.trim() && u.password === password);
       if (!user) {
         setError("이름 또는 비밀번호가 올바르지 않습니다");
         setLoading(false);
@@ -89,6 +89,15 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
             style={{ width: "100%", padding: "14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "12px", fontSize: "15px", fontWeight: "800", cursor: "pointer", fontFamily: font }}>
             {loading ? "⏳ 로그인 중..." : "🔐 로그인"}
           </button>
+          <div style={{ textAlign: "center", marginTop: "16px" }}>
+            <a
+              href="tel:01082114291"
+              style={{ fontSize: "12px", color: "#64748B", textDecoration: "none" }}
+            >
+              파스워드를 잊으셨나요? &nbsp;
+              <span style={{ color: "#3B82F6", fontWeight: "700" }}>담당자에게 연락하세요</span>
+            </a>
+          </div>
         </form>
       </div>
     </div>
