@@ -57,6 +57,7 @@ export interface AdminAccount {
   username: string;
   password: string;
   name: string;
+  phone?: string;
   role: "superadmin" | "admin";
   createdAt: string;
   lastLogin?: string;

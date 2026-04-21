@@ -17,9 +17,9 @@ export default function SettingPage() {
   const router = useRouter();
   const [me, setMe] = useState<AdminAccount | null>(null);
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
-  const [form, setForm] = useState({ username: "", password: "", name: "", role: "admin" as "admin" | "superadmin" });
+  const [form, setForm] = useState({ username: "", password: "", name: "", phone: "", role: "admin" as "admin" | "superadmin" });
   const [editId, setEditId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", password: "", role: "admin" as "admin" | "superadmin" });
+  const [editForm, setEditForm] = useState({ name: "", password: "", phone: "", role: "admin" as "admin" | "superadmin" });
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
@@ -39,9 +39,9 @@ export default function SettingPage() {
     if (!form.password.trim()) return showErr("비밀번호를 입력해주세요");
     if (!form.name.trim()) return showErr("이름을 입력해주세요");
     if (getAllAdmins().find(a => a.username === form.username)) return showErr("이미 존재하는 아이디입니다");
-    addAdmin({ username: form.username, password: form.password, name: form.name, role: form.role });
+    addAdmin({ username: form.username, password: form.password, name: form.name, phone: form.phone, role: form.role });
     setAdmins(getAllAdmins());
-    setForm({ username: "", password: "", name: "", role: "admin" });
+    setForm({ username: "", password: "", name: "", phone: "", role: "admin" });
     showMsg("✅ 어드민 계정이 추가되었습니다");
   };
 
@@ -55,12 +55,12 @@ export default function SettingPage() {
 
   const handleEdit = (a: AdminAccount) => {
     setEditId(a.id);
-    setEditForm({ name: a.name, password: "", role: a.role });
+    setEditForm({ name: a.name, password: "", phone: a.phone || "", role: a.role });
   };
 
   const handleEditSave = () => {
     if (!editId) return;
-    const data: Partial<AdminAccount> = { name: editForm.name, role: editForm.role };
+    const data: Partial<AdminAccount> = { name: editForm.name, phone: editForm.phone, role: editForm.role };
     if (editForm.password.trim()) data.password = editForm.password;
     updateAdmin(editId, data);
     setAdmins(getAllAdmins());
@@ -98,7 +98,7 @@ export default function SettingPage() {
         {/* 새 계정 추가 */}
         <div style={{ backgroundColor: "#fff", borderRadius: "16px", padding: "24px", marginBottom: "24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#1E3A8A", marginBottom: "20px" }}>➕ 새 어드민 계정 추가</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div>
               <label style={{ fontSize: "12px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "6px" }}>아이디</label>
               <input value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
@@ -115,6 +115,12 @@ export default function SettingPage() {
               <label style={{ fontSize: "12px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "6px" }}>이름</label>
               <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                 placeholder="이름 입력"
+                style={{ width: "100%", padding: "10px 14px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px", fontFamily: font, boxSizing: "border-box" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: "12px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "6px" }}>전화번호</label>
+              <input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                placeholder="010-0000-0000"
                 style={{ width: "100%", padding: "10px 14px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px", fontFamily: font, boxSizing: "border-box" }} />
             </div>
             <div>
@@ -140,10 +146,16 @@ export default function SettingPage() {
               <div key={a.id} style={{ border: "1px solid #E2E8F0", borderRadius: "12px", padding: "16px 20px", backgroundColor: a.id === me.id ? "#EFF6FF" : "#FAFBFF" }}>
                 {editId === a.id ? (
                   <div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "12px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px", marginBottom: "12px" }}>
                       <div>
                         <label style={{ fontSize: "11px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "4px" }}>이름</label>
                         <input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
+                          style={{ width: "100%", padding: "8px 12px", border: "2px solid #DBEAFE", borderRadius: "8px", fontSize: "13px", fontFamily: font, boxSizing: "border-box" }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: "700", color: "#374151", display: "block", marginBottom: "4px" }}>전화번호</label>
+                        <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                          placeholder="010-0000-0000"
                           style={{ width: "100%", padding: "8px 12px", border: "2px solid #DBEAFE", borderRadius: "8px", fontSize: "13px", fontFamily: font, boxSizing: "border-box" }} />
                       </div>
                       <div>
@@ -183,7 +195,10 @@ export default function SettingPage() {
                           {a.name}
                           {a.id === me.id && <span style={{ fontSize: "11px", color: "#2563EB", marginLeft: "6px", backgroundColor: "#DBEAFE", padding: "2px 8px", borderRadius: "999px" }}>나</span>}
                         </p>
-                        <p style={{ fontSize: "12px", color: "#64748B" }}>@{a.username} · {a.role === "superadmin" ? "⭐ 최고관리자" : "👤 관리자"}</p>
+                        <p style={{ fontSize: "12px", color: "#64748B" }}>
+                          @{a.username} · {a.role === "superadmin" ? "⭐ 최고관리자" : "👤 관리자"}
+                          {a.phone && ` · 📞 ${a.phone}`}
+                        </p>
                         <p style={{ fontSize: "11px", color: "#94A3B8" }}>가입: {new Date(a.createdAt).toLocaleDateString("ko-KR")}{a.lastLogin && ` · 최근 로그인: ${new Date(a.lastLogin).toLocaleDateString("ko-KR")}`}</p>
                       </div>
                     </div>
