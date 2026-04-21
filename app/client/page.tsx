@@ -265,7 +265,19 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             {/* 진행 단계 타임라인 — 자금별 */}
             {consult.funds && consult.funds.length > 0 ? (
               consult.funds.map(fund => {
-                const fundStepIdx = getStepIndex(consult.status);
+                // 자금 상태 맵핑 → PROGRESS_STEPS 인덱스
+                const FUND_TO_STEP: Record<string, number> = {
+                  "준비":    -1, // 아무것도 도달하지 않음
+                  "접수완료": 0,  // 접수완료
+                  "심사대기": 3,  // 심사중
+                  "심사중":  3,  // 심사중
+                  "심사완료": 4,  // 승인완료
+                  "자금집행": 5,  // 집행중
+                  "승인":    4,  // 승인완료
+                  "부결":    -2, // 부결(특수 표시)
+                };
+                const fundStepIdx = FUND_TO_STEP[fund.status] ?? -1;
+                const isRejected = fund.status === "부결";
                 return (
                   <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
                     {/* 자금명 + 금액 */}
@@ -279,6 +291,11 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                       </span>
                     </div>
                     <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>📍 진행 단계</p>
+                    {isRejected ? (
+                      <div style={{ backgroundColor: "#450A0A", borderRadius: "8px", padding: "10px 14px" }}>
+                        <p style={{ fontSize: "13px", color: "#FCA5A5", fontWeight: "700" }}>❌ 이 자금은 부결 처리되었습니다</p>
+                      </div>
+                    ) : (
                     <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
                       {PROGRESS_STEPS.map((step, i) => {
                         const done = fundStepIdx > i;
@@ -299,6 +316,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                         );
                       })}
                     </div>
+                    )}
                   </div>
                 );
               })
