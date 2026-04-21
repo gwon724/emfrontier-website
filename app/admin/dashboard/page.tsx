@@ -165,6 +165,7 @@ export default function AdminDashboard() {
   // 자금 현황 상태
   const [newFundName, setNewFundName] = useState("");
   const [newFundAmount, setNewFundAmount] = useState("");
+  const [pendingFundStatus, setPendingFundStatus] = useState<Record<string, string>>({}); // fundId -> 선택된 상태
 
   // 실패 모달
   const [failModal, setFailModal] = useState<{
@@ -1797,35 +1798,60 @@ ${name} 대표님!
                                       🗑️
                                     </button>
                                   </div>
-                                  {/* 상태 버튼 8개 */}
+                                  {/* 상태 버튼 8개 — 클릭 시 임시 선택만, 저장 버튼으로 확정 */}
                                   <div style={{ display: "flex", gap: "4px", overflowX: "auto", paddingBottom: "2px" }}>
                                     {FUND_STATUS_LIST.map(st => {
-                                      const isActive = fund.status === st;
+                                      const isPending = (pendingFundStatus[fund.id] ?? fund.status) === st;
+                                      const isCurrentSaved = fund.status === st;
                                       const col = FUND_STATUS_COLORS[st] || "#94A3B8";
                                       return (
                                         <button
                                           key={st}
                                           onClick={() => {
-                                            if (isActive) return;
-                                            handleFundStatus(fund.id, st as import("@/lib/store").FundStatus, true);
+                                            setPendingFundStatus(prev => ({ ...prev, [fund.id]: st }));
                                           }}
                                           style={{
                                             padding: "5px 9px",
                                             fontSize: "11px",
                                             fontWeight: "700",
                                             borderRadius: "6px",
-                                            border: isActive ? `2px solid ${col}` : "1px solid #334155",
-                                            backgroundColor: isActive ? `${col}25` : "#0F172A",
-                                            color: isActive ? col : "#64748B",
-                                            cursor: isActive ? "default" : "pointer",
+                                            border: isPending ? `2px solid ${col}` : "1px solid #334155",
+                                            backgroundColor: isPending ? `${col}25` : "#0F172A",
+                                            color: isPending ? col : "#64748B",
+                                            cursor: "pointer",
                                             whiteSpace: "nowrap",
                                             flexShrink: 0,
+                                            opacity: isCurrentSaved && !isPending ? 0.5 : 1,
                                           }}>
                                           {st}
+                                          {isCurrentSaved && <span style={{ marginLeft: "3px", fontSize: "9px" }}>✓</span>}
                                         </button>
                                       );
                                     })}
                                   </div>
+                                  {/* 저장 버튼 — 선택된 상태가 현재 저장된 상태와 다를 때만 표시 */}
+                                  {pendingFundStatus[fund.id] && pendingFundStatus[fund.id] !== fund.status && (
+                                    <button
+                                      onClick={() => {
+                                        const newSt = pendingFundStatus[fund.id];
+                                        handleFundStatus(fund.id, newSt as import("@/lib/store").FundStatus, true);
+                                        setPendingFundStatus(prev => { const n = { ...prev }; delete n[fund.id]; return n; });
+                                      }}
+                                      style={{
+                                        marginTop: "8px",
+                                        width: "100%",
+                                        padding: "8px 0",
+                                        backgroundColor: "#3B82F6",
+                                        color: "#FFF",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        fontSize: "13px",
+                                        fontWeight: "700",
+                                        cursor: "pointer",
+                                      }}>
+                                      💾 저장 및 알림톡 발송 → {pendingFundStatus[fund.id]}
+                                    </button>
+                                  )}
                                   <p style={{ fontSize: "10px", color: "#475569", marginTop: "6px" }}>마지막 업데이트: {fund.updatedAt}</p>
                                 </div>
                               );
