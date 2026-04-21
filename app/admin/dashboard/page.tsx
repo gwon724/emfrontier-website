@@ -7,11 +7,12 @@ import {
   FONT, UserRecord, deleteUser, getCurrentAdmin, AdminAccount,
   getAllConsultations, updateConsultation, registerUser, upsertUser,
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
-  syncAllToServer, restoreFromServer,
+  syncAllToServer, restoreFromServer, assignConsultation, getAllAdmins,
 } from "@/lib/store";
 
 const font = FONT;
 type Tab = "members" | "consultations" | "naver";
+type ConsultTab = "waiting" | "mine";
 
 function calcConsultGrade(c: Consultation): { grade: string; score: number } {
   let s = 0;
@@ -109,6 +110,10 @@ export default function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [consultTab, setConsultTab] = useState<ConsultTab>("waiting");
+  const [adminList, setAdminList] = useState<AdminAccount[]>([]);
+  const [reassignTarget, setReassignTarget] = useState<string | null>(null); // consultation id
+  const [reassignAdminId, setReassignAdminId] = useState("");
   const [cSearch, setCSearch] = useState("");
   const [cStatusFilter, setCStatusFilter] = useState<ConsultStatus | "">("");
   const [cGradeFilter, setCGradeFilter] = useState("");
@@ -407,6 +412,7 @@ ${name} 대표님!
   useEffect(() => {
     if (!localStorage.getItem("adminLoggedIn")) { router.push("/admin/login"); return; }
     setAdmin(getCurrentAdmin());
+    setAdminList(getAllAdmins());
     refresh();
     setLoading(false);
     const interval = setInterval(refresh, 5000);
@@ -516,13 +522,25 @@ ${name} 대표님!
       return new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime();
     });
 
-  const filteredConsults = consultations.filter(c => {
+  const filteredWaiting = consultations.filter(c => {
+    const q = cSearch.trim().toLowerCase();
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q);
+    const matchGrade = !cGradeFilter || calcConsultGrade(c).grade === cGradeFilter;
+    return c.status === "접수대기" && matchSearch && matchGrade;
+  });
+
+  const filteredMine = consultations.filter(c => {
     const q = cSearch.trim().toLowerCase();
     const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q);
     const matchStatus = !cStatusFilter || c.status === cStatusFilter;
     const matchGrade = !cGradeFilter || calcConsultGrade(c).grade === cGradeFilter;
-    return matchSearch && matchStatus && matchGrade;
+    const isMine = admin?.role === "superadmin"
+      ? c.status !== "접수대기"
+      : c.status !== "접수대기" && c.assignedTo === admin?.username;
+    return isMine && matchSearch && matchStatus && matchGrade;
   });
+
+  const filteredConsults = consultTab === "waiting" ? filteredWaiting : filteredMine;
 
   const total = users.length;
   const applied = users.filter(u => u.application).length;
@@ -670,7 +688,6 @@ ${name} 대표님!
           <Link href="/admin/dashboard" style={{ backgroundColor: "#2563EB", color: "#FFF" }} onClick={() => setMobileNav(false)}>📊 대시보드</Link>
           <Link href="/admin/funds" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💰 자금 관리</Link>
           <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💬 상담 관리</Link>
-          <Link href="/admin/accounts" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>🔑 계정 관리</Link>
           <button className="mob-link" onClick={() => { setMobileNav(false); logout(); }}>로그아웃</button>
         </div>
 
@@ -689,7 +706,6 @@ ${name} 대표님!
                 <Link href="/admin/dashboard" style={{ backgroundColor: "#2563EB", color: "#FFF" }}>📊 대시보드</Link>
                 <Link href="/admin/funds" style={{ backgroundColor: "#334155", color: "#CBD5E1" }}>💰 자금</Link>
                 <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }}>💬 상담</Link>
-                <Link href="/admin/accounts" style={{ backgroundColor: "#334155", color: "#CBD5E1" }}>🔑 계정</Link>
               </nav>
             </div>
             <div className="dash-right">

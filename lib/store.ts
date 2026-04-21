@@ -2968,7 +2968,10 @@ export interface Consultation {
   // 관리자 필드
   status: ConsultStatus;
   adminMemo: string;
-  assignedTo: string;           // 담당자
+  assignedTo: string;           // 담당자 username
+  assignedAt?: string;          // 배정 시각 ISO string
+  assignedName?: string;        // 담당자 이름 (표시용)
+  assignLog?: string;           // "누가 언제 배정" 로그 문자열
   consultDate: string;          // 상담 예약일시
   createdAt: string;
   updatedAt?: string;
@@ -3093,7 +3096,7 @@ export function getConsultationById(id: string): Consultation | null {
 }
 
 export function submitConsultation(
-  data: Omit<Consultation, "id" | "status" | "adminMemo" | "assignedTo" | "consultDate" | "createdAt" | "updatedAt">
+  data: Omit<Consultation, "id" | "status" | "adminMemo" | "assignedTo" | "assignedAt" | "assignedName" | "assignLog" | "consultDate" | "createdAt" | "updatedAt">
 ): Consultation {
   const consultation: Consultation = {
     ...data,
@@ -3138,6 +3141,22 @@ export function updateConsultation(id: string, data: Partial<Consultation>) {
 
 export function deleteConsultation(id: string) {
   saveAllConsultations(getAllConsultations().filter(c => c.id !== id));
+}
+
+export function assignConsultation(id: string, admin: AdminAccount): void {
+  const list = getAllConsultations();
+  const idx = list.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  const now = new Date().toISOString();
+  list[idx] = {
+    ...list[idx],
+    status: "상담예약",
+    assignedTo: admin.username,
+    assignedName: admin.name,
+    assignedAt: now,
+    assignLog: `${admin.name}(${admin.username}) 배정 - ${new Date(now).toLocaleString("ko-KR")}`,
+  };
+  saveAllConsultations(list);
 }
 
 export function lookupConsultations(name: string, phone: string): Consultation[] {
