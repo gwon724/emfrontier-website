@@ -17,6 +17,7 @@ function RegisterForm() {
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -36,28 +37,37 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!email || !email.includes("@")) return setError("올바른 이메일을 입력해주세요");
     if (password.length < 6) return setError("비밀번호는 6자 이상이어야 합니다");
     if (password !== confirm) return setError("비밀번호가 일치하지 않습니다");
 
     setSubmitting(true);
     try {
-      // clientUsers에서 이름+연락처로 기존 계정 찾아 비밀번호 업데이트, 없으면 신규 생성
+      // clientUsers에서 이름+연락처로 기존 계정 찾아 업데이트, 없으면 신규 생성
       const clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
       const idx = clientUsers.findIndex((u: { name: string; phone: string }) =>
         u.name === tokenData.name && u.phone === tokenData.phone
       );
       if (idx !== -1) {
         clientUsers[idx].password = password;
+        clientUsers[idx].email = email;
       } else {
         clientUsers.push({
           id: Date.now().toString(),
           name: tokenData.name,
           phone: tokenData.phone,
+          email,
           password,
           createdAt: new Date().toISOString(),
         });
       }
       localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
+      // 서버 DB 동기화
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "clientUsers", value: clientUsers }),
+      }).catch(() => {});
       markTokenUsed(tokenStr);
       setDone(true);
       setTimeout(() => router.replace("/client"), 2000);
@@ -107,6 +117,20 @@ function RegisterForm() {
               readOnly
               style={{ width: "100%", padding: "12px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "10px", fontSize: "14px", color: "#64748B", fontFamily: font, boxSizing: "border-box" }}
             />
+          </div>
+
+          {/* 이메일 */}
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "#94A3B8", display: "block", marginBottom: "6px" }}>이메일 <span style={{ color: "#EF4444" }}>*</span></label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="이메일 주소 입력"
+              required
+              style={{ width: "100%", padding: "12px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "10px", fontSize: "14px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", outline: "none" }}
+            />
+            <p style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>비밀번호 분실 시 임시 비밀번호 발송에 사용됩니다</p>
           </div>
 
           {/* 비밀번호 */}
