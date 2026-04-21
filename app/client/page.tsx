@@ -272,7 +272,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
                       <div>
                         <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
-                        {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}</p>}
+                        {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
                       </div>
                       <span style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}20`, color: FUND_STATUS_COLORS[fund.status] || "#94A3B8", fontSize: "11px", fontWeight: "800", border: `1px solid ${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}40`, flexShrink: 0 }}>
                         {fund.status}

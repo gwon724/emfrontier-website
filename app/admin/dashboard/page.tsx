@@ -1785,7 +1785,7 @@ ${name} 대표님!
                                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                                     <div>
                                       <p style={{ fontSize: "13px", fontWeight: "800", color: "#F1F5F9" }}>{fund.fundName}</p>
-                                      {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>💰 {fund.amount}</p>}
+                                      {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>💰 {fund.amount}만원</p>}
                                     </div>
                                     <button
                                       onClick={() => handleFundDelete(fund.id)}
