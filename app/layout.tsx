@@ -4,8 +4,8 @@ import "./globals.css";
 // 구글 폰트 import 제거 - 인라인 폰트 스택 사용 (네트워크 차단 방지)
 
 export const metadata: Metadata = {
-  title: "엠프론티어 - 정책자금 AI 진단",
-  description: "정책자금 신청을 위한 AI 진단 시스템",
+  title: "엠프론티어 - 정책자금 무료상담",
+  description: "정책자금 전문 컨설팅 | 미승인 시 착수금 100% 환불 | 무료 상담 신청",
   icons: {
     icon: "/favicon.ico",
   },
