@@ -185,8 +185,8 @@ function buildText(templateType: string, c: Record<string, string>): string {
 
 🔗 가입 링크: ${c.registerLink || ""}
 
-⏰ 링크 유효시간: 24시간
-가입 후 진행 현황 확인 및 서류 제출이 가능합니다.
+링크는 24시간 동안 유효합니다.
+가입 후 진행 현황 및 서류 제출이 가능합니다.
 
 엠프론티어`,
     register:
