@@ -45,6 +45,9 @@ export default function AdminDashboard() {
   const [userEmailSending, setUserEmailSending] = useState(false);
   const [userEmailSent, setUserEmailSent] = useState(false);
   const [userEmailStatus, setUserEmailStatus] = useState("접수대기");
+  const [userAlimSending, setUserAlimSending] = useState(false);
+  const [userAlimSent, setUserAlimSent] = useState(false);
+  const [userAlimTemplate, setUserAlimTemplate] = useState("register");
 
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", age: "", gender: "남성", annual_revenue: "", nice_score: "", kcb_score: "" });
@@ -108,6 +111,53 @@ export default function AdminDashboard() {
       else alert(`발송 실패: ${JSON.stringify(data.error)}`);
     } catch { alert("네트워크 오류"); }
     setUserEmailSending(false);
+  };
+
+  const sendUserAlimtalk = async () => {
+    if (!selectedUser) return;
+    // 회원의 연락처 우선, 없으면 상담에서 찾기
+    const phone = selectedUser.phone ||
+      getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
+    if (!phone) { alert("연락처가 없어 알림톡을 보낼 수 없어요."); return; }
+    setUserAlimSending(true);
+    try {
+      const res = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: {
+            name: selectedUser.name,
+            phone,
+            id: selectedUser.id,
+            businessType: selectedUser.application?.businessType || "-",
+            desiredAmount: selectedUser.application?.desiredAmount || "-",
+            manager: admin?.name,
+            managerPhone: admin?.phone,
+          },
+          templateType: userAlimTemplate,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setUserAlimSent(true);
+        showSuccess("✅ 알림톡 발송 완료");
+        setTimeout(() => setUserAlimSent(false), 3000);
+      } else {
+        showFailModal(selectedUser.name, phone, data.error || "오류",
+          async () => {
+            const r = await fetch("/api/alimtalk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consultation: { name: selectedUser.name, phone, id: selectedUser.id, manager: admin?.name, managerPhone: admin?.phone }, templateType: userAlimTemplate }),
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            showSuccess("✅ 알림톡 재발송 성공");
+          }
+        );
+      }
+    } catch { alert("네트워크 오류"); }
+    setUserAlimSending(false);
   };
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("전체");
@@ -2134,6 +2184,38 @@ ${name} 대표님!
                       backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E",
                       color: "#FFF" }}>
                     {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
+                  </button>
+                </div>
+
+                {/* 카카오 알림톡 발송 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>💬 카카오 알림톡</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
+                    {[
+                      { value: "register", label: "접수확인" },
+                      { value: "consult_reserve", label: "상담예약" },
+                      { value: "docs_request", label: "서류요청" },
+                      { value: "fund_apply", label: "자금신청" },
+                      { value: "approved", label: "승인완료" },
+                      { value: "rejected", label: "미승인" },
+                      { value: "remind", label: "리마인드" },
+                      { value: "consult_done", label: "상담종결" },
+                    ].map(t => (
+                      <button key={t.value} onClick={() => setUserAlimTemplate(t.value)}
+                        style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
+                          border: `2px solid ${userAlimTemplate === t.value ? "#F59E0B" : "#334155"}`,
+                          backgroundColor: userAlimTemplate === t.value ? "rgba(245,158,11,0.15)" : "#0F172A",
+                          color: userAlimTemplate === t.value ? "#F59E0B" : "#64748B" }}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={sendUserAlimtalk} disabled={userAlimSending}
+                    style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
+                      cursor: userAlimSending ? "not-allowed" : "pointer",
+                      backgroundColor: userAlimSent ? "#16A34A" : userAlimSending ? "#334155" : "#B45309",
+                      color: "#FFF" }}>
+                    {userAlimSent ? "✓ 알림톡 발송완료!" : userAlimSending ? "⏳ 전송 중..." : `💬 ${userAlimTemplate} 알림톡 발송`}
                   </button>
                 </div>
 
