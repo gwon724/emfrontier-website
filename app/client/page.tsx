@@ -75,10 +75,14 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0B1120", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: font }}>
-      <div style={{ backgroundColor: "#1E293B", borderRadius: "20px", padding: "36px 28px", maxWidth: "400px", width: "100%", border: "1px solid #334155", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+      <div style={{ maxWidth: "400px", width: "100%" }}>
+        {/* 로고 - 카드 밖 */}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <img src={LOGO_B64} alt="엠프론티어" style={{ width: "110px", height: "auto", objectFit: "contain", borderRadius: "12px" }} />
+        </div>
+        <div style={{ backgroundColor: "#1E293B", borderRadius: "20px", padding: "32px 28px", width: "100%", border: "1px solid #334155", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <img src={LOGO_B64} alt="엠프론티어" style={{ width: "120px", height: "auto", objectFit: "contain", marginBottom: "4px" }} />
-          <p style={{ fontSize: "16px", fontWeight: "800", color: "#F1F5F9", marginTop: "12px" }}>고객 포털</p>
+          <p style={{ fontSize: "16px", fontWeight: "800", color: "#F1F5F9", margin: 0 }}>고객 포털</p>
           <p style={{ fontSize: "13px", color: "#64748B", marginTop: "4px" }}>진행 현황을 확인하세요</p>
         </div>
 
@@ -157,6 +161,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
             </div>
           )}
         </form>
+      </div>
       </div>
     </div>
   );
