@@ -77,8 +77,8 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
     <div style={{ minHeight: "100vh", backgroundColor: "#0B1120", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: font }}>
       <div style={{ backgroundColor: "#1E293B", borderRadius: "24px", padding: "40px 28px 36px", maxWidth: "400px", width: "100%", border: "1px solid #334155", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "18px", overflow: "hidden", marginBottom: "16px", border: "1px solid #334155" }}>
-            <img src={LOGO_B64} alt="엠프론티어" style={{ width: "72px", height: "72px", objectFit: "cover" }} />
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", marginBottom: "16px" }}>
+            <img src={LOGO_B64} alt="엠프론티어" style={{ width: "72px", height: "72px", objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: "20px", fontWeight: "800", color: "#F1F5F9", margin: 0 }}>고객 포털</p>
           <p style={{ fontSize: "13px", color: "#64748B", marginTop: "6px" }}>진행 현황을 확인하세요</p>
