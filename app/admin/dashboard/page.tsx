@@ -116,7 +116,7 @@ export default function AdminDashboard() {
   const sendUserAlimtalk = async () => {
     if (!selectedUser) return;
     // 회원의 연락처 우선, 없으면 상담에서 찾기
-    const phone = selectedUser.phone ||
+    const phone = (selectedUser as UserRecord & { phone?: string }).phone ||
       getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
     if (!phone) { alert("연락처가 없어 알림톡을 보낼 수 없어요."); return; }
     setUserAlimSending(true);
@@ -129,8 +129,8 @@ export default function AdminDashboard() {
             name: selectedUser.name,
             phone,
             id: selectedUser.id,
-            businessType: selectedUser.application?.businessType || "-",
-            desiredAmount: selectedUser.application?.desiredAmount || "-",
+            businessType: "-",
+            desiredAmount: "-",
             manager: admin?.name,
             managerPhone: admin?.phone,
           },
