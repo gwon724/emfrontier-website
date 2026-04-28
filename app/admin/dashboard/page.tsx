@@ -2418,7 +2418,7 @@ ${name} 대표님!
                       <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "12px 0" }}>등록된 자금이 없어요.</p>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").map((f, idx) => (
+                        {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").map((f) => (
                           <div key={f.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1E3A8A", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                             <div>
                               <p style={{ fontSize: "13px", fontWeight: "700", color: "#60A5FA" }}>{f.fundName}</p>
@@ -2429,7 +2429,7 @@ ${name} 대표님!
                                 value={f.status}
                                 onChange={async e => {
                                   const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
-                                  const updated = (type.funds || []).map((x, i) => i === idx ? {...x, status: e.target.value} : x);
+                                  const updated = (type.funds || []).map(x => x.id === f.id ? {...x, status: e.target.value} : x);
                                   const updatedUser = { ...selectedUser, funds: updated };
                                   upsertUser(updatedUser as UserRecord);
                                   const allU = getAllUsers();
@@ -2437,6 +2437,7 @@ ${name} 대표님!
                                   localStorage.setItem("users", JSON.stringify(allU));
                                   setUsers(allU);
                                   setSelectedUser(updatedUser as UserRecord);
+                                  showSuccess("✅ 상태 변경 완료!");
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >
@@ -2444,9 +2445,8 @@ ${name} 대표님!
                               </select>
                               <button
                                 onClick={async () => {
-                                  
                                   const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
-                                  const updated = (type.funds || []).filter((_, i) => i !== idx);
+                                  const updated = (type.funds || []).filter(x => x.id !== f.id);
                                   const updatedUser = { ...selectedUser, funds: updated };
                                   upsertUser(updatedUser as UserRecord);
                                   const allU = getAllUsers();
@@ -2454,6 +2454,7 @@ ${name} 대표님!
                                   localStorage.setItem("users", JSON.stringify(allU));
                                   setUsers(allU);
                                   setSelectedUser(updatedUser as UserRecord);
+                                  showSuccess("✅ 자금 삭제 완료!");
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
                                 ✕
