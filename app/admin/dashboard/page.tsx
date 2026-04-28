@@ -698,10 +698,30 @@ export default function AdminDashboard() {
 
   const handleFundStatus = async (fundId: string, status: FundStatus, sendAlim: boolean) => {
     if (!selectedConsult) return;
+    const targetFund = (selectedConsult.funds || []).find(f => f.id === fundId);
     const funds = (selectedConsult.funds || []).map(f =>
       f.id === fundId ? { ...f, status, updatedAt: new Date().toLocaleString("ko-KR") } : f
     );
     updateConsultation(selectedConsult.id, { funds });
+
+    // 부결 시 미승인 정책자금으로 이동 (진행중에서 제거 + 미승인에 추가)
+    if (status === "부결" && targetFund) {
+      const already = (selectedConsult.funds || []).some(f => f.fundName === targetFund.fundName && f.id !== fundId && f.status === "부결");
+      if (!already) {
+        const rejFund = {
+          id: `f_rej_${Date.now()}`,
+          fundName: targetFund.fundName,
+          amount: "-",
+          status: "부결" as FundStatus,
+          institution: "",
+          updatedAt: new Date().toLocaleString("ko-KR"),
+        };
+        // 진행중에서 제거 + 미승인 추가
+        const updatedFunds = funds.filter(f => f.id !== fundId).concat(rejFund);
+        updateConsultation(selectedConsult.id, { funds: updatedFunds });
+      }
+    }
+
     const fresh = getAllConsultations();
     setConsultations(fresh);
     const found = fresh.find(c => c.id === selectedConsult.id);
@@ -2599,7 +2619,7 @@ ${name} 대표님!
                                       showSuccess(alimRes.ok ? `✅ [${label}] 알림톡 자동 발송!` : "✅ 상태 변경 완료! (알림톡 실패)");
                                     } else { showSuccess("✅ 상태 변경 완료!"); }
                                   } else { showSuccess("✅ 상태 변경 완료!"); }
-                                  // 부결 시 미승인 정책자금 섹션에도 자동 추가
+                                  // 부결 시 진행중에서 제거 + 미승인 섹션으로 이동
                                   if (newStatus === "부결") {
                                     const rejFund = type2.funds?.find(x => x.id === fundId);
                                     const linkedC = getAllConsultations().filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id))[0];
@@ -2614,10 +2634,22 @@ ${name} 대표님!
                                           institution: "",
                                           updatedAt: new Date().toLocaleString("ko-KR"),
                                         };
-                                        updateConsultation(linkedC.id, { funds: [...(linkedC.funds || []), newRejF] });
+                                        // 진행중에서 제거 + 미승인 추가
+                                        const updatedFunds = (linkedC.funds || []).filter(f => f.id !== fundId).concat(newRejF);
+                                        updateConsultation(linkedC.id, { funds: updatedFunds });
                                         const freshC = getAllConsultations();
                                         await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: freshC }) });
                                         setConsultations(freshC);
+                                        // users 테이블에서도 해당 자금 제거
+                                        const allU2 = getAllUsers();
+                                        const uIdx2 = allU2.findIndex((u: {id:string}) => u.id === selectedUser.id);
+                                        if (uIdx2 !== -1) {
+                                          const uFunds2 = ((allU2[uIdx2] as UserRecord & {funds?: Array<{id:string;status:string}>}).funds || []).filter((f: {id:string}) => f.id !== fundId);
+                                          (allU2[uIdx2] as UserRecord & {funds?: unknown[]}).funds = uFunds2;
+                                          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU2 }) });
+                                          setUsers(allU2);
+                                          setSelectedUser({...selectedUser, funds: uFunds2} as UserRecord);
+                                        }
                                       }
                                     }
                                   }
