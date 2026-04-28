@@ -22,5 +22,12 @@
     "email": "son713119@naver.com",
     "password": "skc0724",
     "createdAt": "2026-04-28T05:44:39.583Z"
+  },
+  {
+    "id": "CU-1777357556394",
+    "name": "테스트",
+    "phone": "01011111111",
+    "password": "",
+    "createdAt": "2026-04-28T06:25:56.394Z"
   }
 ]

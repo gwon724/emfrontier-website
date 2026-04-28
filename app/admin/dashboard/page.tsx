@@ -9,7 +9,7 @@ import {
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
   syncAllToServer, restoreFromServer, assignConsultation, getAllAdmins,
   FundProgress, FundStatus, FUND_STATUS_LIST, FUND_STATUS_COLORS,
-  createRegisterToken, createUploadToken, saveAllUsers,
+  createRegisterToken, createUploadToken, saveAllUsers, getAllFunds, FundProduct,
 } from "@/lib/store";
 
 const font = FONT;
@@ -259,6 +259,11 @@ export default function AdminDashboard() {
   const [cAssigned, setCAssigned] = useState("");
   const [cDate, setCDate] = useState("");
   const [cSaved, setCSaved] = useState(false);
+  // 저장 후 등급/자금 점수 모달
+  const [gradeResult, setGradeResult] = useState<{
+    grade: string; score: number;
+    funds: FundProduct[];
+  } | null>(null);
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailTemplate, setEmailTemplate] = useState("");
@@ -961,6 +966,23 @@ ${name} 대표님!
     const updated = fresh.find(c => c.id === selectedConsult.id);
     if (updated) setSelectedConsult(updated);
     setCSaved(true); setTimeout(() => setCSaved(false), 2500);
+
+    // SOHO 등급 재측정 + 자금 추천
+    const updatedC = updated || selectedConsult;
+    const { grade, score } = calcConsultGrade(updatedC);
+    const nice = Number(cNice) || 0;
+    const rev = Number(cRevenue) || 0;
+    const debt = [cDebtFirst,cDebtSecond,cDebtCard,cDebtCapital,cDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0);
+    const allFunds = getAllFunds();
+    const recFunds = allFunds.filter(f => {
+      if (!f.active) return false;
+      if (!f.eligibleGrades.includes(grade)) return false;
+      if (Number(f.minRevenue) > 0 && rev < Number(f.minRevenue)) return false;
+      if (Number(f.minCreditScore) > 0 && nice < Number(f.minCreditScore)) return false;
+      if (Number(f.maxDebt) > 0 && debt > Number(f.maxDebt)) return false;
+      return true;
+    }).slice(0, 6);
+    setGradeResult({ grade, score, funds: recFunds });
   };
 
   // 타사 업데이트 후 localStorage→서버 동기화 헬퍼
@@ -2641,6 +2663,42 @@ ${name} 대표님!
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: cSaved ? "#16A34A" : "#2563EB", color: "#FFF", marginBottom: "8px" }}>
                         {cSaved ? "✓ 저장됨" : "💾 전체 저장"}
                       </button>
+
+                      {/* SOHO 등급 재측정 결과 */}
+                      {gradeResult && (
+                        <div style={{ backgroundColor: "#0F172A", border: `2px solid ${gradeResult.grade === "A" ? "#16A34A" : gradeResult.grade === "B" ? "#3B82F6" : gradeResult.grade === "C" ? "#D97706" : "#EF4444"}`, borderRadius: "12px", padding: "16px", marginBottom: "8px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                            <p style={{ fontSize: "13px", fontWeight: "800", color: "#F1F5F9" }}>📊 SOHO 등급 재측정 결과</p>
+                            <button onClick={() => setGradeResult(null)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "16px" }}>×</button>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "14px" }}>
+                            <div style={{ width: "60px", height: "60px", borderRadius: "50%", backgroundColor: `${gradeResult.grade === "A" ? "#16A34A" : gradeResult.grade === "B" ? "#3B82F6" : gradeResult.grade === "C" ? "#D97706" : "#EF4444"}20`, border: `2px solid ${gradeResult.grade === "A" ? "#16A34A" : gradeResult.grade === "B" ? "#3B82F6" : gradeResult.grade === "C" ? "#D97706" : "#EF4444"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <span style={{ fontSize: "24px", fontWeight: "900", color: gradeResult.grade === "A" ? "#16A34A" : gradeResult.grade === "B" ? "#3B82F6" : gradeResult.grade === "C" ? "#D97706" : "#EF4444" }}>{gradeResult.grade}</span>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: "12px", color: "#94A3B8", marginBottom: "2px" }}>SOHO 등급</p>
+                              <p style={{ fontSize: "18px", fontWeight: "900", color: gradeResult.grade === "A" ? "#16A34A" : gradeResult.grade === "B" ? "#3B82F6" : gradeResult.grade === "C" ? "#D97706" : "#EF4444" }}>{gradeResult.grade === "A" ? "최우수" : gradeResult.grade === "B" ? "우량" : gradeResult.grade === "C" ? "보통" : "주의"}</p>
+                              <p style={{ fontSize: "12px", color: "#64748B" }}>점수: {gradeResult.score}pt</p>
+                            </div>
+                          </div>
+                          <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "8px" }}>🏦 가능한 정책자금 ({gradeResult.funds.length}건)</p>
+                          {gradeResult.funds.length === 0 ? (
+                            <p style={{ fontSize: "12px", color: "#EF4444" }}>현재 조건에 맞는 자금이 없습니다.</p>
+                          ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              {gradeResult.funds.map(f => (
+                                <div key={f.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                  <div>
+                                    <p style={{ fontSize: "12px", fontWeight: "700", color: "#F1F5F9", marginBottom: "2px" }}>{f.name}</p>
+                                    <p style={{ fontSize: "11px", color: "#94A3B8" }}>최대 {Number(f.maxAmount).toLocaleString()}원 · {f.interestRate}</p>
+                                  </div>
+                                  <span style={{ fontSize: "10px", backgroundColor: "#1E3A5F", color: "#60A5FA", padding: "3px 8px", borderRadius: "999px", fontWeight: "700", flexShrink: 0 }}>{f.category}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* 📊 자금 현황 */}
                       <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px", marginBottom: "8px" }}>
