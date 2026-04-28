@@ -219,7 +219,8 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   const [userRecord, setUserRecord] = useState<import("@/lib/store").UserRecord | null>(null);
 
   useEffect(() => {
-    // 서버에서 최신 데이터 로드
+    // 서버에서 최신 데이터 로드 (localStorage 캐시 무효화)
+    localStorage.removeItem("consultations");
     fetch("/api/db?key=consultations").then(r => r.json()).then(j => {
       if (j.value) {
         localStorage.setItem("consultations", JSON.stringify(j.value));
