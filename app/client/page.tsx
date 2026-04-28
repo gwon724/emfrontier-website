@@ -223,17 +223,18 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
     fetch("/api/db?key=consultations").then(r => r.json()).then(j => {
       if (j.value) {
         localStorage.setItem("consultations", JSON.stringify(j.value));
-        const found = (j.value as import("@/lib/store").Consultation[]).find(c => c.name === clientName);
-        setConsult(found || null);
+        const matched = (j.value as import("@/lib/store").Consultation[]).filter(c => c.name === clientName);
+        const found = matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null;
+        setConsult(found);
       } else {
         const all = getAllConsultations();
-        const found = all.find(c => c.name === clientName);
-        setConsult(found || null);
+        const matched = all.filter(c => c.name === clientName);
+        setConsult(matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null);
       }
     }).catch(() => {
       const all = getAllConsultations();
-      const found = all.find(c => c.name === clientName);
-      setConsult(found || null);
+      const matched = all.filter(c => c.name === clientName);
+      setConsult(matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null);
     });
     // users DB에서 회원 정책자금 로드
     fetch("/api/db?key=users").then(r => r.json()).then(j => {
