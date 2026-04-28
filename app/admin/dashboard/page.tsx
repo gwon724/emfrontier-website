@@ -383,6 +383,7 @@ export default function AdminDashboard() {
   // 자금 현황 상태
   const [newFundName, setNewFundName] = useState("");
   const [newFundAmount, setNewFundAmount] = useState("");
+  const [newRejFundName, setNewRejFundName] = useState("");
   const [pendingFundStatus, setPendingFundStatus] = useState<Record<string, string>>({}); // fundId -> 선택된 상태
 
   // 실패 모달
@@ -2782,6 +2783,73 @@ ${name} 대표님!
                     );
                   })()}
 
+                  {/* 미승인 정책자금 섹션 */}
+                  {(() => {
+                    const userConsults2 = consultations.filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id));
+                    const linkedConsult2 = userConsults2[0];
+                    const rejFunds = (linkedConsult2?.funds || []).filter(f => f.status === "부결");
+                    return (
+                      <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#EF4444", marginBottom: "10px" }}>❌ 미승인 정책자금</p>
+                        {linkedConsult2 && (
+                          <div style={{ display: "flex", gap: "6px", marginBottom: "10px" }}>
+                            <input
+                              value={newRejFundName}
+                              onChange={e => setNewRejFundName(e.target.value)}
+                              placeholder="자금명 직접 입력"
+                              style={{ flex: 1, padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                            />
+                            <button
+                              disabled={!newRejFundName.trim()}
+                              onClick={async () => {
+                                if (!newRejFundName.trim()) return;
+                                const newFund = {
+                                  id: `f_rej_${Date.now()}`,
+                                  fundName: newRejFundName.trim(),
+                                  amount: "-",
+                                  status: "부결" as import("@/lib/store").FundStatus,
+                                  institution: "",
+                                  updatedAt: new Date().toLocaleString("ko-KR"),
+                                };
+                                updateConsultation(linkedConsult2.id, { funds: [...(linkedConsult2.funds || []), newFund] });
+                                const fresh = getAllConsultations();
+                                await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                setConsultations(fresh);
+                                setNewRejFundName("");
+                                showSuccess("✅ 미승인 자금 추가 완료!");
+                              }}
+                              style={{ padding: "8px 14px", backgroundColor: newRejFundName.trim() ? "#EF4444" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: newRejFundName.trim() ? "pointer" : "not-allowed" }}>
+                              + 추가
+                            </button>
+                          </div>
+                        )}
+                        {rejFunds.length === 0 ? (
+                          <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "12px 0" }}>등록된 미승인 자금이 없어요.</p>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {rejFunds.map(fund => (
+                              <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #7F1D1D", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div>
+                                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{fund.fundName}</p>
+                                  <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "2px" }}>미승인</p>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    const updated = (linkedConsult2.funds || []).filter(f => f.id !== fund.id);
+                                    updateConsultation(linkedConsult2.id, { funds: updated });
+                                    const fresh = getAllConsultations();
+                                    await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                    setConsultations(fresh);
+                                  }}
+                                  style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "16px" }}>×</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* AI 보고서 버튼 */}
                   <button
                     onClick={async () => {
@@ -2834,6 +2902,7 @@ ${name} 대표님!
                       } catch (e) { setAiReport("오류: " + e); }
                       setAiReportLoading(false);
                     }}
+
                     style={{ width: "100%", marginTop: "8px", padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", backgroundColor: "#7C3AED", color: "#FFF" }}>
                     🤖 AI 분석 보고서 생성
                   </button>

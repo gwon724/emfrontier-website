@@ -61,5 +61,14 @@
     "createdAt": "2026-04-28T11:32:58.351Z",
     "expiresAt": "2026-04-29T11:32:58.351Z",
     "used": false
+  },
+  {
+    "token": "reg_twjppp0gk7moijuydw",
+    "consultationId": "CS-20260428-1530",
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "createdAt": "2026-04-28T11:35:34.292Z",
+    "expiresAt": "2026-04-29T11:35:34.292Z",
+    "used": false
   }
 ]
