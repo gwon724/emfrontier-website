@@ -1144,12 +1144,12 @@ ${name} 대표님!
       }
     } catch {}
 
-    // 담당자 배정 + 상담예약일시 있으면 상담예약 알림톡 자동 발송
-    if (cAssigned && cDate && selectedConsult?.phone) {
-      // 이전 상태와 비교 — 담당자 or 날짜가 새로 입력됐을 때만 발송
+    // 담당자 배정 시 상담예약 알림톡 자동 발송 (날짜 없으면 "담당자 안내 예정")
+    if (cAssigned && selectedConsult?.phone) {
+      // 이전 담당자와 다를 때만 발송 (중복 방지)
       const prevAssigned = selectedConsult.assignedTo || selectedConsult.assignedName || "";
       const prevDate = selectedConsult.consultDate || "";
-      if (cAssigned !== prevAssigned || cDate !== prevDate) {
+      if (cAssigned !== prevAssigned || (cDate && cDate !== prevDate)) {
         const managerAdmin = adminList.find((a) => a.name === cAssigned);
         const enriched = {
           name: selectedConsult.name,
@@ -1157,7 +1157,7 @@ ${name} 대표님!
           id: selectedConsult.id,
           manager: cAssigned,
           managerPhone: managerAdmin?.phone || admin?.phone || "",
-          consultDatetime: cDate,
+          consultDatetime: cDate || "담당자 안내 예정",
         };
         const alimRes = await fetch("/api/alimtalk", {
           method: "POST",
