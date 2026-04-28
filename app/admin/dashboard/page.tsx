@@ -1033,6 +1033,7 @@ ${name} 대표님!
       if (!f.eligibleGrades.includes(grade)) return false;
       if (Number(f.minRevenue) > 0 && rev < Number(f.minRevenue)) return false;
       if (Number(f.minCreditScore) > 0 && nice < Number(f.minCreditScore)) return false;
+      if (f.maxCreditScore && Number(f.maxCreditScore) > 0 && nice > Number(f.maxCreditScore)) return false;
       if (Number(f.maxDebt) > 0 && debt > Number(f.maxDebt)) return false;
       return true;
     }).slice(0, 6);
@@ -2864,19 +2865,38 @@ ${name} 대표님!
                       <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px", marginBottom: "8px" }}>
                         <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "12px" }}>📊 자금 현황</p>
 
-                        {/* 자금 추가 폼 */}
+                        {/* 자금 추가 폼 - 정책자금 DB 드롭다운 선택 */}
                         <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap" }}>
-                          <input
+                          <select
                             value={newFundName}
-                            onChange={e => setNewFundName(e.target.value)}
-                            placeholder="예: 소상공인 정책자금"
-                            style={{ ...inp, flex: 2, minWidth: "120px", fontSize: "12px" }}
-                          />
+                            onChange={e => {
+                              const selected = getAllFunds().find(f => f.name === e.target.value);
+                              setNewFundName(e.target.value);
+                              if (selected) setNewFundAmount(`최대 ${Number(selected.maxAmount).toLocaleString()}원`);
+                            }}
+                            style={{ ...inp, flex: 2, minWidth: "160px", fontSize: "12px", cursor: "pointer" }}
+                          >
+                            <option value="">정책자금 선택...</option>
+                            {getAllFunds().filter(f => f.active).map(f => (
+                              <option key={f.id} value={f.name}>
+                                [{f.category}] {f.name} (최대 {Number(f.maxAmount).toLocaleString()}원)
+                              </option>
+                            ))}
+                            <option value="__custom__">직접 입력...</option>
+                          </select>
+                          {newFundName === "__custom__" && (
+                            <input
+                              value={newFundAmount}
+                              onChange={e => setNewFundName(e.target.value)}
+                              placeholder="자금명 직접 입력"
+                              style={{ ...inp, flex: 1, minWidth: "120px", fontSize: "12px" }}
+                            />
+                          )}
                           <input
                             value={newFundAmount}
                             onChange={e => setNewFundAmount(e.target.value)}
-                            placeholder="예: 5,000만원"
-                            style={{ ...inp, flex: 1, minWidth: "90px", fontSize: "12px" }}
+                            placeholder="승인금액 (예: 5,000만원)"
+                            style={{ ...inp, flex: 1, minWidth: "100px", fontSize: "12px" }}
                           />
                           <button
                             onClick={handleFundAdd}

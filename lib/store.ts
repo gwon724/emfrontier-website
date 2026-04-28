@@ -77,6 +77,7 @@ export interface FundProduct {
   minRevenue: string;               // 최소 연매출 조건 (원, 0이면 제한 없음)
   maxDebt: string;                  // 최대 기대출 조건 (원, 0이면 제한 없음)
   minCreditScore: string;           // 최소 신용점수 조건 (NICE 기준)
+  maxCreditScore?: string;           // 최대 신용점수 조건 (NICE 기준, 취약소공인 등)
   description: string;              // 자금 설명
   active: boolean;                  // 활성화 여부
   createdAt: string;
@@ -159,7 +160,8 @@ const DEFAULT_FUNDS: FundProduct[] = [
     minRevenue: "0",
     maxDebt: "0",
     minCreditScore: "0",
-    description: "저신용·저소득 취약 소상공인 전용 자금. 신용점수가 낮아 민간 금융 이용이 어려운 소상공인에게 최대 3천만 원 지원. 연 2% 고정금리.",
+    maxCreditScore: "839",
+    description: "저신용·저소득 취약 소상공인 전용 자금. NICE 신용점수 839점 이하에서만 신청 가능. 최대 3천만 원 지원. 연 2% 고정금리.",
     active: true,
     createdAt: "2026-01-01 00:00:00",
   },
@@ -2660,6 +2662,7 @@ export function getRecommendedFunds(u: UserRecord): FundProduct[] {
     if (Number(f.maxAmount) > MAX_AMOUNT) return false;
     if (Number(f.minRevenue) > 0 && rev < Number(f.minRevenue)) return false;
     if (Number(f.minCreditScore) > 0 && nice < Number(f.minCreditScore)) return false;
+    if (f.maxCreditScore && Number(f.maxCreditScore) > 0 && nice > Number(f.maxCreditScore)) return false;
     if (Number(f.maxDebt) > 0 && totalDebt > Number(f.maxDebt)) return false;
     return true;
   });
