@@ -48,6 +48,15 @@ export async function POST(req: NextRequest) {
       u.name === user.name && u.phone === user.phone ? { ...u, password: tempPw, isTempPassword: true } : u
     );
     writeClientUsers(updatedUsers);
+    // 서버 DB에도 저장 (로그인 시 서버 DB 우선 조회)
+    try {
+      const baseUrl2 = process.env.NEXT_PUBLIC_BASE_URL || "https://emfrontier.team";
+      await fetch(`${baseUrl2}/api/db`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "clientUsers", value: updatedUsers }),
+      });
+    } catch { /* 실패해도 로컬 파일은 저장됨 */ }
 
     // 카카오 알림톡 발송 (전화번호로)
     let kakaoSent = false;
