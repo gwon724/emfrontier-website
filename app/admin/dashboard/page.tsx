@@ -384,6 +384,7 @@ export default function AdminDashboard() {
   const [newFundName, setNewFundName] = useState("");
   const [newFundAmount, setNewFundAmount] = useState("");
   const [newRejFundName, setNewRejFundName] = useState("");
+  const [newRejFundAmount, setNewRejFundAmount] = useState("");
   const [pendingFundStatus, setPendingFundStatus] = useState<Record<string, string>>({}); // fundId -> 선택된 상태
 
   // 실패 모달
@@ -2892,16 +2893,24 @@ ${name} 대표님!
                               value={newRejFundName}
                               onChange={e => setNewRejFundName(e.target.value)}
                               placeholder="자금명 직접 입력"
-                              style={{ flex: 1, padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                              style={{ flex: 2, padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                            />
+                            <input
+                              value={newRejFundAmount}
+                              onChange={e => setNewRejFundAmount(e.target.value)}
+                              placeholder="금액 (만원)"
+                              style={{ flex: 1, minWidth: "80px", padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
                             />
                             <button
                               disabled={!newRejFundName.trim()}
                               onClick={async () => {
                                 if (!newRejFundName.trim()) return;
+                                const rawRejAmt = newRejFundAmount.trim();
+                                const fmtRejAmt = rawRejAmt ? (rawRejAmt.endsWith("만원") ? rawRejAmt : rawRejAmt + "만원") : "-";
                                 const newFund = {
                                   id: `f_rej_${Date.now()}`,
                                   fundName: newRejFundName.trim(),
-                                  amount: "-",
+                                  amount: fmtRejAmt,
                                   status: "부결" as import("@/lib/store").FundStatus,
                                   institution: "",
                                   updatedAt: new Date().toLocaleString("ko-KR"),
@@ -2912,6 +2921,7 @@ ${name} 대표님!
                                 setConsultations(fresh);
                                 const savedRejFundName = newRejFundName.trim();
                                 setNewRejFundName("");
+                                setNewRejFundAmount("");
                                 // 미승인 알림톡 발송
                                 const rejPhone = (selectedUser as UserRecord & {phone?:string}).phone || "";
                                 if (rejPhone) {
@@ -2946,7 +2956,7 @@ ${name} 대표님!
                               <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #7F1D1D", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <div>
                                   <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{fund.fundName}</p>
-                                  <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "2px" }}>미승인</p>
+                                  <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "2px" }}>{fund.amount && fund.amount !== "-" ? fund.amount : "미승인"}</p>
                                 </div>
                                 <button
                                   onClick={async () => {
