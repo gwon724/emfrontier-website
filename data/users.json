@@ -27,6 +27,14 @@
         "amount": "1000",
         "status": "부결",
         "addedAt": "2026-04-28T11:42:52.446Z"
+      },
+      {
+        "id": "uf_1777377934172",
+        "fundName": "ㅁ",
+        "fundId": "",
+        "amount": "1000",
+        "status": "부결",
+        "addedAt": "2026-04-28T12:05:34.172Z"
       }
     ],
     "debtDetail": {

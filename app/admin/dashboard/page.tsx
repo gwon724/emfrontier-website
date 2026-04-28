@@ -2595,7 +2595,8 @@ ${name} 대표님!
                                   if (alimType) {
                                     const uPhone = (selectedUser as UserRecord & {phone?:string}).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
                                     if (uPhone) {
-                                      const thisFund = type2.funds?.find(x => x.id === fundId);
+                                      const linkedC2 = getAllConsultations().filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id))[0];
+                                      const thisFund = type2.funds?.find(x => x.id === fundId) || linkedC2?.funds?.find((x: {id:string}) => x.id === fundId);
                                       const rawAmt = thisFund?.amount || "-";
                                       const fmtAmt = (rawAmt !== "-" && !rawAmt.endsWith("만원")) ? rawAmt + "만원" : rawAmt;
                                       const enriched = {
@@ -2603,8 +2604,8 @@ ${name} 대표님!
                                         phone: uPhone,
                                         id: selectedUser.id,
                                         manager: admin?.name,
-                                        managerPhone: admin?.phone,
-                                        fundName: thisFund?.fundName || "-",
+                                        managerPhone: admin?.phone || "01082114291",
+                                        fundName: (thisFund as {fundName?:string})?.fundName || "-",
                                         amount: fmtAmt,
                                         fundLimit: fmtAmt,
                                         execAmount: fmtAmt,
