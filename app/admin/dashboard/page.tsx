@@ -516,6 +516,39 @@ export default function AdminDashboard() {
         setRegisterLinkSent(true);
         showSuccess("✅ 회원가입 링크 발송 완료");
         setTimeout(() => setRegisterLinkSent(false), 4000);
+        // users DB에도 추가 + 회원 탭 이동
+        try {
+          const usersRes = await fetch("/api/db?key=users").then(r => r.json()).catch(() => ({ value: null }));
+          const allUsers = usersRes.value || JSON.parse(localStorage.getItem("users") || "[]");
+          const existsUser = allUsers.find((u: {name:string; phone?:string}) =>
+            u.name === selectedConsult.name && u.phone === selectedConsult.phone.replace(/-/g,"")
+          );
+          if (!existsUser) {
+            allUsers.push({
+              id: `user_${Date.now()}`,
+              email: selectedConsult.email || "",
+              password: "",
+              name: selectedConsult.name,
+              phone: selectedConsult.phone.replace(/-/g,""),
+              age: selectedConsult.age || "",
+              gender: selectedConsult.gender || "남성",
+              annual_revenue: selectedConsult.annual_revenue || "",
+              debt_policy: "0", debt_bank1: "0", debt_bank2: "0", debt_card: "0",
+              currentDebt: selectedConsult.currentDebt || "0",
+              nice_score: selectedConsult.nice_score || "",
+              kcb_score: "",
+              businessType: selectedConsult.businessType || "",
+              businessPeriod: selectedConsult.businessPeriod || "",
+              desiredAmount: selectedConsult.desiredAmount || "",
+              registeredAt: new Date().toISOString(),
+            });
+            await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allUsers }) });
+            localStorage.setItem("users", JSON.stringify(allUsers));
+            setUsers(allUsers);
+          }
+        } catch {}
+        setShowConsultDetail(false);
+        setTab("members");
       } else {
         setRegisterLinkToken(tokenData.token);
         const retryFn = async () => {

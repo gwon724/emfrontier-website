@@ -393,7 +393,7 @@ function DetailPanel({
   const font = FONT;
   const selectedFundObjects = allFunds.filter(f => (selected.selectedFundIds || []).includes(f.id));
   const ai = selected.aiAnalysis;
-  const grade = calcGrade(selected);
+  const grade = calcGrade(selected) as string;
   const gradeC = gc(grade);
 
   return (

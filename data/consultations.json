@@ -118,8 +118,8 @@
       "fund_004",
       "fund_035"
     ],
-    "updatedAt": "2026. 4. 28. 오후 3:22:04",
-    "alimtalkStatus": "failed",
+    "updatedAt": "2026. 4. 28. 오후 4:08:32",
+    "alimtalkStatus": "sent",
     "debtDetail": {
       "first": "",
       "second": "",
@@ -128,9 +128,9 @@
       "policy": ""
     },
     "assignedName": "손권찬",
-    "assignedAt": "2026-04-28T06:22:04.120Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 3:22:04",
-    "alimtalkError": "보유 잔액이 부족하여 발송에 실패하였습니다.\n[보유잔액: 0, 보유포인트: 1, 보유예치금: 0]"
+    "assignedAt": "2026-04-28T07:08:32.232Z",
+    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 4:08:32",
+    "alimtalkSentAt": "2026-04-28T07:08:32.701Z"
   },
   {
     "id": "CS-1777357556711",
