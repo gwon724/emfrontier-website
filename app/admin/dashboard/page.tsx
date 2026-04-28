@@ -2441,7 +2441,7 @@ ${name} 대표님!
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >
-                                {["접수대기","접수완료","심사대기","심사중","승인","부결","보완"].map(s => <option key={s} value={s}>{s}</option>)}
+                                {["접수완료","심사대기","심사중","승인","부결","보완"].map(s => <option key={s} value={s}>{s}</option>)}
                               </select>
                               <button
                                 onClick={async () => {
@@ -2499,7 +2499,7 @@ ${name} 대표님!
                                 id: `f_${Date.now()}`,
                                 fundName: newFundName.trim(),
                                 amount: newFundAmount.trim(),
-                                status: "접수대기",
+                                status: "승인",
                                 institution: "",
                                 updatedAt: new Date().toLocaleString("ko-KR"),
                               };
