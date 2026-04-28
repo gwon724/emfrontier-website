@@ -2698,6 +2698,48 @@ ${name} 대표님!
                   </div>
                 )}
 
+                {/* 📍 진행단계 클릭 변경 */}
+                {(() => {
+                  const STEPS: ConsultStatus[] = ["접수대기", "접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "종결"];
+                  const curIdx = STEPS.indexOf((latestConsult?.status ?? "접수대기") as ConsultStatus);
+                  return (
+                    <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#10B981", marginBottom: "12px" }}>📍 진행단계</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
+                        {STEPS.map((step, i) => {
+                          const done = curIdx > i;
+                          const current = curIdx === i;
+                          const color = current ? "#3B82F6" : done ? "#10B981" : "#334155";
+                          return (
+                            <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                              <div
+                                onClick={async () => {
+                                  if (!latestConsult) return;
+                                  const updated = { ...latestConsult, status: step };
+                                  updateConsultation(latestConsult.id, { status: step });
+                                  const all = getAllConsultations();
+                                  await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: all }) });
+                                  setConsultations(all);
+                                  showSuccess(`✅ 진행단계 → ${step}`);
+                                }}
+                                style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}
+                              >
+                                <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#FFF", fontWeight: "800", flexShrink: 0, border: current ? "2px solid #93C5FD" : "none" }}>
+                                  {done ? "✓" : i + 1}
+                                </div>
+                                <span style={{ fontSize: "8px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
+                              </div>
+                              {i < STEPS.length - 1 && (
+                                <div style={{ width: "14px", height: "2px", backgroundColor: done ? "#10B981" : "#1E293B", borderRadius: "1px", margin: "0 2px", marginBottom: "14px", flexShrink: 0 }} />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* 포털 관리 + 서류 체크리스트 */}
                 <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#A78BFA", marginBottom: "10px" }}>🔑 포털 관리</p>
