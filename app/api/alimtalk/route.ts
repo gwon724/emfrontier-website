@@ -15,7 +15,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   register_portal:  "KA01TP2604211426533112Vr01NzRn2R",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
-  docs_request_link: "KA01TP2604280406057149elyZra1i9A",
+  docs_request_link: "KA01TP260428042944767QHY452d80Jp",
   temp_password:     "KA01TP260428041906549fDPAorI0aFg",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
   fund_waiting:    "KA01TP260421144920873mw6XDuWLJ0i",
@@ -277,8 +277,8 @@ function buildText(templateType: string, c: Record<string, string>): string {
     docs_request_link:
 `[엠프론티어] 서류 제출 안내
 
-#{이름} 대표님, 안녕하세요!
-정책자금 신청을 위한 서류 제출을 부탁드립니다.
+${name} 대표님, 안녕하세요!
+요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.
 
 📎 서류 제출 링크:
 ${c["uploadLink"] || ""}
