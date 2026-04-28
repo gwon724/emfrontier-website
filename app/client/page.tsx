@@ -393,10 +393,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                   { label: "접수번호", value: consult.id },
                   { label: "업종", value: consult.businessType || "-" },
                   { label: "희망금액", value: consult.desiredAmount || "-" },
-                  { label: "현재 상태", value: (()=>{
-                    const legacyMap: Record<string,string> = { "접수대기":"접수확인","접수완료":"접수확인","상담중":"상담예약","서류진행":"서류요청","심사중":"자금 신청","승인진행":"승인완료","집행중":"승인완료","사후관리":"승인완료","종결":"상담종결","상담취소":"상담종결" };
-                    return legacyMap[consult.status] || consult.status;
-                  })() },
+                  { label: "현재 상태", value: consult.status },
                   { label: "담당 매니저", value: consult.assignedName || "배정 중" },
                 ].map(item => (
                   <div key={item.label} style={{ backgroundColor: "#0F172A", borderRadius: "8px", padding: "10px 12px" }}>
