@@ -1369,7 +1369,11 @@ ${name} 대표님!
     const isMine = admin?.role === "superadmin"
       ? c.status !== "접수대기"
       : c.status !== "접수대기" && c.assignedTo === admin?.username;
-    return isMine && matchSearch && matchStatus && matchGrade;
+    // 이미 회원 탭에 있는 고객은 제외
+    const isAlreadyMember = users.some(u =>
+      u.name === c.name && ((u as UserRecord & {phone?:string}).phone === c.phone || (u as UserRecord & {phone?:string}).phone === c.phone.replace(/-/g, ""))
+    );
+    return isMine && !isAlreadyMember && matchSearch && matchStatus && matchGrade;
   });
 
   const filteredConsults = consultTab === "waiting" ? filteredWaiting : filteredMine;
