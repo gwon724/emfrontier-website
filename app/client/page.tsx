@@ -182,7 +182,8 @@ function PortalView({ clientName, onLogout, isTempPw }: { clientName: string; on
   const [showFinance, setShowFinance] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false);
   // 비밀번호 변경
-  const [showPwChange, setShowPwChange] = useState(isTempPw === true);
+  const [showPwChange, setShowPwChange] = useState(false);
+  useEffect(() => { if (isTempPw) setShowPwChange(true); }, [isTempPw]);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
