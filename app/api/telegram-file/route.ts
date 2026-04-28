@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   tgForm.append("document", file, file.name);
   tgForm.append(
     "caption",
-    `📎 서류 제출\n👤 고객명: ${clientName || "-"}\n📋 접수번호: ${consultationId || "-"}\n📂 서류종류: ${docName || "-"}`
+    `📎 서류 제출\n👤 고객명: ${clientName || "-"}\n📋 접수번호: ${consultationId || "-"}\n📂 서류종류: ${docName || "-"}\n📅 제출시간: ${new Date().toLocaleString("ko-KR", {timeZone:"Asia/Seoul"})}`
   );
 
   const res = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {

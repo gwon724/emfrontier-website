@@ -1246,6 +1246,7 @@ ${name} 대표님!
           <Link href="/admin/dashboard" style={{ backgroundColor: "#2563EB", color: "#FFF" }} onClick={() => setMobileNav(false)}>📊 대시보드</Link>
           <Link href="/admin/funds" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💰 자금 관리</Link>
           <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💬 상담 관리</Link>
+          <Link href="/admin/doc-collect" style={{ backgroundColor: "#065F46", color: "#34D399" }} onClick={() => setMobileNav(false)}>📁 서류 수집</Link>
           {admin?.role === "superadmin" && (<>
             <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("all-consults"); setMobileNav(false); }}>📋 전체상담</button>
           </>)}

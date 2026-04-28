@@ -414,23 +414,32 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
               <p style={{ fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "14px" }}>📁 서류 제출</p>
 
-              {/* 공통 서류 2열 */}
+              {/* [필수] 8종 */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
                 {docBtn("사업자등록증", "📄")}
+                {docBtn("사업자등록증명", "📋")}
+                {docBtn("신분증 사본", "🪪")}
                 {docBtn("재무제표", "📊")}
                 {docBtn("부가세 자료", "🧾")}
                 {docBtn("통장내역", "🏦")}
+                {docBtn("거래처 계약서/발주서", "🤝")}
+                {docBtn("4대보험 가입자 명부", "🏢")}
               </div>
 
-              {/* 재무 아코디언 */}
+              {/* [필수 추가] */}
               <button onClick={() => setShowFinance(p => !p)}
                 style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", color: "#94A3B8", fontSize: "12px", fontWeight: "700", cursor: "pointer", textAlign: "left", fontFamily: font, marginBottom: "6px" }}>
-                📈 재무 서류 {showFinance ? "▲" : "▼"}
+                📋 증명서류 {showFinance ? "▲" : "▼"}
               </button>
               {showFinance && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
+                  {docBtn("국세 완납증명서", "🏛️")}
+                  {docBtn("지방세 완납증명서", "🏛️")}
                   {docBtn("매출증빙", "📈")}
                   {docBtn("세금신고서", "📋")}
+                  {docBtn("대출내역서(개인)", "💳")}
+                  {docBtn("대출내역서(사업자)", "💳")}
+                  {docBtn("KCB/NICE 점수", "📊")}
                 </div>
               )}
 
@@ -443,6 +452,8 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
                   {docBtn("사업계획서", "📝")}
                   {docBtn("자금사용계획", "💰")}
+                  {docBtn("공동인증서(개인/범용)", "🔐")}
+                  {docBtn("계약서", "📑")}
                 </div>
               )}
 
@@ -452,7 +463,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                   <input
                     value={extraDocName}
                     onChange={e => setExtraDocName(e.target.value)}
-                    placeholder="서류명 입력"
+                    placeholder="서류명 직접 입력"
                     style={{ flex: 1, padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", fontFamily: font, outline: "none" }}
                   />
                   <button
