@@ -533,6 +533,17 @@ export async function POST(req: NextRequest) {
                 }
               ]
             } : {}),
+            // docs_request_link: 서류 제출 링크 버튼 동적 주입
+            ...(resolvedType === "docs_request_link" && c.uploadLink ? {
+              buttons: [
+                {
+                  buttonType: "WL",
+                  buttonName: "서류 제출하기",
+                  linkMo: c.uploadLink,
+                  linkPc: c.uploadLink,
+                }
+              ]
+            } : {}),
           }
         } : {}),
       },
