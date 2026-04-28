@@ -2781,7 +2781,14 @@ ${name} 대표님!
                           try {
                             const data = JSON.parse(text);
                             if (data.structured) { setAiStructured(data.structured); setAiReport(""); }
-                            else { setAiReport(data.report || data.error || "오류 발생"); }
+                            else if (data.report) {
+                              // report가 마크다운 코드블록 JSON인 경우 파싱 시도
+                              try {
+                                const cleaned = data.report.replace(/^```json\n?/, "").replace(/```$/, "").trim();
+                                const parsed = JSON.parse(cleaned);
+                                setAiStructured(parsed); setAiReport("");
+                              } catch { setAiReport(data.report); }
+                            } else { setAiReport(data.error || "오류 발생"); }
                           } catch { setAiReport("오류: " + text.slice(0, 200)); }
                         }
                       } catch (e) { setAiReport("오류: " + e); }
