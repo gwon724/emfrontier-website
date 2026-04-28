@@ -2537,6 +2537,8 @@ ${name} 대표님!
                                     const uPhone = (selectedUser as UserRecord & {phone?:string}).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
                                     if (uPhone) {
                                       const thisFund = type2.funds?.find(x => x.id === fundId);
+                                      const rawAmt = thisFund?.amount || "-";
+                                      const fmtAmt = (rawAmt !== "-" && !rawAmt.endsWith("만원")) ? rawAmt + "만원" : rawAmt;
                                       const enriched = {
                                         name: selectedUser.name,
                                         phone: uPhone,
@@ -2544,9 +2546,9 @@ ${name} 대표님!
                                         manager: admin?.name,
                                         managerPhone: admin?.phone,
                                         fundName: thisFund?.fundName || "-",
-                                        amount: thisFund?.amount || "-",
-                                        fundLimit: thisFund?.amount || "-",
-                                        execAmount: thisFund?.amount || "-",
+                                        amount: fmtAmt,
+                                        fundLimit: fmtAmt,
+                                        execAmount: fmtAmt,
                                         execDate: new Date().toLocaleDateString("ko-KR"),
                                       };
                                       const alimRes = await fetch("/api/alimtalk", {
