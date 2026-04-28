@@ -459,8 +459,16 @@ export default function SurveyPage() {
                 </div>
                 )}
 
+                {/* debt_input 타입: 항상 다음 버튼 표시 */}
+                {currentStepData.type === "debt_input" && (
+                  <button onClick={goNext}
+                    style={{ marginTop: "20px", width: "100%", padding: "15px", backgroundColor: "#2563EB", color: "#FFFFFF", border: "none", borderRadius: "12px", fontSize: "15px", fontWeight: "800", cursor: "pointer", fontFamily: font }}>
+                    다음 →
+                  </button>
+                )}
+
                 {/* 이미 선택된 경우 다음 버튼 표시 */}
-                {(form as unknown as Record<string, string>)[currentStepData.id] && (
+                {currentStepData.type !== "debt_input" && (form as unknown as Record<string, string>)[currentStepData.id] && (
                   <button onClick={goNext}
                     style={{ marginTop: "20px", width: "100%", padding: "15px", backgroundColor: "#2563EB", color: "#FFFFFF", border: "none", borderRadius: "12px", fontSize: "15px", fontWeight: "800", cursor: "pointer", fontFamily: font }}>
                     다음 →
