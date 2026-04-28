@@ -71,7 +71,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
       }
       const user = users.find((u) => u.phone?.replace(/-/g,"") === phone.trim().replace(/-/g,"") && u.password === password.trim());
       if (!user) {
-        setError("이름 또는 비밀번호가 올바르지 않습니다");
+        setError("전화번호 또는 비밀번호가 올바르지 않습니다");
         setLoading(false);
         return;
       }
