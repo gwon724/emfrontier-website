@@ -471,29 +471,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                         </div>
                       );
                     })()}
-                    {/* 전체 스텝 미니 바 */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "2px" }}>
-                      {FUND_PROGRESS_STEPS.map((st, i) => {
-                        const done = fundStepIdx > i && fundStepIdx !== -1;
-                        const current = fundStepIdx === i;
-                        const isRej = st === "부결" && (fund.status as string) === "부결";
-                        const isBowan = st === "보완" && (fund.status as string) === "보완";
-                        const col = isRej ? "#EF4444" : isBowan ? "#FBBF24" : st === "승인" && current ? "#34D399" : done ? "#10B981" : current ? "#3B82F6" : "#334155";
-                        return (
-                          <div key={st} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                              <div style={{ width: current ? "30px" : "22px", height: current ? "30px" : "22px", borderRadius: "50%", backgroundColor: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: current ? "11px" : "9px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 3px ${col}50` : "none" }}>
-                                {done ? "✓" : isRej ? "✕" : isBowan ? "!" : i + 1}
-                              </div>
-                              <span style={{ fontSize: "8px", color: current || isRej || isBowan ? col : done ? "#10B981" : "#475569", fontWeight: current || isRej || isBowan ? "800" : "500", whiteSpace: "nowrap" }}>{st}</span>
-                            </div>
-                            {i < FUND_PROGRESS_STEPS.length - 1 && (
-                              <div style={{ width: "10px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 1px", marginBottom: "16px", flexShrink: 0 }} />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+
                   </div>
                 );
               })
@@ -513,27 +491,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                     </div>
                   </div>
                 )}
-                {/* 전체 스텝 미니 바 */}
-                <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "2px" }}>
-                  {PROGRESS_STEPS.map((step, i) => {
-                    const done = stepIdx > i;
-                    const current = stepIdx === i;
-                    const color = done ? "#10B981" : current ? "#3B82F6" : "#334155";
-                    return (
-                      <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                          <div style={{ width: current ? "32px" : "24px", height: current ? "32px" : "24px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: current ? "12px" : "10px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 3px ${color}50` : "none", transition: "all .2s" }}>
-                            {done ? "✓" : i + 1}
-                          </div>
-                          <span style={{ fontSize: "8px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
-                        </div>
-                        {i < PROGRESS_STEPS.length - 1 && (
-                          <div style={{ width: "14px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 2px", marginBottom: "16px", flexShrink: 0 }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+
               </div>
             )}
 
