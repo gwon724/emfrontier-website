@@ -1103,6 +1103,37 @@ ${name} 대표님!
     if (updated) setSelectedConsult(updated);
     setCSaved(true); setTimeout(() => setCSaved(false), 2500);
 
+    // 담당자 배정된 경우 users DB 추가 + 회원 탭 이동
+    if (cAssigned) {
+      try {
+        const usersRes = await fetch("/api/db?key=users").then(r => r.json()).catch(() => ({ value: null }));
+        const allUsersArr = usersRes.value || JSON.parse(localStorage.getItem("users") || "[]");
+        const existsUser = allUsersArr.find((u: {name:string; phone?:string}) =>
+          u.name === cName && u.phone === cPhone.replace(/-/g,"")
+        );
+        if (!existsUser) {
+          allUsersArr.push({
+            id: `user_${Date.now()}`,
+            email: "", password: "",
+            name: cName, phone: cPhone.replace(/-/g,""),
+            age: cAge, gender: cGender || "남성",
+            annual_revenue: cRevenue,
+            debt_policy: "0", debt_bank1: "0", debt_bank2: "0", debt_card: "0",
+            currentDebt: String([cDebtFirst,cDebtSecond,cDebtCard,cDebtCapital,cDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0)),
+            nice_score: cNice, kcb_score: cKcb,
+            businessType: cBizType, businessPeriod: cBizPeriod,
+            desiredAmount: cDesiredAmount,
+            registeredAt: new Date().toISOString(),
+          });
+          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allUsersArr }) });
+          localStorage.setItem("users", JSON.stringify(allUsersArr));
+          setUsers(allUsersArr);
+        }
+      } catch {}
+      setShowConsultDetail(false);
+      setTab("members");
+    }
+
     // SOHO 등급 재측정 + 자금 추천
     const updatedC = updated || selectedConsult;
     const { grade, score } = calcConsultGrade(updatedC);
