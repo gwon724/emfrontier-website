@@ -1,26 +1,10 @@
 [
   {
-    "id": "1777345434316",
-    "name": ".",
-    "phone": "01082114291",
-    "password": "9mjKkyGM",
-    "createdAt": "2026-04-28T03:03:54.316Z",
-    "email": "son713119@naver.com"
-  },
-  {
     "id": "test001",
     "name": "테스트",
     "phone": "01000000000",
     "email": "test@emfrontier.team",
     "password": "test1234",
     "createdAt": "2026-04-28T00:00:00.000Z"
-  },
-  {
-    "id": "1777347591397",
-    "name": "테스트",
-    "phone": "01082114291",
-    "email": ".",
-    "password": "skc0724",
-    "createdAt": "2026-04-28T03:39:51.397Z"
   }
 ]
