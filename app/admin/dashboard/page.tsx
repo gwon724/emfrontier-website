@@ -2428,12 +2428,17 @@ ${name} 대표님!
                               <select
                                 value={f.status}
                                 onChange={async e => {
-                                  const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
-                                  const updated = (type.funds || []).map(x => x.id === f.id ? {...x, status: e.target.value} : x);
-                                  const updatedUser = { ...selectedUser, funds: updated } as UserRecord;
-                                  // 1. 즉시 UI 업데이트
+                                  const newStatus = e.target.value;
+                                  const fundId = f.id;
+                                  // 서버에서 최신 user 읽기
+                                  const serverRes = await fetch("/api/db?key=users").then(r=>r.json()).catch(()=>({value:[]}));
+                                  const serverUsers: UserRecord[] = serverRes.value || [];
+                                  const serverUser = serverUsers.find(u => u.id === selectedUser.id) || selectedUser;
+                                  const type2 = serverUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
+                                  const updated = (type2.funds || []).map(x => x.id === fundId ? {...x, status: newStatus} : x);
+                                  const updatedUser = { ...serverUser, funds: updated } as UserRecord;
+                                  // 즉시 UI + 저장
                                   setSelectedUser(updatedUser);
-                                  // 2. localStorage + 서버 저장
                                   upsertUser(updatedUser);
                                   const allU = getAllUsers();
                                   setUsers(allU);
