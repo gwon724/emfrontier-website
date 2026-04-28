@@ -2465,6 +2465,59 @@ ${name} 대표님!
                     )}
                   </div>
 
+                  {/* 상담 연동 자금 현황 (FundProgress) */}
+                  {(() => {
+                    const linkedConsult = consultations.find(c =>
+                      c.name === selectedUser.name &&
+                      ((c as Consultation & {phone?:string}).phone === (selectedUser as UserRecord & {phone?:string}).phone ||
+                       (c as Consultation & {phone?:string}).phone?.replace(/-/g,"") === (selectedUser as UserRecord & {phone?:string}).phone)
+                    );
+                    if (!linkedConsult) return null;
+                    return (
+                      <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#10B981", marginBottom: "10px" }}>📊 상담 자금 현황</p>
+                        {(!linkedConsult.funds || linkedConsult.funds.length === 0) ? (
+                          <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {linkedConsult.funds.map(fund => {
+                              const borderColor = FUND_STATUS_COLORS[fund.status] ? "#334155" : "#334155";
+                              return (
+                                <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: `1px solid ${borderColor}` }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                                    <div>
+                                      <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{fund.fundName}</p>
+                                      {fund.amount && <p style={{ fontSize: "11px", color: "#94A3B8", marginTop: "2px" }}>{fund.amount}만원</p>}
+                                    </div>
+                                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                      <select
+                                        value={fund.status}
+                                        onChange={async e => {
+                                          await handleFundStatus(fund.id, e.target.value as FundStatus, false);
+                                          const fresh = getAllConsultations();
+                                          setConsultations(fresh);
+                                          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                        }}
+                                        style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
+                                      >
+                                        {FUND_STATUS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                                      </select>
+                                      <button
+                                        onClick={() => handleFundDelete(fund.id)}
+                                        style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
+                                        ✕
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* AI 보고서 버튼 */}
                   <button
                     onClick={async () => {
