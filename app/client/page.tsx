@@ -10,11 +10,11 @@ import {
 
 const font = FONT;
 
-// 진행 단계 (접수대기/종결 제외)
-const PROGRESS_STEPS = ["접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "사후관리"];
+// 상담 진행단계 8단계
+const PROGRESS_STEPS = ["접수대기", "접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "종결"];
 
-// 8단계 프로그레스 (부결/승인 = 최종)
-const FUND_PROGRESS_STEPS = ["준비", "접수완료", "심사대기", "심사중", "심사완료", "자금집행"];
+// 자금별 진행단계 8단계
+const FUND_PROGRESS_STEPS = ["접수대기", "접수완료", "심사대기", "심사중", "실사중", "승인", "부결", "보완"];
 
 function getStepIndex(status: string) {
   const idx = PROGRESS_STEPS.indexOf(status);
@@ -425,8 +425,8 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             {/* 진행 단계 타임라인 — 자금별 */}
             {consult.funds && consult.funds.length > 0 ? (
               consult.funds.map(fund => {
-                const isRejected = fund.status === "부결";
-                const fundStepIdx = FUND_STATUS_LIST.indexOf(fund.status as import("@/lib/store").FundStatus);
+                const isRejected = (fund.status as string) === "부결" || (fund.status as string) === "보완";
+                const fundStepIdx = FUND_PROGRESS_STEPS.indexOf(fund.status as string);
                 return (
                   <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
                     {/* 자금명 + 금액 */}
@@ -435,26 +435,31 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                         <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
                         {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
                       </div>
-                      <span style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}20`, color: FUND_STATUS_COLORS[fund.status] || "#94A3B8", fontSize: "11px", fontWeight: "800", border: `1px solid ${FUND_STATUS_COLORS[fund.status] || "#94A3B8"}40`, flexShrink: 0 }}>
+                      <span style={{ padding: "3px 10px", borderRadius: "999px",
+                        backgroundColor: (fund.status as string) === "승인" ? "#052E1C" : (fund.status as string) === "부결" ? "#450A0A" : (fund.status as string) === "보완" ? "#1C1800" : "#0F172A",
+                        color: (fund.status as string) === "승인" ? "#34D399" : (fund.status as string) === "부결" ? "#EF4444" : (fund.status as string) === "보완" ? "#FBBF24" : "#60A5FA",
+                        fontSize: "11px", fontWeight: "800", flexShrink: 0,
+                        border: `1px solid ${(fund.status as string) === "승인" ? "#166534" : (fund.status as string) === "부결" ? "#DC2626" : (fund.status as string) === "보완" ? "#92400E" : "#1E3A8A"}` }}>
                         {fund.status}
                       </span>
                     </div>
                     <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>📍 진행 단계</p>
                     <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
-                      {FUND_STATUS_LIST.map((st, i) => {
-                        const done = fundStepIdx > i;
+                      {FUND_PROGRESS_STEPS.map((st, i) => {
+                        const done = fundStepIdx > i && fundStepIdx !== -1;
                         const current = fundStepIdx === i;
-                        const isRej = st === "부결" && fund.status === "부결";
-                        const col = isRej ? "#EF4444" : done ? "#10B981" : current ? "#3B82F6" : "#334155";
+                        const isRej = st === "부결" && (fund.status as string) === "부결";
+                        const isBowan = st === "보완" && (fund.status as string) === "보완";
+                        const col = isRej ? "#EF4444" : isBowan ? "#FBBF24" : st === "승인" && current ? "#34D399" : done ? "#10B981" : current ? "#3B82F6" : "#334155";
                         return (
                           <div key={st} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
                               <div style={{ width: "22px", height: "22px", borderRadius: "50%", backgroundColor: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#FFF", fontWeight: "800", flexShrink: 0 }}>
-                                {done ? "✓" : isRej ? "✕" : i + 1}
+                                {done ? "✓" : isRej ? "✕" : isBowan ? "!" : i + 1}
                               </div>
-                              <span style={{ fontSize: "8px", color: current || isRej ? col : done ? "#10B981" : "#475569", fontWeight: current || isRej ? "800" : "500", whiteSpace: "nowrap" }}>{st}</span>
+                              <span style={{ fontSize: "8px", color: current || isRej || isBowan ? col : done ? "#10B981" : "#475569", fontWeight: current || isRej || isBowan ? "800" : "500", whiteSpace: "nowrap" }}>{st}</span>
                             </div>
-                            {i < FUND_STATUS_LIST.length - 1 && (
+                            {i < FUND_PROGRESS_STEPS.length - 1 && (
                               <div style={{ width: "10px", height: "2px", backgroundColor: done ? "#10B981" : "#1E293B", borderRadius: "1px", margin: "0 1px", marginBottom: "14px", flexShrink: 0 }} />
                             )}
                           </div>

@@ -18,7 +18,25 @@
     "businessType": "의료/헬스케어",
     "businessPeriod": "1년 미만",
     "desiredAmount": "40000000",
-    "registeredAt": "2026-04-28T07:18:54.599Z"
+    "registeredAt": "2026-04-28T07:18:54.599Z",
+    "funds": [
+      {
+        "id": "uf_1777362001269",
+        "fundName": "테스트 자금",
+        "fundId": "",
+        "amount": "1억원",
+        "status": "진행중",
+        "addedAt": "2026-04-28T07:40:01.269Z"
+      }
+    ],
+    "debtDetail": {
+      "first": "",
+      "second": "",
+      "cardLoan": "",
+      "capital": "",
+      "policy": ""
+    },
+    "adminMemo": ""
   },
   {
     "id": "user_1777361046168",
