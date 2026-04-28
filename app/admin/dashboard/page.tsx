@@ -1156,7 +1156,7 @@ ${name} 대표님!
           phone: selectedConsult.phone,
           id: selectedConsult.id,
           manager: cAssigned,
-          managerPhone: managerAdmin?.phone || admin?.phone || "",
+          managerPhone: managerAdmin?.phone || admin?.phone || "01082114291",
           consultDatetime: cDate,
         };
         const alimRes = await fetch("/api/alimtalk", {
