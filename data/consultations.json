@@ -1,1 +1,61 @@
-[]
+[
+  {
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "email": "son713119@naver.com",
+    "age": "32",
+    "gender": "남성",
+    "businessType": "도소매업",
+    "businessPeriod": "1~3년",
+    "annual_revenue": "150000000",
+    "desiredAmount": "150000000",
+    "exactAmount": "250000000",
+    "purposeType": "운전자금",
+    "currentDebt": "0",
+    "debtDetail": {
+      "first": "0",
+      "second": "0",
+      "cardLoan": "0",
+      "capital": "0",
+      "policy": "0"
+    },
+    "nice_score": "920",
+    "kcb_score": "920",
+    "inquiryContent": "테스트 진행",
+    "privacyAgreed": true,
+    "id": "CS-20260428-1530",
+    "status": "접수대기",
+    "adminMemo": "",
+    "assignedTo": "손권찬",
+    "consultDate": "2026.04.29 17:00",
+    "createdAt": "2026. 4. 28. 오후 8:31:15",
+    "aiAnalysis": {
+      "sohoGrade": "A",
+      "sohoScore": 75,
+      "summary": "SOHO 등급 A(최우수) · 75점. 도소매업 1~3년 사업체 기준 총 2개 정책자금 신청 가능. 신용점수 920점, 연매출 1.5억원 기준 최대 2억원 규모 자금 활용 가능.",
+      "strengths": [
+        "신용점수 920점으로 최상위 등급 — 우대금리 적용 가능",
+        "기존 대출 없음 — 신규 대출 한도 최대치 활용 가능",
+        "만 32세 청년 대표자 — 청년 전용 우대 자금 신청 가능"
+      ],
+      "weaknesses": [
+        "현재 특별한 제약 요소 없음"
+      ],
+      "opportunities": [
+        "도소매업 업종 맞춤 정책자금 다수 존재",
+        "희망 금액 1.5억원, 복수 자금 조합으로 목표 달성 가능",
+        "정부 정책자금 + 보증부대출 병행 전략으로 총 한도 극대화 가능"
+      ],
+      "risks": [
+        "정책자금 신청 증가로 예산 소진 전 조기 신청 권장"
+      ],
+      "totalRecommended": 2,
+      "maxPossibleAmount": "170000000"
+    },
+    "recommendedFundIds": [
+      "fund_001",
+      "fund_007"
+    ],
+    "updatedAt": "2026. 4. 28. 오후 8:32:02"
+  }
+]

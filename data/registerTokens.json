@@ -34,5 +34,32 @@
     "createdAt": "2026-04-28T11:27:58.241Z",
     "expiresAt": "2026-04-29T11:27:58.241Z",
     "used": false
+  },
+  {
+    "token": "reg_2ofahixit0dmoijr42k",
+    "consultationId": "CS-20260428-1530",
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "createdAt": "2026-04-28T11:32:35.036Z",
+    "expiresAt": "2026-04-29T11:32:35.036Z",
+    "used": false
+  },
+  {
+    "token": "reg_35lazpcn9q1moijr5xe",
+    "consultationId": "CS-20260428-1530",
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "createdAt": "2026-04-28T11:32:37.442Z",
+    "expiresAt": "2026-04-29T11:32:37.442Z",
+    "used": false
+  },
+  {
+    "token": "reg_scl3g2dxscrmoijrm27",
+    "consultationId": "CS-20260428-1530",
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "createdAt": "2026-04-28T11:32:58.351Z",
+    "expiresAt": "2026-04-29T11:32:58.351Z",
+    "used": false
   }
 ]

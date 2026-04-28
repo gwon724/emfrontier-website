@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "user_1777375922381",
+    "email": "",
+    "password": "",
+    "name": "최종 테스트",
+    "phone": "01082114291",
+    "age": "32",
+    "gender": "남성",
+    "annual_revenue": "150000000",
+    "debt_policy": "0",
+    "debt_bank1": "0",
+    "debt_bank2": "0",
+    "debt_card": "0",
+    "currentDebt": "0",
+    "nice_score": "920",
+    "kcb_score": "920",
+    "businessType": "도소매업",
+    "businessPeriod": "1~3년",
+    "desiredAmount": "150000000",
+    "registeredAt": "2026-04-28T11:32:02.381Z"
+  }
+]
