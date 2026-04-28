@@ -2435,8 +2435,8 @@ ${name} 대표님!
                                   const allU = getAllUsers();
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
                                   localStorage.setItem("users", JSON.stringify(allU));
-                                  setUsers(allU);
                                   setSelectedUser(updatedUser as UserRecord);
+                                  setUsers(allU.map(u => u.id === (updatedUser as UserRecord).id ? updatedUser as UserRecord : u));
                                   showSuccess("✅ 상태 변경 완료!");
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}

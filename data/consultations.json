@@ -120,22 +120,13 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 5:56:56",
+    "updatedAt": "2026. 4. 28. 오후 6:14:54",
     "assignedName": "슈퍼 관리자",
     "assignedAt": "2026-04-28T07:22:12.397Z",
     "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:22:12",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-28T07:22:13.333Z",
-    "funds": [
-      {
-        "id": "f_1777366610651",
-        "fundName": "테스트 1",
-        "amount": "1000만원",
-        "status": "승인",
-        "institution": "",
-        "updatedAt": "2026. 4. 28. 오후 5:56:50"
-      }
-    ]
+    "funds": []
   },
   {
     "name": "손권찬",

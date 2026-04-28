@@ -35,6 +35,14 @@
         "amount": "5000만원",
         "status": "승인",
         "addedAt": "2026-04-28T09:09:48.707Z"
+      },
+      {
+        "id": "uf_1777367667467",
+        "fundName": "..",
+        "fundId": "",
+        "amount": "1",
+        "status": "승인",
+        "addedAt": "2026-04-28T09:14:27.467Z"
       }
     ],
     "debtDetail": {
