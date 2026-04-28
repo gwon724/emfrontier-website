@@ -2816,7 +2816,26 @@ ${name} 대표님!
                                 await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
                                 setConsultations(fresh);
                                 setNewRejFundName("");
-                                showSuccess("✅ 미승인 자금 추가 완료!");
+                                // 미승인 알림톡 발송
+                                const rejPhone = (selectedUser as UserRecord & {phone?:string}).phone || "";
+                                if (rejPhone) {
+                                  const rejEnriched = {
+                                    name: selectedUser.name,
+                                    phone: rejPhone,
+                                    id: selectedUser.id,
+                                    fundName: newRejFundName.trim(),
+                                    manager: admin?.name,
+                                    managerPhone: admin?.phone || "01082114291",
+                                  };
+                                  const rejRes = await fetch("/api/alimtalk", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ consultation: rejEnriched, templateType: "rejected" }),
+                                  }).then(r => r.json()).catch(() => ({ ok: false }));
+                                  showSuccess(rejRes.ok ? "✅ 미승인 자금 추가 + 알림톡 발송!" : "✅ 미승인 자금 추가 완료! (알림톡 실패)");
+                                } else {
+                                  showSuccess("✅ 미승인 자금 추가 완료!");
+                                }
                               }}
                               style={{ padding: "8px 14px", backgroundColor: newRejFundName.trim() ? "#EF4444" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: newRejFundName.trim() ? "pointer" : "not-allowed" }}>
                               + 추가
