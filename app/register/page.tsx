@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   validateRegisterToken, markTokenUsed,
@@ -13,14 +13,34 @@ function RegisterForm() {
   const params = useSearchParams();
   const tokenStr = params.get("token") || "";
 
-  const tokenData = tokenStr ? validateRegisterToken(tokenStr) : null;
-
+  const [tokenData, setTokenData] = useState<{name: string; phone: string; consultationId: string} | null>(null);
+  const [tokenChecked, setTokenChecked] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+
+  // 서버에서 토큰 검증
+  useEffect(() => {
+    if (!tokenStr) { setTokenChecked(true); return; }
+    fetch(`/api/register-token?token=${tokenStr}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) setTokenData({ name: d.name, phone: d.phone, consultationId: d.consultationId });
+        setTokenChecked(true);
+      })
+      .catch(() => setTokenChecked(true));
+  }, [tokenStr]);
+
+  if (!tokenChecked) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: "#0B1120", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#64748B", fontSize: "14px" }}>⏳ 링크 확인 중...</p>
+      </div>
+    );
+  }
 
   if (!tokenStr || !tokenData) {
     return (
@@ -74,7 +94,7 @@ function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: "clientUsers", value: clientUsers }),
       }).catch(() => {});
-      markTokenUsed(tokenStr);
+      await fetch("/api/register-token", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"use", token:tokenStr}) }).catch(()=>{});
       setDone(true);
       setTimeout(() => router.replace("/client"), 2000);
     } catch (e) {

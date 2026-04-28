@@ -1,7 +1,7 @@
 "use client";
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { validateUploadToken, markUploadTokenUsed, FONT } from "@/lib/store";
+import { FONT } from "@/lib/store";
 
 const font = FONT;
 
@@ -18,14 +18,33 @@ const DOC_LIST = [
 function UploadForm() {
   const params = useSearchParams();
   const tokenStr = params.get("token") || "";
-  const tokenData = tokenStr ? validateUploadToken(tokenStr) : null;
-
+  const [tokenData, setTokenData] = useState<{name: string; phone: string; consultationId: string} | null>(null);
+  const [tokenChecked, setTokenChecked] = useState(false);
   const [files, setFiles] = useState<{ docId: string; file: File }[]>([]);
+
+  useEffect(() => {
+    if (!tokenStr) { setTokenChecked(true); return; }
+    fetch(`/api/upload-token?token=${tokenStr}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) setTokenData({ name: d.name, phone: d.phone, consultationId: d.consultationId });
+        setTokenChecked(true);
+      })
+      .catch(() => setTokenChecked(true));
+  }, [tokenStr]);
   const [uploading, setUploading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [memo, setMemo] = useState("");
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  if (!tokenChecked) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: "#0B1120", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#64748B", fontSize: "14px" }}>⏳ 링크 확인 중...</p>
+      </div>
+    );
+  }
 
   if (!tokenStr || !tokenData) {
     return (
@@ -68,7 +87,7 @@ function UploadForm() {
       }
 
       if (allOk) {
-        markUploadTokenUsed(tokenStr);
+        await fetch("/api/upload-token", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"use", token:tokenStr}) }).catch(()=>{});
         setDone(true);
       } else {
         setError("일부 파일 전송에 실패했습니다. 다시 시도해주세요.");

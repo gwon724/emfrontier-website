@@ -307,16 +307,20 @@ export default function AdminDashboard() {
     setRegisterLinkSent(false);
     setRegisterLinkToken("");
     try {
-      const t = createRegisterToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
-      const link = `https://emfrontier.team/register?token=${t.token}`;
+      // 서버에서 토큰 생성
+      const tokenRes = await fetch("/api/register-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", consultationId: selectedConsult.id, name: selectedConsult.name, phone: selectedConsult.phone }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.ok) throw new Error("토큰 생성 실패");
+      const link = `https://emfrontier.team/register?token=${tokenData.token}`;
       const enriched = { ...selectedConsult, registerLink: link };
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          consultation: enriched,
-          templateType: "register_portal",
-        }),
+        body: JSON.stringify({ consultation: enriched, templateType: "register_portal" }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -324,7 +328,7 @@ export default function AdminDashboard() {
         showSuccess("✅ 회원가입 링크 발송 완료");
         setTimeout(() => setRegisterLinkSent(false), 4000);
       } else {
-        setRegisterLinkToken(t.token);
+        setRegisterLinkToken(tokenData.token);
         const retryFn = async () => {
           const res2 = await fetch("/api/alimtalk", {
             method: "POST",
@@ -355,8 +359,15 @@ export default function AdminDashboard() {
     setUploadLinkSent(false);
     setUploadLinkToken("");
     try {
-      const t = createUploadToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
-      const link = `https://emfrontier.team/upload?token=${t.token}`;
+      // 서버에서 토큰 생성
+      const tokenRes = await fetch("/api/upload-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", consultationId: selectedConsult.id, name: selectedConsult.name, phone: selectedConsult.phone }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.ok) throw new Error("토큰 생성 실패");
+      const link = `https://emfrontier.team/upload?token=${tokenData.token}`;
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -371,7 +382,7 @@ export default function AdminDashboard() {
         showSuccess("✅ 서류 제출 링크 발송 완료");
         setTimeout(() => setUploadLinkSent(false), 4000);
       } else {
-        setUploadLinkToken(t.token);
+        setUploadLinkToken(tokenData.token);
         showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
