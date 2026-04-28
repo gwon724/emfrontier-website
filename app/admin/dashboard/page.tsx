@@ -36,6 +36,11 @@ export default function AdminDashboard() {
   const [mobileNav, setMobileNav] = useState(false);
   const [manageSubTab, setManageSubTab] = useState<"all-consults" | "users">("all-consults");
   const [manageSearch, setManageSearch] = useState("");
+  const [clientPortalUsers, setClientPortalUsers] = useState<Array<{id:string;name:string;phone:string;email?:string;password:string;createdAt:string}>>([]);
+  const [showPortalUsers, setShowPortalUsers] = useState(false);
+  const [newMember, setNewMember] = useState({ name: "", phone: "", email: "", password: "" });
+  const [newMemberSaving, setNewMemberSaving] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [manageStatusFilter, setManageStatusFilter] = useState("");
   const [manageAdminFilter, setManageAdminFilter] = useState("");
   const [naverData, setNaverData] = useState<{campaigns?: {data?: unknown}; trend?: {data?: unknown}; stat?: {data?: unknown}}>({});
@@ -208,6 +213,8 @@ export default function AdminDashboard() {
   const [alimText, setAlimText] = useState("");
   const [alimTemplate, setAlimTemplate] = useState("");
   const [convertDone, setConvertDone] = useState(false);
+  const [showConvertForm, setShowConvertForm] = useState(false);
+  const [convertPassword, setConvertPassword] = useState("");
   const [registerLinkSending, setRegisterLinkSending] = useState(false);
   const [registerLinkSent, setRegisterLinkSent] = useState(false);
   const [registerLinkToken, setRegisterLinkToken] = useState("");
@@ -1610,6 +1617,84 @@ ${name} 대표님!
           {/* ── Manage (Users) Tab (superadmin) ── */}
           {tab === "manage" && admin?.role === "superadmin" && (
             <>
+              {/* 포털 회원 관리 토글 */}
+              <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showPortalUsers ? "16px" : "0" }}>
+                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#F59E0B", margin: 0 }}>🔑 포털 회원 관리</p>
+                  <button onClick={async () => {
+                    if (!showPortalUsers) {
+                      const res = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({value:[]}));
+                      setClientPortalUsers(res.value || []);
+                    }
+                    setShowPortalUsers(p => !p);
+                  }} style={{ padding: "5px 12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                    {showPortalUsers ? "▲ 접기" : "▼ 펼치기"}
+                  </button>
+                </div>
+
+                {showPortalUsers && (
+                  <>
+                    {/* 신규 직접 개설 */}
+                    <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "14px", border: "1px solid #334155" }}>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#94A3B8", marginBottom: "10px" }}>➕ 직접 계정 개설</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
+                        <input value={newMember.name} onChange={e => setNewMember(p=>({...p,name:e.target.value}))} placeholder="이름 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
+                        <input value={newMember.phone} onChange={e => setNewMember(p=>({...p,phone:e.target.value}))} placeholder="연락처 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
+                        <input value={newMember.email} onChange={e => setNewMember(p=>({...p,email:e.target.value}))} placeholder="이메일" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
+                        <input value={newMember.password} onChange={e => setNewMember(p=>({...p,password:e.target.value}))} placeholder="비밀번호 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
+                      </div>
+                      <button disabled={newMemberSaving} onClick={async () => {
+                        if (!newMember.name || !newMember.phone || !newMember.password) { alert("이름/연락처/비밀번호는 필수입니다"); return; }
+                        setNewMemberSaving(true);
+                        const updated = [...clientPortalUsers, { id: Date.now().toString(), ...newMember, createdAt: new Date().toISOString() }];
+                        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
+                        setClientPortalUsers(updated);
+                        setNewMember({ name:"", phone:"", email:"", password:"" });
+                        setNewMemberSaving(false);
+                        showSuccess("✅ 회원 계정 개설 완료");
+                      }} style={{ width: "100%", padding: "9px", backgroundColor: "#0F766E", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
+                        {newMemberSaving ? "⏳ 저장 중..." : "📥 계정 개설"}
+                      </button>
+                    </div>
+
+                    {/* 회원 목록 */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {clientPortalUsers.length === 0 && <p style={{ fontSize: "13px", color: "#64748B", textAlign: "center", padding: "16px" }}>등록된 포털 회원이 없어요</p>}
+                      {clientPortalUsers.map(u => (
+                        <div key={u.id} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+                                <span style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9" }}>{u.name}</span>
+                                <span style={{ fontSize: "12px", color: "#64748B" }}>{u.phone}</span>
+                              </div>
+                              {u.email && <p style={{ fontSize: "11px", color: "#64748B", margin: "0 0 4px" }}>📧 {u.email}</p>}
+                              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                <span style={{ fontSize: "11px", color: "#94A3B8" }}>🔐 비번:</span>
+                                <code style={{ fontSize: "12px", color: showPasswords[u.id] ? "#34D399" : "#334155", backgroundColor: "#1E293B", padding: "2px 8px", borderRadius: "4px", letterSpacing: "2px" }}>
+                                  {showPasswords[u.id] ? (u.password || "(설정 전)") : "●●●●●●"}
+                                </code>
+                                <button onClick={() => setShowPasswords(p=>({...p,[u.id]:!p[u.id]}))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: "#64748B" }}>
+                                  {showPasswords[u.id] ? "🙈" : "👁️"}
+                                </button>
+                              </div>
+                            </div>
+                            <button onClick={async () => {
+                              if (!confirm(`${u.name} 회원을 삭제하시겠어요?`)) return;
+                              const updated = clientPortalUsers.filter(m => m.id !== u.id);
+                              await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
+                              setClientPortalUsers(updated);
+                              showSuccess("✅ 회원 삭제 완료");
+                            }} style={{ padding: "5px 10px", backgroundColor: "#450A0A", color: "#FCA5A5", border: "1px solid #EF4444", borderRadius: "6px", fontSize: "11px", cursor: "pointer", marginLeft: "8px" }}>
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
               <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px" }}>
                 <input
                   placeholder="🔍 이름 / 연락처 검색"
@@ -1842,7 +1927,7 @@ ${name} 대표님!
                       </div>
                       {/* 회원가입 링크 발송 */}
                       <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                        <button onClick={convertToMember}
+                        <button onClick={() => { setShowConvertForm(p=>!p); setConvertPassword(""); }}
                           style={{ flex: 1, padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", backgroundColor: convertDone ? "#16A34A" : "#7C3AED", color: "#FFF" }}>
                           {convertDone ? "✓ 회원 전환 완료!" : "👤 회원으로 전환"}
                         </button>
@@ -1851,6 +1936,38 @@ ${name} 대표님!
                           {registerLinkSent ? "✅ 링크 발송완료" : registerLinkSending ? "⏳ 발송중..." : "📲 회원가입 링크 발송"}
                         </button>
                       </div>
+                      {/* 직접 비번 입력 폼 */}
+                      {showConvertForm && (
+                        <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px", marginBottom: "8px", border: "1px solid #7C3AED" }}>
+                          <p style={{ fontSize: "12px", color: "#A78BFA", marginBottom: "8px", fontWeight: "700" }}>🔐 직접 비밀번호 설정</p>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <input
+                              value={convertPassword}
+                              onChange={e => setConvertPassword(e.target.value)}
+                              placeholder="비밀번호 입력 (6자 이상)"
+                              style={{ flex: 1, padding: "9px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }}
+                            />
+                            <button onClick={async () => {
+                              if (convertPassword.length < 6) { alert("비밀번호는 6자 이상이어야 합니다"); return; }
+                              await convertToMember();
+                              if (convertDone || true) {
+                                // 비밀번호 업데이트
+                                const dbRes = await fetch("/api/db?key=clientUsers").then(r=>r.json()).catch(()=>({value:[]}));
+                                const cu = dbRes.value || [];
+                                const updated = cu.map((u: {name:string;phone:string;password:string}) =>
+                                  u.name === selectedConsult?.name && u.phone === selectedConsult?.phone
+                                    ? {...u, password: convertPassword} : u
+                                );
+                                await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
+                                setShowConvertForm(false);
+                                showSuccess("✅ 회원 개설 + 비밀번호 설정 완료");
+                              }
+                            }} style={{ padding: "9px 16px", backgroundColor: "#7C3AED", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
+                              ✅ 개설
+                            </button>
+                          </div>
+                        </div>
+                      )}
                       {registerLinkToken && (
                         <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "10px 12px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                           <code style={{ fontSize: "11px", color: "#60A5FA", flex: 1, wordBreak: "break-all" }}>{`https://emfrontier.team/register?token=${registerLinkToken}`}</code>

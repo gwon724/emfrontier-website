@@ -16,6 +16,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
   docs_request_link: "KA01TP2604280406057149elyZra1i9A",
+  temp_password:     "KA01TP260428041906549fDPAorI0aFg",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
   fund_waiting:    "KA01TP260421144920873mw6XDuWLJ0i",
   fund_reviewing:  "KA01TP260421144921369tJ0SbbI62zZ",
@@ -102,6 +103,11 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
       "#{링크}": c["uploadLink"] || "",
       "#{매니저}": manager,
       "#{매니저연락처}": contact,
+    },
+    // [엠프론티어] 임시 비밀번호 안내
+    temp_password: {
+      "#{이름}": name,
+      "#{임시비밀번호}": c["tempPassword"] || "",
     },
     // [엠프론티어] 자금 신청 진행 안내
     fund_apply: {
@@ -283,10 +289,20 @@ ${c["uploadLink"] || ""}
 담당 매니저: ${manager}
 연락처: ${contact}`,
 
-    fund_apply:
-`[엠프론티어] 자금 신청 진행 안내
+    temp_password:
+`[엠프론티어] 임시 비밀번호 안내
 
-안녕하세요, ${name} 대표님!
+${name} 대표님, 안녕하세요!
+고객 포털 임시 비밀번호가 발급되었습니다.
+
+🔐 임시 비밀번호: ${c["tempPassword"] || ""}
+
+로그인 후 반드시 비밀번호를 변경해주세요.
+
+🔗 로그인: https://emfrontier.team/client`,
+
+    fund_apply:
+`안녕하세요, ${name} 대표님!
 정책자금 신청이 진행 중입니다.
 
 💼 신청 자금: ${fundName}
