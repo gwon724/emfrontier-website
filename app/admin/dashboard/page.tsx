@@ -74,6 +74,8 @@ export default function AdminDashboard() {
   const [uSaved, setUSaved] = useState(false);
   const [newUserFundName, setNewUserFundName] = useState("");
   const [newUserFundAmount, setNewUserFundAmount] = useState("");
+  const [editingFundId, setEditingFundId] = useState<string | null>(null);
+  const [editingFundAmount, setEditingFundAmount] = useState("");
   // AI 보고서
   const [aiReport, setAiReport] = useState("");
   const [aiReportLoading, setAiReportLoading] = useState(false);
@@ -2447,9 +2449,42 @@ ${name} 대표님!
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").map((f) => (
                           <div key={f.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1E3A8A", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                            <div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: "13px", fontWeight: "700", color: "#60A5FA" }}>{f.fundName}</p>
-                              <p style={{ fontSize: "11px", color: "#64748B" }}>{f.amount} · {f.status}</p>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                {editingFundId === f.id ? (
+                                  <input
+                                    autoFocus
+                                    value={editingFundAmount}
+                                    onChange={e => setEditingFundAmount(e.target.value)}
+                                    onBlur={async () => {
+                                      if (!editingFundAmount.trim()) { setEditingFundId(null); return; }
+                                      const serverRes = await fetch("/api/db?key=users").then(r=>r.json()).catch(()=>({value:[]}));
+                                      const serverUsers: UserRecord[] = serverRes.value || [];
+                                      const freshUser = serverUsers.find(u => u.id === selectedUser.id) || selectedUser;
+                                      const type = freshUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>};
+                                      const updated = (type.funds || []).map(x => x.id === f.id ? {...x, amount: editingFundAmount.trim()} : x);
+                                      const updatedUser = { ...freshUser, funds: updated } as UserRecord;
+                                      setSelectedUser({...updatedUser});
+                                      upsertUser(updatedUser);
+                                      const allU = getAllUsers();
+                                      setUsers(allU);
+                                      await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
+                                      setEditingFundId(null);
+                                      showSuccess("✅ 금액 수정 완료!");
+                                    }}
+                                    onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); if (e.key === "Escape") setEditingFundId(null); }}
+                                    style={{ fontSize: "11px", color: "#F1F5F9", backgroundColor: "#0F172A", border: "1px solid #3B82F6", borderRadius: "4px", padding: "2px 6px", width: "90px" }}
+                                  />
+                                ) : (
+                                  <span
+                                    onClick={() => { setEditingFundId(f.id); setEditingFundAmount(f.amount); }}
+                                    title="클릭하여 금액 수정"
+                                    style={{ fontSize: "11px", color: "#64748B", cursor: "pointer", borderBottom: "1px dashed #334155" }}
+                                  >{f.amount || "금액 없음"}</span>
+                                )}
+                                <span style={{ fontSize: "11px", color: "#64748B" }}>· {f.status}</span>
+                              </div>
                             </div>
                             <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
                               <select

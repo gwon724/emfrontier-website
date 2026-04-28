@@ -84,7 +84,7 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-2459",
-    "status": "리마인드",
+    "status": "접수확인",
     "adminMemo": "",
     "assignedTo": "admin",
     "consultDate": "",
@@ -120,13 +120,22 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 7:06:49",
+    "updatedAt": "2026. 4. 28. 오후 7:10:27",
     "assignedName": "슈퍼 관리자",
     "assignedAt": "2026-04-28T07:22:12.397Z",
     "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:22:12",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-28T07:22:13.333Z",
-    "funds": []
+    "funds": [
+      {
+        "id": "f_1777371027240",
+        "fundName": "테스트",
+        "amount": "5000",
+        "status": "승인",
+        "institution": "",
+        "updatedAt": "2026. 4. 28. 오후 7:10:27"
+      }
+    ]
   },
   {
     "name": "손권찬",
