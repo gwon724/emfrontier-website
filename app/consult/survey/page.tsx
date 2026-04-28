@@ -281,11 +281,11 @@ export default function SurveyPage() {
       `}</style>
 
       {/* ── 상단 헤더 ── */}
-      <header style={{ backgroundColor: "#FFFFFF", borderBottom: "1px solid #F1F5F9", padding: "0 16px", position: "sticky", top: 0, zIndex: 50, flexShrink: 0 }}>
-        <div style={{ maxWidth: "640px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px" }}>
-          <Link href="/consult" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
-            <img src={LOGO_B64} alt="엠프론티어 로고" width={34} height={34} style={{ objectFit: "contain" }} />
-            <span style={{ fontSize: "15px", fontWeight: "800", color: "#0A1628", fontFamily: font }}>엠프론티어</span>
+      <header style={{ backgroundColor: "#FFFFFF", borderBottom: "1px solid #F1F5F9", padding: "0 24px", position: "sticky", top: 0, zIndex: 50, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px" }}>
+          <Link href="/consult" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+            <img src={LOGO_B64} alt="엠프론티어 로고" width={36} height={36} style={{ objectFit: "contain", filter: "brightness(0)" }} />
+            <span style={{ fontSize: "16px", fontWeight: "800", color: "#0A1628", fontFamily: font }}>엠프론티어</span>
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <span style={{ fontSize: "12px", color: "#94A3B8", fontFamily: font }}>
