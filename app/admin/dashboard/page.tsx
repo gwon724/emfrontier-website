@@ -9,7 +9,7 @@ import {
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
   syncAllToServer, restoreFromServer, assignConsultation, getAllAdmins,
   FundProgress, FundStatus, FUND_STATUS_LIST, FUND_STATUS_COLORS,
-  createRegisterToken, createUploadToken,
+  createRegisterToken, createUploadToken, saveAllUsers,
 } from "@/lib/store";
 
 const font = FONT;
@@ -53,6 +53,29 @@ export default function AdminDashboard() {
   const [userAlimSending, setUserAlimSending] = useState(false);
   const [userAlimSent, setUserAlimSent] = useState(false);
   const [userAlimTemplate, setUserAlimTemplate] = useState("register");
+  // 회원 수정 폼 상태
+  const [uName, setUName] = useState("");
+  const [uPhone, setUPhone] = useState("");
+  const [uEmail, setUEmail] = useState("");
+  const [uAge, setUAge] = useState("");
+  const [uGender, setUGender] = useState("");
+  const [uBizType, setUBizType] = useState("");
+  const [uBizPeriod, setUBizPeriod] = useState("");
+  const [uRevenue, setURevenue] = useState("");
+  const [uNice, setUNice] = useState("");
+  const [uKcb, setUKcb] = useState("");
+  const [uDebtFirst, setUDebtFirst] = useState("");
+  const [uDebtSecond, setUDebtSecond] = useState("");
+  const [uDebtCard, setUDebtCard] = useState("");
+  const [uDebtCapital, setUDebtCapital] = useState("");
+  const [uDebtPolicy, setUDebtPolicy] = useState("");
+  const [uDesiredAmount, setUDesiredAmount] = useState("");
+  const [uMemo, setUMemo] = useState("");
+  const [uSaved, setUSaved] = useState(false);
+  const [userDocList, setUserDocList] = useState<string[]>([]);
+  const [showUserDocChecklist, setShowUserDocChecklist] = useState(false);
+  const [userUploadLinkSending, setUserUploadLinkSending] = useState(false);
+  const [userUploadLinkSent, setUserUploadLinkSent] = useState(false);
 
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", age: "", gender: "남성", annual_revenue: "", nice_score: "", kcb_score: "" });
@@ -1818,13 +1841,46 @@ ${name} 대표님!
           const linkedConsults = consultations.filter(c => c.name === selectedUser.name || c.phone === userPhone).sort((a,b) => new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
           const latestConsult = linkedConsults[0];
           const isPortal = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === userPhone?.replace(/-/g,""));
+
+          const openUser = (u: UserRecord) => {
+            setUName(u.name||""); setUPhone(userPhone); setUEmail(u.email||"");
+            setUAge(u.age||""); setUGender(u.gender||""); setUBizType((u as UserRecord & {businessType?:string}).businessType||"");
+            setUBizPeriod((u as UserRecord & {businessPeriod?:string}).businessPeriod||"");
+            setURevenue(u.annual_revenue||""); setUNice(u.nice_score||""); setUKcb(u.kcb_score||"");
+            const dd = (u as UserRecord & {debtDetail?:{first?:string;second?:string;cardLoan?:string;capital?:string;policy?:string}}).debtDetail;
+            setUDebtFirst(dd?.first||""); setUDebtSecond(dd?.second||""); setUDebtCard(dd?.cardLoan||"");
+            setUDebtCapital(dd?.capital||""); setUDebtPolicy(dd?.policy||"");
+            setUDesiredAmount((u as UserRecord & {desiredAmount?:string}).desiredAmount||"");
+            setUMemo((u as UserRecord & {adminMemo?:string}).adminMemo||"");
+            setUSaved(false);
+          };
+          if (uName==="" && selectedUser.name) openUser(selectedUser);
+
+          const saveUser = async () => {
+            const all = getAllUsers();
+            const updated = all.map(u => u.id === selectedUser.id ? {
+              ...u, name:uName, email:uEmail, age:uAge, gender:uGender,
+              annual_revenue:uRevenue, nice_score:uNice, kcb_score:uKcb,
+              currentDebt: String([uDebtFirst,uDebtSecond,uDebtCard,uDebtCapital,uDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0)),
+              debtDetail:{first:uDebtFirst,second:uDebtSecond,cardLoan:uDebtCard,capital:uDebtCapital,policy:uDebtPolicy},
+              desiredAmount:uDesiredAmount, adminMemo:uMemo,
+            } : u);
+            saveAllUsers(updated);
+            await fetch("/api/db?key=clientUsers").then(r=>r.json()).then(d=>{
+              const cu = (d.value||[]).map((u:{phone:string}) => u.phone?.replace(/-/g,"")=== userPhone?.replace(/-/g,"") ? {...u,name:uName,email:uEmail} : u);
+              fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:"clientUsers",value:cu})});
+            });
+            setUSaved(true); showSuccess("✅ 회원 정보 저장 완료");
+            setTimeout(()=>setUSaved(false),3000);
+          };
+
           return (
             <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
               <div style={{ maxWidth: "640px", width: "100%", margin: "0 auto" }}>
 
-                {/* 헤더 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                {/* 헤더 + 정보 수정 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: `${gc}20`, border: `2px solid ${gc}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ fontSize: "16px", fontWeight: "900", color: gc }}>{grade}</span>
@@ -1837,38 +1893,85 @@ ${name} 대표님!
                         <p style={{ fontSize: "11px", color: "#64748B" }}>{userPhone}</p>
                       </div>
                     </div>
-                    <button onClick={() => setSelectedUser(null)}
+                    <button onClick={() => { setSelectedUser(null); setUName(""); }}
                       style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
                   </div>
+
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "8px" }}>👤 고객 정보 수정</p>
                   <div className="consult-detail-grid">
                     {([
-                      ["이메일", selectedUser.email],
-                      ["나이/성별", `${selectedUser.age}세 / ${selectedUser.gender}`],
-                      ["연매출", `${Number(selectedUser.annual_revenue||0).toLocaleString()}원`],
-                      ["NICE점수", selectedUser.nice_score||"-"],
-                      ["KCB점수", selectedUser.kcb_score||"-"],
-                      ["가입일", selectedUser.registeredAt?.slice(0,10)||"-"],
-                    ] as [string,string][]).map(([k,v]) => (
-                      <div key={k} style={{ padding: "8px 10px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
-                        <p style={{ fontSize: "10px", color: "#64748B" }}>{k}</p>
-                        <p style={{ fontSize: "12px", color: "#CBD5E1", fontWeight: "600", marginTop: "2px", wordBreak: "break-all" }}>{v}</p>
+                      ["이름", uName, setUName, "text"],
+                      ["연락처", uPhone, setUPhone, "text"],
+                      ["이메일", uEmail, setUEmail, "email"],
+                      ["나이", uAge, setUAge, "text"],
+                      ["성별", uGender, setUGender, "text"],
+                      ["업종", uBizType, setUBizType, "text"],
+                      ["업력", uBizPeriod, setUBizPeriod, "text"],
+                      ["연매출(원)", uRevenue, setURevenue, "number"],
+                      ["NICE점수", uNice, setUNice, "number"],
+                      ["KCB점수", uKcb, setUKcb, "number"],
+                      ["희망금액", uDesiredAmount, setUDesiredAmount, "text"],
+                    ] as [string,string,(v:string)=>void,string][]).map(([label,val,setter,type]) => (
+                      <div key={label} style={{ padding: "6px 8px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
+                        <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>{label}</p>
+                        <input type={type} value={val} onChange={e=>setter(e.target.value)}
+                          style={{ ...inp, width: "100%", fontSize: "12px", padding: "4px 8px" }} />
                       </div>
                     ))}
                   </div>
+
+                  {/* 기대출 5종 */}
+                  <div style={{ marginTop: "10px" }}>
+                    <p style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "8px" }}>🏦 기대출 상세 (종류별)</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+                      {([
+                        ["1금융권", uDebtFirst, setUDebtFirst],
+                        ["2금융권", uDebtSecond, setUDebtSecond],
+                        ["카드론", uDebtCard, setUDebtCard],
+                        ["캐피탈", uDebtCapital, setUDebtCapital],
+                        ["정책자금", uDebtPolicy, setUDebtPolicy],
+                      ] as [string,string,(v:string)=>void][]).map(([label,val,setter]) => (
+                        <div key={label} style={{ padding: "6px 8px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
+                          <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>{label}</p>
+                          <input type="number" value={val} onChange={e=>setter(e.target.value)} placeholder="0"
+                            style={{ ...inp, width: "100%", fontSize: "12px", padding: "4px 8px" }} />
+                        </div>
+                      ))}
+                      <div style={{ padding: "6px 8px", backgroundColor: "#1E3A5F", borderRadius: "8px", border: "1px solid #3B82F6" }}>
+                        <p style={{ fontSize: "10px", color: "#93C5FD", marginBottom: "3px" }}>합계</p>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA" }}>
+                          {[uDebtFirst,uDebtSecond,uDebtCard,uDebtCapital,uDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0).toLocaleString()}원
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 메모 */}
+                  <div style={{ marginTop: "8px" }}>
+                    <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>관리자 메모</p>
+                    <textarea value={uMemo} onChange={e=>setUMemo(e.target.value)} rows={2}
+                      style={{ ...inp, width: "100%", resize: "vertical", fontSize: "12px" }} />
+                  </div>
+
+                  <button onClick={saveUser} disabled={uSaved}
+                    style={{ width: "100%", marginTop: "10px", padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700",
+                      cursor: "pointer", backgroundColor: uSaved ? "#16A34A" : "#1D4ED8", color: "#FFF" }}>
+                    {uSaved ? "✓ 저장완료" : "💾 정보 저장"}
+                  </button>
                 </div>
 
                 {/* 연결된 상담 */}
                 {linkedConsults.length > 0 && (
-                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
                     <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📋 연결된 상담 ({linkedConsults.length}건)</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {linkedConsults.map(c => {
                         const sc = CONSULT_STATUS_COLORS[c.status] || CONSULT_STATUS_COLORS["접수대기"];
                         return (
-                          <div key={c.id} onClick={() => { setSelectedUser(null); openConsult(c); }}
+                          <div key={c.id} onClick={() => { setSelectedUser(null); setUName(""); openConsult(c); }}
                             style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155", cursor: "pointer" }}
-                            onMouseEnter={e => (e.currentTarget.style.borderColor="#60A5FA")}
-                            onMouseLeave={e => (e.currentTarget.style.borderColor="#334155")}>
+                            onMouseEnter={e=>(e.currentTarget.style.borderColor="#60A5FA")}
+                            onMouseLeave={e=>(e.currentTarget.style.borderColor="#334155")}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <div>
                                 <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
@@ -1888,7 +1991,7 @@ ${name} 대표님!
 
                 {/* 자금 현황 */}
                 {latestConsult?.funds && latestConsult.funds.length > 0 && (
-                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
                     <p style={{ fontSize: "12px", fontWeight: "700", color: "#10B981", marginBottom: "10px" }}>💰 자금 현황</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {latestConsult.funds.map((f, fi) => {
@@ -1909,10 +2012,10 @@ ${name} 대표님!
                   </div>
                 )}
 
-                {/* 포털 개설 / 링크 발송 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                {/* 포털 관리 + 서류 체크리스트 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#A78BFA", marginBottom: "10px" }}>🔑 포털 관리</p>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "10px" }}>
                     <button onClick={async () => {
                       if (!latestConsult) { alert("연결된 상담이 없습니다"); return; }
                       const tokenRes = await fetch("/api/register-token", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({action:"create", consultationId:latestConsult.id, name:selectedUser.name, phone:userPhone}) });
@@ -1932,16 +2035,64 @@ ${name} 대표님!
                       const td = await tokenRes.json();
                       if (!td.ok) { alert("토큰 생성 실패"); return; }
                       const link = `https://emfrontier.team/upload?token=${td.token}`;
-                      const res = await fetch("/api/alimtalk", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ consultation:{...latestConsult, manager:admin?.name, managerPhone:admin?.phone, uploadLink:link}, templateType:"docs_request_link" }) });
+                      const docText = userDocList.length > 0 ? `\n\n필요 서류 (${userDocList.length}개):\n` + userDocList.map((d,i)=>`${i+1}. ${d}`).join("\n") : "";
+                      const res = await fetch("/api/alimtalk", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ consultation:{...latestConsult, manager:admin?.name, managerPhone:admin?.phone, uploadLink:link, docList:docText}, templateType:"docs_request_link" }) });
                       const d = await res.json();
-                      if (d.ok) showSuccess("✅ 서류 링크 발송 완료");
+                      if (d.ok) { setUserUploadLinkSent(true); showSuccess("✅ 서류 링크 발송 완료"); setTimeout(()=>setUserUploadLinkSent(false),4000); }
                       else { navigator.clipboard.writeText(link); showSuccess("📋 링크 복사됨 (알림톡 실패)"); }
-                    }} style={{ flex:1, padding:"10px", backgroundColor:"#0F766E", color:"#FFF", border:"none", borderRadius:"8px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>
-                      📎 서류 링크 발송
+                    }} style={{ flex:1, padding:"10px", backgroundColor:userUploadLinkSent?"#16A34A":userUploadLinkSending?"#334155":"#0F766E", color:"#FFF", border:"none", borderRadius:"8px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>
+                      {userUploadLinkSent ? "✅ 발송완료" : "📎 서류 링크 발송"}
                     </button>
                   </div>
+
+                  {/* 서류 체크리스트 */}
+                  <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px", marginBottom: "8px", border: "1px solid #0F766E" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showUserDocChecklist ? "12px" : "0" }}>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#34D399", margin: 0 }}>📎 서류 체크리스트 {userDocList.length > 0 && <span style={{ backgroundColor: "#065F46", color: "#34D399", padding: "1px 7px", borderRadius: "999px", fontSize: "11px", marginLeft: "6px" }}>{userDocList.length}선택</span>}</p>
+                      <button onClick={() => setShowUserDocChecklist(p=>!p)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>{showUserDocChecklist ? "▲ 접기" : "▼ 펼치기"}</button>
+                    </div>
+                    {showUserDocChecklist && (
+                      <>
+                        {[
+                          { section: "[필수]", items: ["사업자등록증","사업자등록증명","신분증 사본","재무제표","부가세 자료","통장내역","거래처 계약서/발주서","4대보험 가입자 명부","국세 완납증명서","지방세 완납증명서"] },
+                          { section: "[재무]", items: ["매출증빙","세금신고서","대출내역서(개인,사업자)","KCB/NICE 점수"] },
+                          { section: "[사업]", items: ["사업계획서","자금사용계획"] },
+                          { section: "[추가]", items: ["공동인증서 개인 및 범용","계약서"] },
+                        ].map(group => (
+                          <div key={group.section} style={{ marginBottom: "10px" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>{group.section}</p>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                              {group.items.map(item => {
+                                const checked = userDocList.includes(item);
+                                return (
+                                  <button key={item} onClick={() => setUserDocList(p => checked ? p.filter(d=>d!==item) : [...p, item])}
+                                    style={{ padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: "600", cursor: "pointer",
+                                      border: `1px solid ${checked ? "#34D399" : "#334155"}`,
+                                      backgroundColor: checked ? "#052E1C" : "#1E293B",
+                                      color: checked ? "#34D399" : "#64748B" }}>
+                                    {checked ? "✓ " : ""}{item}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                        <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                          <button onClick={() => setUserDocList(["사업자등록증","사업자등록증명","신분증 사본","재무제표","부가세 자료","통장내역","거래처 계약서/발주서","4대보험 가입자 명부","국세 완납증명서","지방세 완납증명서"])}
+                            style={{ flex:1, padding:"6px", backgroundColor:"#1E3A5F", color:"#60A5FA", border:"1px solid #3B82F6", borderRadius:"6px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                            필수 전체선택
+                          </button>
+                          <button onClick={() => setUserDocList([])}
+                            style={{ padding:"6px 12px", backgroundColor:"#1E293B", color:"#94A3B8", border:"1px solid #334155", borderRadius:"6px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                            초기화
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
                   {isPortal && (
-                    <div style={{ marginTop:"10px", padding:"10px 12px", backgroundColor:"#0F172A", borderRadius:"8px", border:"1px solid #334155" }}>
+                    <div style={{ padding:"10px 12px", backgroundColor:"#0F172A", borderRadius:"8px", border:"1px solid #334155" }}>
                       <p style={{ fontSize:"11px", color:"#64748B", marginBottom:"4px" }}>포털 비밀번호 변경</p>
                       <div style={{ display:"flex", gap:"8px" }}>
                         <input id="user-pw-input" placeholder="새 비밀번호" style={{ flex:1, padding:"8px 12px", backgroundColor:"#1E293B", border:"1px solid #334155", borderRadius:"8px", fontSize:"13px", color:"#F1F5F9", outline:"none" }} />
@@ -1950,7 +2101,7 @@ ${name} 대표님!
                           if (!pw || pw.length < 6) { alert("6자 이상 입력해주세요"); return; }
                           const dbRes = await fetch("/api/db?key=clientUsers").then(r=>r.json()).catch(()=>({value:[]}));
                           const cu = dbRes.value || [];
-                          const updated = cu.map((u: {phone:string;password:string}) => u.phone?.replace(/-/g,"") === userPhone?.replace(/-/g,"") ? {...u, password:pw} : u);
+                          const updated = cu.map((u: {phone:string;password:string}) => u.phone?.replace(/-/g,"")=== userPhone?.replace(/-/g,"") ? {...u, password:pw} : u);
                           await fetch("/api/db", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
                           setClientPortalUsers(updated);
                           showSuccess("✅ 비밀번호 변경 완료");
@@ -1961,7 +2112,7 @@ ${name} 대표님!
                 </div>
 
                 {/* 이메일 발송 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📧 이메일 발송</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
                     {["접수대기", "상담예약", "서류요청", "신청진행", "상담완료", "종결"].map(s => (
@@ -1981,7 +2132,7 @@ ${name} 대표님!
                 </div>
 
                 {/* 카카오 알림톡 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>💬 카카오 알림톡</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
                     {[
