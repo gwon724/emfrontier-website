@@ -1798,10 +1798,13 @@ ${name} 대표님!
         {selectedUser && (() => {
           const { grade } = calcGrade(selectedUser);
           const gc = gradeColor(grade);
-          const statusC = selectedUser.application ? STATUS_COLORS[selectedUser.application.status] : null;
+          const userPhone = (selectedUser as UserRecord & { phone?: string }).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
+          const linkedConsults = consultations.filter(c => c.name === selectedUser.name || c.phone === userPhone).sort((a,b) => new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
+          const latestConsult = linkedConsults[0];
+          const isPortal = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === userPhone?.replace(/-/g,""));
           return (
             <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
-              <div style={{ maxWidth: "580px", width: "100%", margin: "0 auto" }}>
+              <div style={{ maxWidth: "640px", width: "100%", margin: "0 auto" }}>
 
                 {/* 헤더 */}
                 <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
@@ -1811,24 +1814,24 @@ ${name} 대표님!
                         <span style={{ fontSize: "16px", fontWeight: "900", color: gc }}>{grade}</span>
                       </div>
                       <div>
-                        <p style={{ fontSize: "16px", fontWeight: "900", color: "#F1F5F9" }}>{selectedUser.name} 고객</p>
-                        <p style={{ fontSize: "11px", color: "#64748B" }}>{selectedUser.id}</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <p style={{ fontSize: "16px", fontWeight: "900", color: "#F1F5F9" }}>{selectedUser.name}</p>
+                          {isPortal && <span style={{ fontSize: "10px", fontWeight: "700", color: "#34D399", backgroundColor: "#052E1C", padding: "2px 8px", borderRadius: "999px", border: "1px solid #34D399" }}>✓ 포털</span>}
+                        </div>
+                        <p style={{ fontSize: "11px", color: "#64748B" }}>{userPhone}</p>
                       </div>
                     </div>
                     <button onClick={() => setSelectedUser(null)}
                       style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
                   </div>
-
-                  {/* 기본 정보 */}
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "8px" }}>👤 고객 정보</p>
                   <div className="consult-detail-grid">
                     {([
                       ["이메일", selectedUser.email],
                       ["나이/성별", `${selectedUser.age}세 / ${selectedUser.gender}`],
-                      ["연매출", `${Number(selectedUser.annual_revenue || 0).toLocaleString()}원`],
-                      ["NICE점수", selectedUser.nice_score || "-"],
-                      ["KCB점수", selectedUser.kcb_score || "-"],
-                      ["가입일", selectedUser.registeredAt?.slice(0,10) || "-"],
+                      ["연매출", `${Number(selectedUser.annual_revenue||0).toLocaleString()}원`],
+                      ["NICE점수", selectedUser.nice_score||"-"],
+                      ["KCB점수", selectedUser.kcb_score||"-"],
+                      ["가입일", selectedUser.registeredAt?.slice(0,10)||"-"],
                     ] as [string,string][]).map(([k,v]) => (
                       <div key={k} style={{ padding: "8px 10px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
                         <p style={{ fontSize: "10px", color: "#64748B" }}>{k}</p>
@@ -1838,35 +1841,111 @@ ${name} 대표님!
                   </div>
                 </div>
 
-                {/* 신청 현황 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📋 신청 현황</p>
-                  {!selectedUser.application ? (
-                    <p style={{ fontSize: "13px", color: "#64748B" }}>아직 신청 내역이 없습니다</p>
-                  ) : (
+                {/* 연결된 상담 */}
+                {linkedConsults.length > 0 && (
+                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                    <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📋 연결된 상담 ({linkedConsults.length}건)</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 상태</span>
-                        {statusC && <span style={{ fontSize: "12px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px", backgroundColor: statusC.bg, color: statusC.text, border: `1px solid ${statusC.border}` }}>{selectedUser.application.status}</span>}
+                      {linkedConsults.map(c => {
+                        const sc = CONSULT_STATUS_COLORS[c.status] || CONSULT_STATUS_COLORS["접수대기"];
+                        return (
+                          <div key={c.id} onClick={() => { setSelectedUser(null); openConsult(c); }}
+                            style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155", cursor: "pointer" }}
+                            onMouseEnter={e => (e.currentTarget.style.borderColor="#60A5FA")}
+                            onMouseLeave={e => (e.currentTarget.style.borderColor="#334155")}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <div>
+                                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+                                  <span style={{ fontSize: "11px", backgroundColor: sc.darkBg, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>{c.status}</span>
+                                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{c.createdAt?.slice(0,10)}</span>
+                                </div>
+                                <p style={{ fontSize: "12px", color: "#CBD5E1" }}>💼 {c.businessType||"-"} · 💰 {c.desiredAmount||"-"}</p>
+                              </div>
+                              <span style={{ fontSize: "11px", color: "#60A5FA" }}>상세 →</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 자금 현황 */}
+                {latestConsult?.funds && latestConsult.funds.length > 0 && (
+                  <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                    <p style={{ fontSize: "12px", fontWeight: "700", color: "#10B981", marginBottom: "10px" }}>💰 자금 현황</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {latestConsult.funds.map((f, fi) => {
+                        const fcRaw = FUND_STATUS_COLORS[f.status]; const fc = typeof fcRaw === "string" ? { bg:"#1E293B", text:fcRaw, border:"#334155" } : (fcRaw || { bg:"#1E293B", text:"#94A3B8", border:"#334155" });
+                        return (
+                          <div key={fi} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: `1px solid ${fc.border}` }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <div>
+                                <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9", marginBottom: "4px" }}>{f.fundName}</p>
+                                <p style={{ fontSize: "11px", color: "#64748B" }}>집행액: {f.amount||"-"} · {f.institution||""}</p>
+                              </div>
+                              <span style={{ fontSize: "11px", fontWeight: "700", padding: "2px 8px", borderRadius: "999px", backgroundColor: fc.bg, color: fc.text, border: `1px solid ${fc.border}` }}>{f.status}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 포털 개설 / 링크 발송 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#A78BFA", marginBottom: "10px" }}>🔑 포털 관리</p>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <button onClick={async () => {
+                      if (!latestConsult) { alert("연결된 상담이 없습니다"); return; }
+                      const tokenRes = await fetch("/api/register-token", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({action:"create", consultationId:latestConsult.id, name:selectedUser.name, phone:userPhone}) });
+                      const td = await tokenRes.json();
+                      if (!td.ok) { alert("토큰 생성 실패"); return; }
+                      const link = `https://emfrontier.team/register?token=${td.token}`;
+                      const res = await fetch("/api/alimtalk", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ consultation:{...latestConsult, registerLink:link}, templateType:"register_portal" }) });
+                      const d = await res.json();
+                      if (d.ok) showSuccess("✅ 회원가입 링크 발송 완료");
+                      else { navigator.clipboard.writeText(link); showSuccess("📋 링크 복사됨 (알림톡 실패)"); }
+                    }} style={{ flex:1, padding:"10px", backgroundColor:"#0369A1", color:"#FFF", border:"none", borderRadius:"8px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>
+                      📲 가입 링크 발송
+                    </button>
+                    <button onClick={async () => {
+                      if (!latestConsult) { alert("연결된 상담이 없습니다"); return; }
+                      const tokenRes = await fetch("/api/upload-token", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({action:"create", consultationId:latestConsult.id, name:selectedUser.name, phone:userPhone}) });
+                      const td = await tokenRes.json();
+                      if (!td.ok) { alert("토큰 생성 실패"); return; }
+                      const link = `https://emfrontier.team/upload?token=${td.token}`;
+                      const res = await fetch("/api/alimtalk", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ consultation:{...latestConsult, manager:admin?.name, managerPhone:admin?.phone, uploadLink:link}, templateType:"docs_request_link" }) });
+                      const d = await res.json();
+                      if (d.ok) showSuccess("✅ 서류 링크 발송 완료");
+                      else { navigator.clipboard.writeText(link); showSuccess("📋 링크 복사됨 (알림톡 실패)"); }
+                    }} style={{ flex:1, padding:"10px", backgroundColor:"#0F766E", color:"#FFF", border:"none", borderRadius:"8px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>
+                      📎 서류 링크 발송
+                    </button>
+                  </div>
+                  {isPortal && (
+                    <div style={{ marginTop:"10px", padding:"10px 12px", backgroundColor:"#0F172A", borderRadius:"8px", border:"1px solid #334155" }}>
+                      <p style={{ fontSize:"11px", color:"#64748B", marginBottom:"4px" }}>포털 비밀번호 변경</p>
+                      <div style={{ display:"flex", gap:"8px" }}>
+                        <input id="user-pw-input" placeholder="새 비밀번호" style={{ flex:1, padding:"8px 12px", backgroundColor:"#1E293B", border:"1px solid #334155", borderRadius:"8px", fontSize:"13px", color:"#F1F5F9", outline:"none" }} />
+                        <button onClick={async () => {
+                          const pw = (document.getElementById("user-pw-input") as HTMLInputElement)?.value;
+                          if (!pw || pw.length < 6) { alert("6자 이상 입력해주세요"); return; }
+                          const dbRes = await fetch("/api/db?key=clientUsers").then(r=>r.json()).catch(()=>({value:[]}));
+                          const cu = dbRes.value || [];
+                          const updated = cu.map((u: {phone:string;password:string}) => u.phone?.replace(/-/g,"") === userPhone?.replace(/-/g,"") ? {...u, password:pw} : u);
+                          await fetch("/api/db", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
+                          setClientPortalUsers(updated);
+                          showSuccess("✅ 비밀번호 변경 완료");
+                        }} style={{ padding:"8px 14px", backgroundColor:"#7C3AED", color:"#FFF", border:"none", borderRadius:"8px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>변경</button>
                       </div>
-                      {selectedUser.application && (
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 자금 수</span>
-                          <span style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{selectedUser.application.funds?.length || 0}개</span>
-                        </div>
-                      )}
-                      {selectedUser.adminMemo ? (
-                        <div style={{ backgroundColor: "#0F172A", borderRadius: "8px", padding: "10px 12px" }}>
-                          <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>관리자 메모</p>
-                          <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.6" }}>{selectedUser.adminMemo}</p>
-                        </div>
-                      ) : null}
                     </div>
                   )}
                 </div>
 
                 {/* 이메일 발송 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📧 이메일 발송</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
                     {["접수대기", "상담예약", "서류요청", "신청진행", "상담완료", "종결"].map(s => (
@@ -1874,21 +1953,18 @@ ${name} 대표님!
                         style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
                           border: `2px solid ${userEmailStatus === s ? "#3B82F6" : "#334155"}`,
                           backgroundColor: userEmailStatus === s ? "rgba(59,130,246,0.15)" : "#0F172A",
-                          color: userEmailStatus === s ? "#60A5FA" : "#64748B" }}>
-                        {s}
-                      </button>
+                          color: userEmailStatus === s ? "#60A5FA" : "#64748B" }}>{s}</button>
                     ))}
                   </div>
                   <button onClick={sendUserEmail} disabled={userEmailSending}
                     style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
                       cursor: userEmailSending ? "not-allowed" : "pointer",
-                      backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E",
-                      color: "#FFF" }}>
-                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
+                      backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E", color: "#FFF" }}>
+                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 이메일 발송`}
                   </button>
                 </div>
 
-                {/* 카카오 알림톡 발송 */}
+                {/* 카카오 알림톡 */}
                 <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>💬 카카오 알림톡</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
@@ -1901,21 +1977,21 @@ ${name} 대표님!
                       { value: "rejected", label: "미승인" },
                       { value: "remind", label: "리마인드" },
                       { value: "consult_done", label: "상담종결" },
+                      { value: "extra_apply", label: "추가신청" },
+                      { value: "new_fund", label: "신규자금" },
+                      { value: "review", label: "후기요청" },
                     ].map(t => (
                       <button key={t.value} onClick={() => setUserAlimTemplate(t.value)}
                         style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
                           border: `2px solid ${userAlimTemplate === t.value ? "#F59E0B" : "#334155"}`,
                           backgroundColor: userAlimTemplate === t.value ? "rgba(245,158,11,0.15)" : "#0F172A",
-                          color: userAlimTemplate === t.value ? "#F59E0B" : "#64748B" }}>
-                        {t.label}
-                      </button>
+                          color: userAlimTemplate === t.value ? "#F59E0B" : "#64748B" }}>{t.label}</button>
                     ))}
                   </div>
                   <button onClick={sendUserAlimtalk} disabled={userAlimSending}
                     style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
                       cursor: userAlimSending ? "not-allowed" : "pointer",
-                      backgroundColor: userAlimSent ? "#16A34A" : userAlimSending ? "#334155" : "#B45309",
-                      color: "#FFF" }}>
+                      backgroundColor: userAlimSent ? "#16A34A" : userAlimSending ? "#334155" : "#B45309", color: "#FFF" }}>
                     {userAlimSent ? "✓ 알림톡 발송완료!" : userAlimSending ? "⏳ 전송 중..." : `💬 ${userAlimTemplate} 알림톡 발송`}
                   </button>
                 </div>
@@ -1924,7 +2000,6 @@ ${name} 대표님!
             </div>
           );
         })()}
-
         {/* Success Banner */}
         {successBanner && (
           <div style={{ position: "fixed", top: "16px", right: "16px", zIndex: 100, backgroundColor: "#052E1C", border: "2px solid #10B981", borderRadius: "12px", padding: "14px 20px", color: "#34D399", fontSize: "14px", fontWeight: "700", fontFamily: font, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "320px" }}>
