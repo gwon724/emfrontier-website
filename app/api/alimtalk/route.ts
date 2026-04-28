@@ -100,7 +100,6 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     // [엠프론티어] 서류 제출 안내 (링크 포함)
     docs_request_link: {
       "#{이름}": name,
-      "#{링크}": c["uploadLink"] || "",
       "#{매니저}": manager,
       "#{매니저연락처}": contact,
     },
@@ -283,11 +282,12 @@ ${name} 대표님, 안녕하세요!
 📎 서류 제출 링크:
 ${c["uploadLink"] || ""}
 
-링크를 복사하여 브라우저에서 열어주세요.
 링크는 72시간 동안 유효합니다.
 
 담당 매니저: ${manager}
-연락처: ${contact}`,
+연락처: ${contact}
+
+엠프론티어`,
 
     temp_password:
 `[엠프론티어] 임시 비밀번호 안내
