@@ -78,6 +78,14 @@
     "businessType": "도소매업",
     "businessPeriod": "1~3년",
     "desiredAmount": "300000000",
-    "registeredAt": "2026-04-28T10:34:23.383Z"
+    "registeredAt": "2026-04-28T10:34:23.383Z",
+    "debtDetail": {
+      "first": "",
+      "second": "",
+      "cardLoan": "",
+      "capital": "",
+      "policy": ""
+    },
+    "adminMemo": ""
   }
 ]

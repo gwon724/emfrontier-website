@@ -3,18 +3,19 @@
     "id": "admin",
     "username": "admin",
     "password": "emfrontier2026!",
-    "name": "손권찬",
+    "name": "슈퍼 관리자",
     "role": "superadmin",
-    "createdAt": "2026-01-01 00:00:00",
-    "phone": "01082114291"
+    "createdAt": "2026-01-01 00:00:00"
   },
   {
-    "id": "son4291",
     "username": "son4291",
-    "password": "son4291",
+    "password": "skc0724",
     "name": "손권찬",
     "phone": "01082114291",
-    "role": "admin",
-    "createdAt": "2026-04-28"
+    "telegramChatId": "5500296822",
+    "role": "superadmin",
+    "id": "1777373170658",
+    "createdAt": "2026. 4. 28. 오후 7:46:10",
+    "lastLogin": "2026. 4. 28. 오후 7:46:21"
   }
 ]

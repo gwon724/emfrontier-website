@@ -1145,6 +1145,7 @@ ${name} 대표님!
     } catch {}
 
     // 담당자 + 상담일시 둘 다 있을 때 상담예약 알림톡 자동 발송
+    console.log("[saveConsult] cAssigned:", cAssigned, "cDate:", cDate, "phone:", selectedConsult?.phone);
     if (cAssigned && cDate && selectedConsult?.phone) {
       const managerAdmin = adminList.find((a) => a.name === cAssigned);
       const enriched = {

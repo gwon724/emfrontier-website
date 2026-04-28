@@ -9,6 +9,8 @@ const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "NCSM9IGKP48S2WOP";
 const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "YIGNTAJ0FYQFP7SV2XCIE25BBDD7IIAL";
 const KAKAO_CHANNEL_ID = process.env.KAKAO_CHANNEL_ID || "KA01PF260417154030663wL77U66wlWz";
 const SENDER_PHONE = process.env.SENDER_PHONE || "01082114291";
+const START_BOT_TOKEN = process.env.TELEGRAM_START_BOT_TOKEN || "";
+const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "5500296822";
 
 const TEMPLATE_IDS: Record<string, string> = {
   register:        "KA01TP260428112948784jz0YhWeF8FP",
@@ -563,6 +565,17 @@ export async function POST(req: NextRequest) {
 
     if (result.errorCode) {
       return NextResponse.json({ ok: false, error: result.errorMessage });
+    }
+
+    // 알림톡 발송 성공 시 START 봇으로 텔레그램 알림
+    if (START_BOT_TOKEN && ADMIN_CHAT_ID) {
+      const fallbackText = buildText(resolvedType, c);
+      const tgText = `📨 [알림톡 발송됨]\n수신: ${phone}\n템플릿: ${resolvedType}\n\n${fallbackText}`;
+      fetch(`https://api.telegram.org/bot${START_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: tgText }),
+      }).catch(() => {});
     }
 
     return NextResponse.json({ ok: true, result, templateType: resolvedType });
