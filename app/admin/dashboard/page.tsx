@@ -300,6 +300,7 @@ export default function AdminDashboard() {
       setNewClientDebt1(""); setNewClientDebt2(""); setNewClientDebtCard(""); setNewClientDebtCapital(""); setNewClientDebtPolicy("");
       setNewClientDesired("");
       showSuccess(`✅ ${newClientName.trim()} 클라이언트 생성 완료!`);
+      setTab("members"); // 회원 탭으로 이동
     } catch {
       setCreateClientError("생성 실패. 다시 시도해주세요.");
     }
@@ -1115,10 +1116,43 @@ ${name} 대표님!
           }
         );
       }
-      // 배정 완료 후 내 고객 탭으로 이동
+      // 배정 완료 후 회원 탭으로 이동
+      // users DB에 없으면 자동 추가
+      try {
+        const usersRes = await fetch("/api/db?key=users").then(r => r.json()).catch(() => ({ value: null }));
+        const allUsers = usersRes.value || JSON.parse(localStorage.getItem("users") || "[]");
+        const exists = allUsers.find((u: {name:string; phone?:string}) => u.name === c.name && u.phone === c.phone.replace(/-/g,""));
+        if (!exists) {
+          const newUser = {
+            id: `user_${Date.now()}`,
+            email: "",
+            password: "",
+            name: c.name,
+            phone: c.phone.replace(/-/g,""),
+            age: "",
+            gender: "남성",
+            annual_revenue: c.annual_revenue || "",
+            debt_policy: "0",
+            debt_bank1: "0",
+            debt_bank2: "0",
+            debt_card: "0",
+            currentDebt: c.currentDebt || "0",
+            nice_score: c.nice_score || "",
+            kcb_score: "",
+            businessType: c.businessType || "",
+            businessPeriod: c.businessPeriod || "",
+            desiredAmount: c.desiredAmount || "",
+            registeredAt: new Date().toISOString(),
+          };
+          allUsers.push(newUser);
+          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allUsers }) });
+          localStorage.setItem("users", JSON.stringify(allUsers));
+          setUsers(allUsers);
+        }
+      } catch {}
       setShowConsultDetail(false);
       setConsultTab("mine");
-      setTab("consultations");
+      setTab("members");
     } finally {
       setAssigningId(null);
     }
