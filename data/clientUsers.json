@@ -8,11 +8,11 @@
     "email": "son713119@naver.com"
   },
   {
-    "id": "1777347044021",
+    "id": "test001",
     "name": "테스트",
-    "phone": "01082114291",
-    "email": ".",
-    "password": "skc07245",
-    "createdAt": "2026-04-28T03:30:44.021Z"
+    "phone": "01000000000",
+    "email": "test@emfrontier.team",
+    "password": "test1234",
+    "createdAt": "2026-04-28T00:00:00.000Z"
   }
 ]

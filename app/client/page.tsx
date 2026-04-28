@@ -22,7 +22,8 @@ function getStepIndex(status: string) {
 }
 
 function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
-  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(""); // 이름은 비번찾기용으로만 사용
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
       } catch {
         users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
       }
-      const user = users.find((u) => u.name === name.trim() && u.password === password);
+      const user = users.find((u) => u.phone?.replace(/-/g,"") === phone.trim().replace(/-/g,"") && u.password === password.trim());
       if (!user) {
         setError("이름 또는 비밀번호가 올바르지 않습니다");
         setLoading(false);
@@ -95,11 +96,11 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "14px" }}>
-            <label style={{ fontSize: "12px", fontWeight: "700", color: "#94A3B8", display: "block", marginBottom: "6px" }}>이름</label>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "#94A3B8", display: "block", marginBottom: "6px" }}>전화번호</label>
             <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="이름 입력"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              placeholder="전화번호 입력 (예: 01012345678)"
               required
               style={{ width: "100%", padding: "12px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "10px", fontSize: "14px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", outline: "none" }}
             />
