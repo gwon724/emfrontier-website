@@ -26,7 +26,7 @@ export default function SettingPage() {
   useEffect(() => {
     const admin = getCurrentAdmin();
     if (!admin) { router.replace("/team/login"); return; }
-    if (admin.role !== "superadmin") { router.replace("/admin/dashboard"); return; }
+    // superadmin만 전체 관리, 일반 admin은 본인 계정 정보만 수정 가능
     setMe(admin);
     setAdmins(getAllAdmins());
   }, [router]);
