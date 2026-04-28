@@ -2055,9 +2055,22 @@ ${name} 대표님!
                               <span>📅 {c.createdAt?.slice(0, 10) || "-"}</span>
                             </div>
                           </div>
-                          {c.alimtalkStatus === "failed" && (
-                            <span style={{ fontSize: "11px", backgroundColor: "#450A0A", color: "#FCA5A5", padding: "2px 8px", borderRadius: "999px", fontWeight: "700", flexShrink: 0 }}>❌ 알림톡실패</span>
-                          )}
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
+                            {c.alimtalkStatus === "failed" && (
+                              <span style={{ fontSize: "11px", backgroundColor: "#450A0A", color: "#FCA5A5", padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>❌ 알림톡실패</span>
+                            )}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!window.confirm(`${c.name} 상담을 삭제하시겠습니까?`)) return;
+                                const fresh = getAllConsultations().filter(x => x.id !== c.id);
+                                await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                setConsultations(fresh);
+                              }}
+                              style={{ padding: "6px 10px", backgroundColor: "#EF4444", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                              🗑️
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
