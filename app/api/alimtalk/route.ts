@@ -221,7 +221,7 @@ function buildText(templateType: string, c: Record<string, string>): string {
 `[엠프론티어] 고객 포털 가입 안내
 
 안녕하세요, ${name} 대표님!
-엠프론티어 고객 포털 가입 링크를 안내드립니다.
+요청하신 엠프론티어 고객 포털 가입 링크를 안내드립니다.
 
 🔗 가입 링크: ${c.registerLink || ""}
 
