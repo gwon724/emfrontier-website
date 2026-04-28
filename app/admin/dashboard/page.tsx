@@ -3182,7 +3182,7 @@ ${name} 대표님!
                             <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
                               <div
                                 onClick={async () => {
-                                  if (!latestConsult) return;
+                                  if (!latestConsult) { showSuccess("⚠️ 연결된 상담이 없습니다"); return; }
                                   updateConsultation(latestConsult.id, { status: step });
                                   const all = getAllConsultations();
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: all }) });
