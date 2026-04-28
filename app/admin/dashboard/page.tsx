@@ -2446,12 +2446,14 @@ ${name} 대표님!
                               </select>
                               <button
                                 onClick={async () => {
-                                  const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
-                                  const updated = (type.funds || []).filter(x => x.id !== f.id);
-                                  const updatedUser = { ...selectedUser, funds: updated } as UserRecord;
-                                  setSelectedUser(updatedUser);
+                                  const fundId = f.id;
+                                  const freshUser = getAllUsers().find(u => u.id === selectedUser.id) || selectedUser;
+                                  const type = freshUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
+                                  const updated = (type.funds || []).filter(x => x.id !== fundId);
+                                  const updatedUser = { ...freshUser, funds: updated } as UserRecord;
                                   upsertUser(updatedUser);
                                   const allU = getAllUsers();
+                                  setSelectedUser(updatedUser);
                                   setUsers(allU);
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
                                   showSuccess("✅ 자금 삭제 완료!");
