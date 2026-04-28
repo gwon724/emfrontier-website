@@ -2430,13 +2430,14 @@ ${name} 대표님!
                                 onChange={async e => {
                                   const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
                                   const updated = (type.funds || []).map(x => x.id === f.id ? {...x, status: e.target.value} : x);
-                                  const updatedUser = { ...selectedUser, funds: updated };
-                                  upsertUser(updatedUser as UserRecord);
+                                  const updatedUser = { ...selectedUser, funds: updated } as UserRecord;
+                                  // 1. 즉시 UI 업데이트
+                                  setSelectedUser(updatedUser);
+                                  // 2. localStorage + 서버 저장
+                                  upsertUser(updatedUser);
                                   const allU = getAllUsers();
+                                  setUsers(allU);
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
-                                  localStorage.setItem("users", JSON.stringify(allU));
-                                  setSelectedUser(updatedUser as UserRecord);
-                                  setUsers(allU.map(u => u.id === (updatedUser as UserRecord).id ? updatedUser as UserRecord : u));
                                   showSuccess("✅ 상태 변경 완료!");
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
