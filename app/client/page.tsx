@@ -384,20 +384,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                   </div>
                 ))}
               </div>
-              {/* 상담 취소 버튼 */}
-              {consult.status !== "상담취소" && (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  style={{ marginTop: "12px", width: "100%", padding: "9px 0", backgroundColor: "transparent", border: "1px solid #EF4444", borderRadius: "8px", color: "#EF4444", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: font }}
-                >
-                  🚫 상담 취소 신청
-                </button>
-              )}
-              {consult.status === "상담취소" && (
-                <div style={{ marginTop: "12px", padding: "10px 14px", backgroundColor: "#1F1010", border: "1px solid #EF4444", borderRadius: "8px", textAlign: "center" }}>
-                  <p style={{ fontSize: "12px", color: "#EF4444", fontWeight: "700" }}>❌ 상담이 취소되었습니다</p>
-                </div>
-              )}
+
             </div>
 
             {/* 진행 단계 타임라인 — 자금별 */}
