@@ -211,6 +211,9 @@ export default function AdminDashboard() {
   const [registerLinkSending, setRegisterLinkSending] = useState(false);
   const [registerLinkSent, setRegisterLinkSent] = useState(false);
   const [registerLinkToken, setRegisterLinkToken] = useState("");
+  const [uploadLinkSending, setUploadLinkSending] = useState(false);
+  const [uploadLinkSent, setUploadLinkSent] = useState(false);
+  const [uploadLinkToken, setUploadLinkToken] = useState("");
 
   // 자금 현황 상태
   const [newFundName, setNewFundName] = useState("");
@@ -336,6 +339,46 @@ export default function AdminDashboard() {
       showFailModal(selectedConsult?.name || "", selectedConsult?.phone || "", "네트워크 오류", async () => { await sendRegisterLink(); });
     }
     setRegisterLinkSending(false);
+  };
+
+  const sendUploadLink = async () => {
+    if (!selectedConsult) return;
+    setUploadLinkSending(true);
+    setUploadLinkSent(false);
+    setUploadLinkToken("");
+    try {
+      const t = createUploadToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
+      const link = `https://emfrontier.team/upload?token=${t.token}`;
+      const res = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone },
+          templateType: "docs_request",
+          kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: link, linkPc: link }] },
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setUploadLinkSent(true);
+        showSuccess("✅ 서류 제출 링크 발송 완료");
+        setTimeout(() => setUploadLinkSent(false), 4000);
+      } else {
+        setUploadLinkToken(t.token);
+        showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
+          async () => {
+            const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone }, templateType: "docs_request", kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: link, linkPc: link }] } }) });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || "오류");
+            showSuccess("✅ 서류 링크 재발송 성공");
+          }
+        );
+      }
+    } catch {
+      showFailModal(selectedConsult?.name || "", selectedConsult?.phone || "", "네트워크 오류", async () => {});
+    }
+    setUploadLinkSending(false);
   };
 
   // 자금 추가
@@ -1795,6 +1838,21 @@ ${name} 대표님!
                           <code style={{ fontSize: "11px", color: "#60A5FA", flex: 1, wordBreak: "break-all" }}>{`https://emfrontier.team/register?token=${registerLinkToken}`}</code>
                           <button onClick={() => { navigator.clipboard.writeText(`https://emfrontier.team/register?token=${registerLinkToken}`); showSuccess("📋 링크 복사됨"); }}
                             style={{ padding: "5px 12px", backgroundColor: "#1E3A5F", color: "#60A5FA", border: "1px solid #3B82F6", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                            📋 복사
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 서류 제출 링크 발송 */}
+                      <button onClick={sendUploadLink} disabled={uploadLinkSending}
+                        style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: uploadLinkSending ? "not-allowed" : "pointer", backgroundColor: uploadLinkSent ? "#16A34A" : uploadLinkSending ? "#334155" : "#0F766E", color: "#FFF", marginBottom: "8px" }}>
+                        {uploadLinkSent ? "✅ 서류 링크 발송완료" : uploadLinkSending ? "⏳ 발송중..." : "📎 서류 제출 링크 발송"}
+                      </button>
+                      {uploadLinkToken && (
+                        <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "10px 12px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                          <code style={{ fontSize: "11px", color: "#34D399", flex: 1, wordBreak: "break-all" }}>{`https://emfrontier.team/upload?token=${uploadLinkToken}`}</code>
+                          <button onClick={() => { navigator.clipboard.writeText(`https://emfrontier.team/upload?token=${uploadLinkToken}`); showSuccess("📋 링크 복사됨"); }}
+                            style={{ padding: "5px 12px", backgroundColor: "#052E1C", color: "#34D399", border: "1px solid #10B981", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
                             📋 복사
                           </button>
                         </div>
