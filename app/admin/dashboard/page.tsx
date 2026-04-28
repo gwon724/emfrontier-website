@@ -610,12 +610,12 @@ export default function AdminDashboard() {
       const docText = docList && docList.length > 0
         ? `\n\n필요 서류 (${docList.length}개):\n` + docList.map((d,i) => `${i+1}. ${d}`).join("\n")
         : "";
-      // docs_request 알림톡 (서류 목록 + 담당자 정보)
+      // docs_request_link 알림톡 (체크한 서류 목록 + 담당자 정보)
       const docsConsult = { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone || "01082114291", selectedDocs: docList || [], uploadLink: link, docList: docText };
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request" }),
+        body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request_link" }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -627,7 +627,7 @@ export default function AdminDashboard() {
         showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request" }) });
+              body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request_link" }) });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
             showSuccess("✅ 서류 안내 재발송 성공");

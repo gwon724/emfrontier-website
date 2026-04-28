@@ -98,13 +98,11 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     // [엠프론티어] 서류 제출 안내
     docs_request: {
       "#{이름}": name,
-      "#{서류리스트}": (Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : c["docList"] || "-"),
-      "#{매니저}": manager,
-      "#{매니저연락처}": contact,
     },
     // [엠프론티어] 서류 제출 안내 (링크 포함)
     docs_request_link: {
       "#{이름}": name,
+      "#{서류리스트}": (Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : c["docList"] || "-"),
       "#{매니저}": manager,
       "#{매니저연락처}": contact,
     },
@@ -266,14 +264,16 @@ function buildText(templateType: string, c: Record<string, string>): string {
     docs_request:
 `[엠프론티어] 서류 제출 안내
 
-${name} 대표님, 안녕하세요!
-요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.
+안녕하세요, ${name} 대표님!
+신청하신 정책자금 상담 진행을 위해
+아래 서류 제출을 부탁드립니다.
 
-제출 서류 목록:
-${Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : (c["docList"] || "-")}
+ 필요 서류
+• 사업자등록증
+• 최근 3개월 매출내역
+• 신분증 사본
 
-담당 매니저: ${manager}
-연락처: ${contact}
+서류 제출 후 빠르게 검토 도와드리겠습니다.
 
 엠프론티어`,
 
@@ -281,12 +281,10 @@ ${Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") 
 `[엠프론티어] 서류 제출 안내
 
 ${name} 대표님, 안녕하세요!
-요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.${c["docList"] || ""}
+요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.
 
-📎 서류 제출 링크:
-${c["uploadLink"] || ""}
-
-링크는 72시간 동안 유효합니다.
+제출 서류 목록:
+${Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : (c["docList"] || "-")}
 
 담당 매니저: ${manager}
 연락처: ${contact}
