@@ -81,7 +81,7 @@
     "id": "CS-20260421-5713",
     "status": "접수완료",
     "adminMemo": "",
-    "assignedTo": "son4291",
+    "assignedTo": "admin",
     "consultDate": "",
     "createdAt": "2026. 4. 21. 오후 8:07:36",
     "aiAnalysis": {
@@ -118,7 +118,7 @@
       "fund_004",
       "fund_035"
     ],
-    "updatedAt": "2026. 4. 28. 오후 4:13:10",
+    "updatedAt": "2026. 4. 28. 오후 4:13:17",
     "alimtalkStatus": "sent",
     "debtDetail": {
       "first": "",
@@ -127,10 +127,10 @@
       "capital": "",
       "policy": ""
     },
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-28T07:13:09.998Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 4:13:09",
-    "alimtalkSentAt": "2026-04-28T07:13:10.614Z"
+    "assignedName": "슈퍼 관리자",
+    "assignedAt": "2026-04-28T07:13:17.517Z",
+    "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:13:17",
+    "alimtalkSentAt": "2026-04-28T07:13:17.986Z"
   },
   {
     "id": "CS-1777357556711",

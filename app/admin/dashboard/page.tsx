@@ -300,6 +300,7 @@ export default function AdminDashboard() {
       setNewClientDebt1(""); setNewClientDebt2(""); setNewClientDebtCard(""); setNewClientDebtCapital(""); setNewClientDebtPolicy("");
       setNewClientDesired("");
       showSuccess(`✅ ${newClientName.trim()} 클라이언트 생성 완료!`);
+      await refresh();
       setTab("members"); // 회원 탭으로 이동
     } catch {
       setCreateClientError("생성 실패. 다시 시도해주세요.");
@@ -483,6 +484,7 @@ export default function AdminDashboard() {
       setTimeout(() => setConvertDone(false), 3000);
       showSuccess("✅ 포털 회원 등록 완료!");
       setShowConsultDetail(false);
+      await refresh();
       setTab("members"); // 회원 탭으로 이동
     } catch(e) {
       alert("회원 등록 실패: " + e);
@@ -547,6 +549,7 @@ export default function AdminDashboard() {
             setUsers(allUsers);
           }
         } catch {}
+        await refresh();
         setShowConsultDetail(false);
         setTab("members");
       } else {
@@ -1130,6 +1133,7 @@ ${name} 대표님!
           setUsers(allUsersArr);
         }
       } catch {}
+      await refresh();
       setShowConsultDetail(false);
       setTab("members");
     }
@@ -1250,6 +1254,7 @@ ${name} 대표님!
           setUsers(allUsers);
         }
       } catch {}
+      await refresh();
       setShowConsultDetail(false);
       setConsultTab("mine");
       setTab("members");
