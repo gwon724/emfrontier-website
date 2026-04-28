@@ -9,7 +9,7 @@ import {
   CONSULT_STATUS_LIST, CONSULT_STATUS_COLORS, Consultation, ConsultStatus,
   syncAllToServer, restoreFromServer, assignConsultation, getAllAdmins,
   FundProgress, FundStatus, FUND_STATUS_LIST, FUND_STATUS_COLORS,
-  createRegisterToken,
+  createRegisterToken, createUploadToken,
 } from "@/lib/store";
 
 const font = FONT;
@@ -585,6 +585,13 @@ ${name} 대표님!
     if (!selectedConsult?.phone) { alert("고객 전화번호가 없어요!"); return; }
     setAlimSending(true);
     try {
+      // 서류요청 알림톡일 때 업로드 토큰 URL 생성
+      let uploadUrl: string | undefined;
+      const isDocsRequest = (alimTemplate || "") === "docs_request" || (cNewStatus || "") === "서류요청";
+      if (isDocsRequest && selectedConsult) {
+        const uploadToken = createUploadToken(selectedConsult.id, selectedConsult.name, selectedConsult.phone);
+        uploadUrl = `https://emfrontier.team/upload?token=${uploadToken.token}`;
+      }
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -598,6 +605,7 @@ ${name} 대표님!
           status: cNewStatus,
           templateType: alimTemplate || undefined,
           customText: alimText.trim() || undefined,
+          ...(uploadUrl ? { kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: uploadUrl, linkPc: uploadUrl }] } } : {}),
         }),
       });
       const data = await res.json();
@@ -610,6 +618,7 @@ ${name} 대표님!
         const payload = {
           consultation: { ...sc, name: cName || sc?.name, manager: admin?.name, managerPhone: admin?.phone },
           status: cNewStatus, templateType: alimTemplate || undefined, customText: alimText.trim() || undefined,
+          ...(uploadUrl ? { kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: uploadUrl, linkPc: uploadUrl }] } } : {}),
         };
         showFailModal(
           sc?.name || "", sc?.phone || "", data.error || "오류",

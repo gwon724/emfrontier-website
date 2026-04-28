@@ -2996,6 +2996,54 @@ export interface FundProgress {
 // 회원가입 토큰
 // ────────────────────────────────────────────
 
+// ────────────────────────────────────────────
+// 서류 업로드 토큰 (UploadToken)
+// ────────────────────────────────────────────
+
+export interface UploadToken {
+  token: string;
+  consultationId: string;
+  name: string;
+  phone: string;
+  createdAt: string;
+  expiresAt: string;
+  used: boolean;
+}
+
+export function createUploadToken(consultationId: string, name: string, phone: string): UploadToken {
+  const token = "up_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const now = new Date();
+  const expires = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72시간
+  const t: UploadToken = { token, consultationId, name, phone, createdAt: now.toISOString(), expiresAt: expires.toISOString(), used: false };
+  if (typeof window !== "undefined") {
+    const tokens = getUploadTokens();
+    tokens.push(t);
+    localStorage.setItem("uploadTokens", JSON.stringify(tokens));
+  }
+  return t;
+}
+
+export function getUploadTokens(): UploadToken[] {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem("uploadTokens");
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function validateUploadToken(token: string): UploadToken | null {
+  const tokens = getUploadTokens();
+  const t = tokens.find(t => t.token === token);
+  if (!t) return null;
+  if (new Date() > new Date(t.expiresAt)) return null;
+  return t;
+}
+
+export function markUploadTokenUsed(token: string): void {
+  if (typeof window === "undefined") return;
+  const tokens = getUploadTokens();
+  const idx = tokens.findIndex(t => t.token === token);
+  if (idx !== -1) { tokens[idx].used = true; localStorage.setItem("uploadTokens", JSON.stringify(tokens)); }
+}
+
 export interface RegisterToken {
   token: string;
   consultationId: string;
