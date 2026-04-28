@@ -14,7 +14,7 @@ const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "5500296822";
 
 const TEMPLATE_IDS: Record<string, string> = {
   register:        "KA01TP260428112948784jz0YhWeF8FP",
-  register_portal:  "KA01TP260421142741105kr53kF0B6qf",
+  register_portal:  "KA01TP260428121801498rq2B9pY1R68",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
   docs_request_link: "KA01TP260428105226107iNfbSt56pZJ",
