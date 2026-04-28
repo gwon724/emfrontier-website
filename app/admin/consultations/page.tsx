@@ -323,6 +323,7 @@ export default function AdminConsultationsPage() {
                   saved={saved} handleSave={handleSave} delConfirm={delConfirm} setDelConfirm={setDelConfirm}
                   handleDelete={handleDelete}
                   onClose={() => { setSelected(null); setShowDetail(false); }}
+                  onUpdateSelected={c => setSelected(c)}
                   GRADE_COLOR={GRADE_COLOR} inp={inp}
                 />
               </div>
@@ -342,6 +343,7 @@ export default function AdminConsultationsPage() {
                 saved={saved} handleSave={handleSave} delConfirm={delConfirm} setDelConfirm={setDelConfirm}
                 handleDelete={handleDelete}
                 onClose={() => { setSelected(null); setShowDetail(false); }}
+                onUpdateSelected={c => setSelected(c)}
                 GRADE_COLOR={GRADE_COLOR} inp={inp}
               />
             </div>
@@ -359,7 +361,7 @@ function DetailPanel({
   memo, setMemo, assignedTo, setAssignedTo,
   consultDate, setConsultDate,
   saved, handleSave, delConfirm, setDelConfirm, handleDelete,
-  onClose, GRADE_COLOR, inp,
+  onClose, onUpdateSelected, GRADE_COLOR, inp,
 }: {
   selected: Consultation;
   detailTab: "info" | "analysis" | "funds";
@@ -373,6 +375,7 @@ function DetailPanel({
   delConfirm: boolean; setDelConfirm: (v: boolean) => void;
   handleDelete: () => void;
   onClose: () => void;
+  onUpdateSelected: (c: Consultation) => void;
   GRADE_COLOR: Record<string, { bg: string; text: string }>;
   inp: React.CSSProperties;
 }) {
@@ -497,8 +500,31 @@ function DetailPanel({
           <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9", marginBottom: "12px" }}>
             💾 선택 자금 ({selectedFundObjects.length}개)
           </p>
+          {/* 자금 추가 드롭다운 */}
+          <div style={{ display: "flex", gap: "8px", marginBottom: "14px", flexWrap: "wrap" }}>
+            <select
+              defaultValue=""
+              onChange={e => {
+                const fundId = e.target.value;
+                if (!fundId) return;
+                const current = selected.selectedFundIds || [];
+                if (current.includes(fundId)) return;
+                const updated = [...current, fundId];
+                updateConsultation(selected.id, { selectedFundIds: updated });
+                const fresh = getAllConsultations().find(c => c.id === selected.id);
+                if (fresh) onUpdateSelected(fresh);
+                e.target.value = "";
+              }}
+              style={{ flex: 1, minWidth: "200px", padding: "8px 10px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9", cursor: "pointer" }}
+            >
+              <option value="">정책자금 선택하여 추가...</option>
+              {allFunds.filter(f => f.active && !(selected.selectedFundIds || []).includes(f.id)).map(f => (
+                <option key={f.id} value={f.id}>[{f.category}] {f.name} (최대 {Number(f.maxAmount).toLocaleString()}원)</option>
+              ))}
+            </select>
+          </div>
           {selectedFundObjects.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "#64748B", padding: "20px 0", textAlign: "center" }}>아직 선택한 자금이 없습니다.</p>
+            <p style={{ fontSize: "13px", color: "#64748B", padding: "20px 0", textAlign: "center" }}>위 드롭다운에서 자금을 선택해주세요.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {selectedFundObjects.map(f => (
@@ -507,9 +533,21 @@ function DetailPanel({
                     <p style={{ fontSize: "13px", fontWeight: "700", color: "#60A5FA" }}>{f.name}</p>
                     <p style={{ fontSize: "11px", color: "#64748B" }}>{f.institution} · {f.category}</p>
                   </div>
-                  <p style={{ fontSize: "13px", fontWeight: "800", color: "#34D399", flexShrink: 0 }}>
-                    최대 {Number(f.maxAmount) >= 100000000 ? (Number(f.maxAmount)/100000000).toFixed(0)+"억" : (Number(f.maxAmount)/10000).toFixed(0)+"만"}원
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                    <p style={{ fontSize: "13px", fontWeight: "800", color: "#34D399" }}>
+                      최대 {Number(f.maxAmount) >= 100000000 ? (Number(f.maxAmount)/100000000).toFixed(0)+"억" : (Number(f.maxAmount)/10000).toFixed(0)+"만"}원
+                    </p>
+                    <button
+                      onClick={() => {
+                        const updated = (selected.selectedFundIds || []).filter(id => id !== f.id);
+                        updateConsultation(selected.id, { selectedFundIds: updated });
+                        const fresh = getAllConsultations().find(c => c.id === selected.id);
+                        if (fresh) onUpdateSelected(fresh);
+                      }}
+                      style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
+                      ✕ 제거
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

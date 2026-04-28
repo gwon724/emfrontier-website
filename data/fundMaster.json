@@ -55,7 +55,8 @@
     "minRevenue": "0",
     "maxDebt": "0",
     "minCreditScore": "0",
-    "description": "저신용·저소득 취약 소상공인 전용 자금. 신용점수가 낮아 민간 금융 이용이 어려운 소상공인에게 최대 3천만 원 지원. 연 2% 고정금리.",
+    "maxCreditScore": "839",
+    "description": "저신용·저소득 취약 소상공인 전용 자금. NICE 신용점수 839점 이하에서만 신청 가능. 최대 3천만 원 지원. 연 2% 고정금리.",
     "active": true,
     "createdAt": "2026-01-01 00:00:00"
   },
