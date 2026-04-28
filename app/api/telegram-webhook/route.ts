@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const BOT_TOKEN = process.env.TELEGRAM_NOTIFY_BOT_TOKEN || "";
+// 두 봇 모두 이 웹훅을 사용 (START_bot + REMIND_bot)
+const START_BOT_TOKEN = process.env.TELEGRAM_START_BOT_TOKEN || "";
+const REMIND_BOT_TOKEN = process.env.TELEGRAM_REMIND_BOT_TOKEN || "";
 const DATA_DIR = path.join(process.cwd(), "data");
 
 export async function POST(req: NextRequest) {
@@ -19,16 +21,22 @@ export async function POST(req: NextRequest) {
   const match = text.match(/^\/(?:등록|register|start)\s*(.*)$/i);
   const adminUsername = (match?.[1] || "").trim();
 
+  // 어떤 봇에서 왔는지 판단 (via bot_id in body)
+  const botId = body.message?.via_bot?.id || body?.my_chat_member?.bot?.id;
+  // 간단하게: START봇으로 응답 (기본)
+  const replyToken = START_BOT_TOKEN;
+
   if (!adminUsername) {
-    // username만 보낸 경우
-    await sendMessage(chatId, `👋 안녕하세요!\n\n어드민 계정 연동을 위해 아래 형식으로 메시지 보내주세요:\n\n<code>/등록 [어드민ID]</code>\n\n예: <code>/등록 son4291</code>`);
+    await sendMessage(replyToken, chatId,
+      `👋 안녕하세요!\n\n어드민 계정 연동을 위해 아래 형식으로 메시지 보내주세요:\n\n<code>/등록 [어드민ID]</code>\n\n예: <code>/등록 son4291</code>`
+    );
     return NextResponse.json({ ok: true });
   }
 
   // adminAccounts에서 username 찾기
   const accountsFile = path.join(DATA_DIR, "adminAccounts.json");
   if (!fs.existsSync(accountsFile)) {
-    await sendMessage(chatId, "❌ 관리자 데이터를 찾을 수 없습니다.");
+    await sendMessage(replyToken, chatId, "❌ 관리자 데이터를 찾을 수 없습니다.");
     return NextResponse.json({ ok: true });
   }
 
@@ -38,7 +46,9 @@ export async function POST(req: NextRequest) {
   );
 
   if (idx === -1) {
-    await sendMessage(chatId, `❌ <b>${adminUsername}</b> 계정을 찾을 수 없습니다.\n\n어드민 로그인 ID를 정확히 입력해주세요.`);
+    await sendMessage(replyToken, chatId,
+      `❌ <b>${adminUsername}</b> 계정을 찾을 수 없습니다.\n\n어드민 로그인 ID를 정확히 입력해주세요.`
+    );
     return NextResponse.json({ ok: true });
   }
 
@@ -46,19 +56,25 @@ export async function POST(req: NextRequest) {
   accounts[idx].telegramChatId = chatId;
   fs.writeFileSync(accountsFile, JSON.stringify(accounts, null, 2));
 
-  await sendMessage(chatId,
+  // 두 봇 모두에서 응답
+  const successMsg =
     `✅ <b>${accounts[idx].name}</b> 담당자 연동 완료!\n\n` +
     `📱 Chat ID: <code>${chatId}</code>\n` +
     `👤 텔레그램: ${firstName} (@${username})\n\n` +
-    `이제 서류 제출 알림과 리마인드가 이 채팅으로 전송됩니다.`
-  );
+    `이제 서류 제출 알림과 리마인드가 이 채팅으로 전송됩니다.`;
+
+  await sendMessage(START_BOT_TOKEN, chatId, successMsg);
+  if (REMIND_BOT_TOKEN && REMIND_BOT_TOKEN !== START_BOT_TOKEN) {
+    await sendMessage(REMIND_BOT_TOKEN, chatId, successMsg).catch(() => {});
+  }
 
   console.log(`[webhook] 어드민 연동: ${accounts[idx].name} (${adminUsername}) → chatId: ${chatId}`);
   return NextResponse.json({ ok: true });
 }
 
-async function sendMessage(chatId: string, text: string) {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+async function sendMessage(token: string, chatId: string, text: string) {
+  if (!token) return;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
