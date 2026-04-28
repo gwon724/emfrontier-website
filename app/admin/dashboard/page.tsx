@@ -220,6 +220,8 @@ export default function AdminDashboard() {
   const [registerLinkSent, setRegisterLinkSent] = useState(false);
   const [registerLinkToken, setRegisterLinkToken] = useState("");
   const [uploadLinkSending, setUploadLinkSending] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [showDocChecklist, setShowDocChecklist] = useState(false);
   const [uploadLinkSent, setUploadLinkSent] = useState(false);
   const [uploadLinkToken, setUploadLinkToken] = useState("");
 
@@ -361,7 +363,7 @@ export default function AdminDashboard() {
     setRegisterLinkSending(false);
   };
 
-  const sendUploadLink = async () => {
+  const sendUploadLink = async (docList?: string[]) => {
     if (!selectedConsult) return;
     setUploadLinkSending(true);
     setUploadLinkSent(false);
@@ -376,11 +378,15 @@ export default function AdminDashboard() {
       const tokenData = await tokenRes.json();
       if (!tokenData.ok) throw new Error("토큰 생성 실패");
       const link = `https://emfrontier.team/upload?token=${tokenData.token}`;
+      // 서류 목록 리스트 텍스트 생성
+      const docText = docList && docList.length > 0
+        ? `\n\n필요 서류 (${docList.length}개):\n` + docList.map((d,i) => `${i+1}. ${d}`).join("\n")
+        : "";
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link },
+          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link, docList: docText },
           templateType: "docs_request_link",
         }),
       });
@@ -394,7 +400,7 @@ export default function AdminDashboard() {
         showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link }, templateType: "docs_request_link" }) });
+              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link, docList: docText }, templateType: "docs_request_link" }) });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
             showSuccess("✅ 서류 링크 재발송 성공");
@@ -2186,9 +2192,54 @@ ${name} 대표님!
                       )}
 
                       {/* 서류 제출 링크 발송 */}
-                      <button onClick={sendUploadLink} disabled={uploadLinkSending}
+                      {/* 서류 체크리스트 */}
+                      <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px", marginBottom: "8px", border: "1px solid #0F766E" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showDocChecklist ? "12px" : "0" }}>
+                          <p style={{ fontSize: "12px", fontWeight: "700", color: "#34D399", margin: 0 }}>📎 서류 체크리스트 {selectedDocs.length > 0 && <span style={{ backgroundColor: "#065F46", color: "#34D399", padding: "1px 7px", borderRadius: "999px", fontSize: "11px", marginLeft: "6px" }}>{selectedDocs.length}선택</span>}</p>
+                          <button onClick={() => setShowDocChecklist(p=>!p)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>{showDocChecklist ? "▲ 접기" : "▼ 펼치기"}</button>
+                        </div>
+                        {showDocChecklist && (
+                          <>
+                            {[
+                              { section: "[필수]", items: ["사업자등록증","사업자등록증명","신분증 사본","재무제표","부가세 자료","통장내역","거래처 계약서/발주서","4대보험 가입자 명부","국세 완납증명서","지방세 완납증명서"] },
+                              { section: "[재무]", items: ["매출증빙","세금신고서","대출내역서(개인,사업자)","KCB/NICE 점수"] },
+                              { section: "[사업]", items: ["사업계획서","자금사용계획"] },
+                              { section: "[추가]", items: ["공동인증서(개인/범용)","계약서"] },
+                            ].map(group => (
+                              <div key={group.section} style={{ marginBottom: "10px" }}>
+                                <p style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "6px" }}>{group.section}</p>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                  {group.items.map(item => {
+                                    const checked = selectedDocs.includes(item);
+                                    return (
+                                      <button key={item} onClick={() => setSelectedDocs(p => checked ? p.filter(d=>d!==item) : [...p, item])}
+                                        style={{ padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: "600", cursor: "pointer",
+                                          border: `1px solid ${checked ? "#34D399" : "#334155"}`,
+                                          backgroundColor: checked ? "#052E1C" : "#1E293B",
+                                          color: checked ? "#34D399" : "#64748B" }}>
+                                        {checked ? "✓ " : ""}{item}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                              <button onClick={() => setSelectedDocs(["사업자등록증","사업자등록증명","신분증 사본","재무제표","부가세 자료","통장내역","거래처 계약서/발주서","4대보험 가입자 명부","국세 완납증명서","지방세 완납증명서"])}
+                                style={{ flex:1, padding:"6px", backgroundColor:"#1E3A5F", color:"#60A5FA", border:"1px solid #3B82F6", borderRadius:"6px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                                필수 전체선택
+                              </button>
+                              <button onClick={() => setSelectedDocs([])}
+                                style={{ padding:"6px 12px", backgroundColor:"#1E293B", color:"#94A3B8", border:"1px solid #334155", borderRadius:"6px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                                초기화
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <button onClick={() => sendUploadLink(selectedDocs)} disabled={uploadLinkSending}
                         style={{ width: "100%", padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: uploadLinkSending ? "not-allowed" : "pointer", backgroundColor: uploadLinkSent ? "#16A34A" : uploadLinkSending ? "#334155" : "#0F766E", color: "#FFF", marginBottom: "8px" }}>
-                        {uploadLinkSent ? "✅ 서류 링크 발송완료" : uploadLinkSending ? "⏳ 발송중..." : "📎 서류 제출 링크 발송"}
+                        {uploadLinkSent ? "✅ 서류 링크 발송완료" : uploadLinkSending ? "⏳ 발송중..." : `📎 서류 제출 링크 발송${selectedDocs.length > 0 ? ` (${selectedDocs.length}개 서류)` : ""}`}
                       </button>
                       {uploadLinkToken && (
                         <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "10px 12px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>

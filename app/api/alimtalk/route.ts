@@ -278,7 +278,7 @@ function buildText(templateType: string, c: Record<string, string>): string {
 `[엠프론티어] 서류 제출 안내
 
 ${name} 대표님, 안녕하세요!
-요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.
+요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.${c["docList"] || ""}
 
 📎 서류 제출 링크:
 ${c["uploadLink"] || ""}
