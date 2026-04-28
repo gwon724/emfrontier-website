@@ -2476,6 +2476,43 @@ ${name} 대표님!
                     return (
                       <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
                         <p style={{ fontSize: "13px", fontWeight: "800", color: "#10B981", marginBottom: "10px" }}>📊 상담 자금 현황</p>
+                        {/* 자금 추가 폼 */}
+                        <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+                          <input
+                            value={newFundName}
+                            onChange={e => setNewFundName(e.target.value)}
+                            placeholder="자금명 직접 입력"
+                            style={{ flex: 2, minWidth: "140px", padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                          />
+                          <input
+                            value={newFundAmount}
+                            onChange={e => setNewFundAmount(e.target.value)}
+                            placeholder="승인금액"
+                            style={{ flex: 1, minWidth: "80px", padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                          />
+                          <button
+                            disabled={!newFundName.trim()}
+                            onClick={async () => {
+                              if (!newFundName.trim()) return;
+                              const newFund: FundProgress = {
+                                id: `f_${Date.now()}`,
+                                fundName: newFundName.trim(),
+                                amount: newFundAmount.trim(),
+                                status: "접수대기",
+                                institution: "",
+                                updatedAt: new Date().toLocaleString("ko-KR"),
+                              };
+                              updateConsultation(linkedConsult.id, { funds: [...(linkedConsult.funds || []), newFund] });
+                              const fresh = getAllConsultations();
+                              await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                              setConsultations(fresh);
+                              setNewFundName(""); setNewFundAmount("");
+                              showSuccess("✅ 자금 추가 완료!");
+                            }}
+                            style={{ padding: "7px 14px", backgroundColor: newFundName.trim() ? "#2563EB" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: newFundName.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>
+                            + 추가
+                          </button>
+                        </div>
                         {(!linkedConsult.funds || linkedConsult.funds.length === 0) ? (
                           <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>
                         ) : (
