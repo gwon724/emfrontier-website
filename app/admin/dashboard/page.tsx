@@ -267,8 +267,6 @@ export default function AdminDashboard() {
 
   const convertToMember = async () => {
     if (!selectedConsult) return;
-    const email = selectedConsult.email;
-    if (!email) { alert("이메일 주소가 없어요! 이메일을 먼저 입력해주세요."); return; }
     if (!window.confirm(`${selectedConsult.name} 대표님을 포털 회원으로 등록하시겠어요?\n(비밀번호는 고객이 링크로 직접 설정합니다)`)) return;
     try {
       // 서버 DB에서 clientUsers 조회
@@ -285,12 +283,13 @@ export default function AdminDashboard() {
           createdAt: new Date().toISOString(),
         });
         // 서버 DB 저장
-        await fetch("/api/db", {
+        const saveRes = await fetch("/api/db", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key: "clientUsers", value: clientUsers }),
         });
-        // localStorage도 동기화
+        const saveData = await saveRes.json();
+        if (!saveData.ok) throw new Error("서버 저장 실패");
         localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
       }
       setConvertDone(true);
