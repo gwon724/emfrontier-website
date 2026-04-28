@@ -221,8 +221,16 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   useEffect(() => {
     // 서버에서 최신 데이터 로드
     fetch("/api/db?key=consultations").then(r => r.json()).then(j => {
-      if (j.value) localStorage.setItem("consultations", JSON.stringify(j.value));
-    }).catch(() => {}).finally(() => {
+      if (j.value) {
+        localStorage.setItem("consultations", JSON.stringify(j.value));
+        const found = (j.value as import("@/lib/store").Consultation[]).find(c => c.name === clientName);
+        setConsult(found || null);
+      } else {
+        const all = getAllConsultations();
+        const found = all.find(c => c.name === clientName);
+        setConsult(found || null);
+      }
+    }).catch(() => {
       const all = getAllConsultations();
       const found = all.find(c => c.name === clientName);
       setConsult(found || null);
