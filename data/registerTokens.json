@@ -7,5 +7,14 @@
     "createdAt": "2026-04-28T03:30:17.537Z",
     "expiresAt": "2026-04-29T03:30:17.537Z",
     "used": false
+  },
+  {
+    "token": "reg_yu9j2fm9ufmoijbolh",
+    "consultationId": "test123",
+    "name": "손권찬",
+    "phone": "01082114291",
+    "createdAt": "2026-04-28T11:20:35.141Z",
+    "expiresAt": "2026-04-29T11:20:35.141Z",
+    "used": false
   }
 ]
