@@ -13,7 +13,7 @@ import {
 } from "@/lib/store";
 
 const font = FONT;
-type Tab = "members" | "consultations" | "naver" | "manage" | "all-consults";
+type Tab = "members" | "consultations" | "naver" | "all-consults";
 type ConsultTab = "waiting" | "mine";
 
 function calcConsultGrade(c: Consultation): { grade: string; score: number } {
@@ -167,6 +167,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("전체");
   const [filterGrade, setFilterGrade] = useState("전체");
+  const [filterAssignee, setFilterAssignee] = useState("전체");
   const [sortBy, setSortBy] = useState<"name" | "date" | "grade">("date");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -778,6 +779,8 @@ ${name} 대표님!
     setAdmin(getCurrentAdmin());
     setAdminList(getAllAdmins());
     refresh();
+    // 포털 회원 자동 로드
+    fetch("/api/db?key=clientUsers").then(r=>r.json()).then(d=>setClientPortalUsers(d.value||[])).catch(()=>{});
     setLoading(false);
     const interval = setInterval(refresh, 5000);
     return () => clearInterval(interval);
@@ -1021,7 +1024,14 @@ ${name} 대표님!
       const matchSearch = !search || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
       const matchStatus = filterStatus === "전체" || (filterStatus === "미신청" ? !u.application : u.application?.status === filterStatus);
       const matchGrade = filterGrade === "전체" || calcGrade(u).grade === filterGrade;
-      return matchSearch && matchStatus && matchGrade;
+      // 담당자 필터: 최고관리자는 전체, 일반 어드민은 본인 담당 고객만
+      const myConsults = consultations.filter(c => c.name === u.name);
+      const isMyClient = admin?.role === "superadmin" ||
+        myConsults.some(c => c.assignee === admin?.name);
+      const matchAssignee = filterAssignee === "전체"
+        ? (admin?.role === "superadmin" || isMyClient)
+        : myConsults.some(c => c.assignee === filterAssignee);
+      return matchSearch && matchStatus && matchGrade && matchAssignee && (admin?.role === "superadmin" || isMyClient);
     })
     .sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name, "ko");
@@ -1199,7 +1209,6 @@ ${name} 대표님!
           <Link href="/admin/consultations" style={{ backgroundColor: "#334155", color: "#CBD5E1" }} onClick={() => setMobileNav(false)}>💬 상담 관리</Link>
           {admin?.role === "superadmin" && (<>
             <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("all-consults"); setMobileNav(false); }}>📋 전체상담</button>
-            <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("manage"); setMobileNav(false); }}>👥 회원 관리</button>
           </>)}
           <button className="mob-link" onClick={() => { setMobileNav(false); logout(); }}>로그아웃</button>
         </div>
@@ -1222,7 +1231,6 @@ ${name} 대표님!
                 {admin?.role === "superadmin" && (
                   <>
                     <button onClick={() => setTab("all-consults")} style={{ backgroundColor: tab === "all-consults" ? "#1D4ED8" : "#334155", color: tab === "all-consults" ? "#FFF" : "#CBD5E1", border: "none", borderRadius: "6px", padding: "5px 12px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>📋 전체상담</button>
-                    <button onClick={() => setTab("manage")} style={{ backgroundColor: tab === "manage" ? "#1D4ED8" : "#334155", color: tab === "manage" ? "#FFF" : "#CBD5E1", border: "none", borderRadius: "6px", padding: "5px 12px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>👥 회원</button>
                   </>
                 )}
               </nav>
@@ -1307,7 +1315,6 @@ ${name} 대표님!
               { key: "naver", label: `📊 네이버 광고` },
               ...(admin?.role === "superadmin" ? [
                 { key: "all-consults", label: `📋 전체상담 (${consultations.length})` },
-                { key: "manage", label: `👤 가입회원 (${users.length})` },
               ] : []),
             ] as { key: Tab; label: string }[]).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
@@ -1339,6 +1346,12 @@ ${name} 대표님!
                   <option value="전체">전체 등급</option>
                   {["A", "B", "C", "D"].map(g => <option key={g} value={g}>{g}등급</option>)}
                 </select>
+                {admin?.role === "superadmin" && (
+                  <select value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)} style={{ ...inp, cursor: "pointer" }}>
+                    <option value="전체">전체 담당자</option>
+                    {adminList.map(a => <option key={a.username} value={a.name}>{a.name}</option>)}
+                  </select>
+                )}
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as "name" | "date" | "grade")} style={{ ...inp, cursor: "pointer" }}>
                   <option value="date">최신순</option>
                   <option value="name">이름순</option>
@@ -1364,6 +1377,7 @@ ${name} 대표님!
                         <th style={{ padding: "10px 10px", textAlign: "left", fontSize: "11px", fontWeight: "700", color: "#64748B", borderBottom: "1px solid #334155", whiteSpace: "nowrap" }}>등급</th>
                         <th style={{ padding: "10px 10px", textAlign: "left", fontSize: "11px", fontWeight: "700", color: "#64748B", borderBottom: "1px solid #334155", whiteSpace: "nowrap" }}>상태</th>
                         <th className="col-hide-xs" style={{ padding: "10px 10px", textAlign: "left", fontSize: "11px", fontWeight: "700", color: "#64748B", borderBottom: "1px solid #334155", whiteSpace: "nowrap" }}>가입일</th>
+                        <th className="col-hide-xs" style={{ padding: "10px 10px", textAlign: "left", fontSize: "11px", fontWeight: "700", color: "#64748B", borderBottom: "1px solid #334155", whiteSpace: "nowrap" }}>포털</th>
                         <th style={{ padding: "10px 10px", textAlign: "left", fontSize: "11px", fontWeight: "700", color: "#64748B", borderBottom: "1px solid #334155", whiteSpace: "nowrap" }}>관리</th>
                       </tr>
                     </thead>
@@ -1398,6 +1412,14 @@ ${name} 대표님!
                               ) : <span style={{ fontSize: "10px", color: "#475569" }}>미신청</span>}
                             </td>
                             <td className="col-hide-xs" style={{ padding: "9px 10px", fontSize: "10px", color: "#64748B", whiteSpace: "nowrap" }}>{u.registeredAt?.split(" ")[0] ?? "-"}</td>
+                            <td className="col-hide-xs" style={{ padding: "9px 10px" }}>
+                              {(() => {
+                                const isPortal = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === u.phone?.replace(/-/g,""));
+                                return isPortal
+                                  ? <span style={{ fontSize: "10px", fontWeight: "700", color: "#34D399", backgroundColor: "#052E1C", padding: "2px 7px", borderRadius: "999px", border: "1px solid #34D399" }}>✓ 개설</span>
+                                  : <span style={{ fontSize: "10px", color: "#475569" }}>-</span>;
+                              })()}
+                            </td>
                             <td style={{ padding: "9px 10px" }}>
                               <div style={{ display: "flex", gap: "4px" }}>
                                 <button onClick={e => { e.stopPropagation(); setSelectedUser(u); setUserEmailStatus(u.application?.status || "접수대기"); }}
@@ -1963,7 +1985,7 @@ ${name} 대표님!
                               setShowConvertForm(false);
                               setSelectedConsult(null);
                               setShowConsultDetail(false);
-                              setTab("manage");
+                              setTab("members");
                               showSuccess("✅ 회원 개설 + 비밀번호 설정 완료");
                             }} style={{ padding: "9px 16px", backgroundColor: "#7C3AED", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
                               ✅ 개설
