@@ -16,7 +16,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   register:        "KA01TP260428112948784jz0YhWeF8FP",
   register_portal:  "KA01TP260421142741105kr53kF0B6qf",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
-  docs_request:    "KA01TP26041716110927854v9cH3OlJb",
+  docs_request:    "KA01TP260428105226107iNfbSt56pZJ",
   docs_request_link: "KA01TP260428042944767QHY452d80Jp",
   temp_password:     "KA01TP260428043128952glc3ZNHfXVO",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
@@ -98,6 +98,9 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     // [엠프론티어] 서류 제출 안내
     docs_request: {
       "#{이름}": name,
+      "#{서류리스트}": (Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : c["docList"] || "-"),
+      "#{매니저}": manager,
+      "#{매니저연락처}": contact,
     },
     // [엠프론티어] 서류 제출 안내 (링크 포함)
     docs_request_link: {
@@ -263,16 +266,14 @@ function buildText(templateType: string, c: Record<string, string>): string {
     docs_request:
 `[엠프론티어] 서류 제출 안내
 
-안녕하세요, ${name} 대표님!
-신청하신 정책자금 상담 진행을 위해
-아래 서류 제출을 부탁드립니다.
+${name} 대표님, 안녕하세요!
+요청하신 정책자금 신청을 위한 서류 제출을 부탁드립니다.
 
- 필요 서류
-• 사업자등록증
-• 최근 3개월 매출내역
-• 신분증 사본
+제출 서류 목록:
+${Array.isArray(c["selectedDocs"]) ? (c["selectedDocs"] as string[]).join("\n") : (c["docList"] || "-")}
 
-서류 제출 후 빠르게 검토 도와드리겠습니다.
+담당 매니저: ${manager}
+연락처: ${contact}
 
 엠프론티어`,
 

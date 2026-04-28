@@ -3296,6 +3296,7 @@ ${name} 대표님!
                                       consultDate: latestConsult.consultDate || "",
                                       assignedName: latestConsult.assignedName || admin?.name || "",
                                       fundName: lastRejFund?.fundName || anyFund?.fundName || "신청 자금",
+                                      selectedDocs: selectedDocs.length > 0 ? selectedDocs : undefined,
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",
