@@ -2369,7 +2369,7 @@ ${name} 대표님!
 
                   {/* 회원 정책자금 관리 */}
                   <div style={{ marginTop: "12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "10px" }}>🏦 정책자금 관리</p>
+                    <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "10px" }}>🏦 진행중인 정책자금</p>
                     {/* 직접 입력 자금 추가 */}
                     <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
                       <input
@@ -2475,7 +2475,7 @@ ${name} 대표님!
                     if (!linkedConsult) return null;
                     return (
                       <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
-                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#10B981", marginBottom: "10px" }}>📊 상담 자금 현황</p>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#10B981", marginBottom: "10px" }}>📊 승인완료 정책자금</p>
                         {/* 자금 추가 폼 */}
                         <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
                           <input
