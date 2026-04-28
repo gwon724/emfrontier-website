@@ -2869,6 +2869,7 @@ ${name} 대표님!
                                 const fresh = getAllConsultations();
                                 await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
                                 setConsultations(fresh);
+                                const savedRejFundName = newRejFundName.trim();
                                 setNewRejFundName("");
                                 // 미승인 알림톡 발송
                                 const rejPhone = (selectedUser as UserRecord & {phone?:string}).phone || "";
@@ -2877,7 +2878,7 @@ ${name} 대표님!
                                     name: selectedUser.name,
                                     phone: rejPhone,
                                     id: selectedUser.id,
-                                    fundName: newRejFundName.trim(),
+                                    fundName: savedRejFundName,
                                     manager: admin?.name,
                                     managerPhone: admin?.phone || "01082114291",
                                   };
@@ -3233,6 +3234,7 @@ ${name} 대표님!
                                   const stepPhone = latestConsult.phone || (selectedUser as UserRecord & {phone?:string}).phone || "";
                                   if (tmpl && stepPhone) {
                                     const lastRejFund = (latestConsult.funds || []).filter(f => f.status === "부결").slice(-1)[0];
+                                    const anyFund = (latestConsult.funds || []).slice(-1)[0];
                                     const enriched = {
                                       ...latestConsult,
                                       phone: stepPhone,
@@ -3242,7 +3244,7 @@ ${name} 대표님!
                                       amount: latestConsult.desiredAmount || "-",
                                       consultDate: latestConsult.consultDate || "",
                                       assignedName: latestConsult.assignedName || admin?.name || "",
-                                      fundName: lastRejFund?.fundName || (latestConsult.funds || []).slice(-1)[0]?.fundName || "-",
+                                      fundName: lastRejFund?.fundName || anyFund?.fundName || "신청 자금",
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",

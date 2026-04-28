@@ -56,13 +56,13 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 8:58:55",
+    "updatedAt": "2026. 4. 28. 오후 9:01:13",
     "funds": [
       {
         "id": "f_1777377535051",
         "fundName": "테스트",
         "amount": "5000만원",
-        "status": "승인",
+        "status": "부결",
         "institution": "",
         "updatedAt": "2026. 4. 28. 오후 8:58:55"
       }
