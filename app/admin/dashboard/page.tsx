@@ -2442,19 +2442,18 @@ ${name} 대표님!
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >
-                                {["접수완료","심사대기","심사중","승인","부결","보완"].map(s => <option key={s} value={s}>{s}</option>)}
+                                {["접수대기","접수완료","심사대기","심사중","실사중","승인","부결","보완"].map(s => <option key={s} value={s}>{s}</option>)}
                               </select>
                               <button
                                 onClick={async () => {
                                   const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
                                   const updated = (type.funds || []).filter(x => x.id !== f.id);
-                                  const updatedUser = { ...selectedUser, funds: updated };
-                                  upsertUser(updatedUser as UserRecord);
+                                  const updatedUser = { ...selectedUser, funds: updated } as UserRecord;
+                                  setSelectedUser(updatedUser);
+                                  upsertUser(updatedUser);
                                   const allU = getAllUsers();
-                                  await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
-                                  localStorage.setItem("users", JSON.stringify(allU));
                                   setUsers(allU);
-                                  setSelectedUser(updatedUser as UserRecord);
+                                  await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
                                   showSuccess("✅ 자금 삭제 완료!");
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
