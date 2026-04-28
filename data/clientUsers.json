@@ -12,16 +12,18 @@
     "name": "손권찬",
     "phone": "01082114291",
     "email": "",
-    "password": "pNffDZmD",
-    "createdAt": "2026-04-28T04:24:46.220Z"
+    "password": "vnrwRfEB",
+    "createdAt": "2026-04-28T04:24:46.220Z",
+    "isTempPassword": true
   },
   {
     "id": "1777355079583",
     "name": "손권찬",
     "phone": "01082114291",
     "email": "",
-    "password": "pNffDZmD",
-    "createdAt": "2026-04-28T05:44:39.583Z"
+    "password": "vnrwRfEB",
+    "createdAt": "2026-04-28T05:44:39.583Z",
+    "isTempPassword": true
   },
   {
     "id": "CU-1777357556394",

@@ -140,7 +140,7 @@ function LoginView({ onLogin }: { onLogin: (name: string, isTempPw?: boolean) =>
           {/* 비밀번호 찾기 폼 */}
           {showReset && (
             <div style={{ marginTop: "16px", borderTop: "1px solid #334155", paddingTop: "16px" }}>
-              <p style={{ fontSize: "12px", color: "#94A3B8", marginBottom: "12px", textAlign: "center" }}>등록하신 이름과 연락처를 입력하세요.<br/>가입 시 등록한 이메일로 임시 비밀번호를 발송해드립니다.</p>
+              <p style={{ fontSize: "12px", color: "#94A3B8", marginBottom: "12px", textAlign: "center" }}>등록하신 이름과 연락처를 입력하세요.<br/>카카오 알림톡으로 임시 비밀번호를 발송해드립니다.</p>
               <div style={{ marginBottom: "10px" }}>
                 <input
                   value={resetName}
