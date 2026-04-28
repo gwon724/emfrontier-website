@@ -1835,19 +1835,17 @@ ${name} 대표님!
                             <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                               {consultTab === "waiting" && (
                                 <>
-                                  {admin?.role === "superadmin" && (
-                                    <select
-                                      value={waitingAssignMap[c.id] || ""}
-                                      onChange={e => setWaitingAssignMap(p => ({ ...p, [c.id]: e.target.value }))}
-                                      onClick={e => e.stopPropagation()}
-                                      style={{ padding: "6px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer", fontFamily: font, maxWidth: "110px" }}
-                                    >
-                                      <option value="">내 계정</option>
-                                      {adminList.map(a => (
-                                        <option key={a.username} value={a.username}>{a.name}</option>
-                                      ))}
-                                    </select>
-                                  )}
+                                  <select
+                                    value={waitingAssignMap[c.id] || ""}
+                                    onChange={e => setWaitingAssignMap(p => ({ ...p, [c.id]: e.target.value }))}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ padding: "6px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer", fontFamily: font, maxWidth: "110px" }}
+                                  >
+                                    <option value="">내 계정</option>
+                                    {adminList.map(a => (
+                                      <option key={a.username} value={a.username}>{a.name}</option>
+                                    ))}
+                                  </select>
                                   <button
                                     disabled={isAssigning}
                                     onClick={async (e) => {
