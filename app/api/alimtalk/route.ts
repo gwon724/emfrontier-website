@@ -11,7 +11,7 @@ const KAKAO_CHANNEL_ID = process.env.KAKAO_CHANNEL_ID || "KA01PF260417154030663w
 const SENDER_PHONE = process.env.SENDER_PHONE || "01082114291";
 
 const TEMPLATE_IDS: Record<string, string> = {
-  register:        "KA01TP2604171602263531CsEYLmE4wh",
+  register:        "KA01TP260428112948784jz0YhWeF8FP",
   register_portal:  "KA01TP2604211426533112Vr01NzRn2R",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
