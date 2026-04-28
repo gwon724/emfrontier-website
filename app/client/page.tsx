@@ -399,7 +399,7 @@ function PortalView({ clientName, onLogout, isTempPw }: { clientName: string; on
                 {[
                   { label: "접수번호", value: consult.id },
                   { label: "업종", value: consult.businessType || "-" },
-                  { label: "희망금액", value: consult.desiredAmount || "-" },
+                  { label: "희망금액", value: consult.desiredAmount ? (String(consult.desiredAmount).replace(/만원$/,"").replace(/[^0-9]/g,"") ? Number(String(consult.desiredAmount).replace(/만원$/,"").replace(/[^0-9]/g,"")).toLocaleString() + "만원" : consult.desiredAmount) : "-" },
                   { label: "현재 상태", value: consult.status },
                   { label: "담당 매니저", value: consult.assignedName || "배정 중" },
                 ].map(item => (
