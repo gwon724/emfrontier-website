@@ -406,9 +406,9 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             {/* 회원 정책자금 목록 (admin에서 추가한 자금) */}
             {userRecord && (userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds && ((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).length > 0 && (
               <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #1E3A8A" }}>
-                <p style={{ fontSize: "14px", fontWeight: "800", color: "#60A5FA", marginBottom: "14px" }}>🏦 담당 정책자금</p>
+                <p style={{ fontSize: "14px", fontWeight: "800", color: "#60A5FA", marginBottom: "14px" }}>🏦 진행중인 정책자금</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).map(f => (
+                  {((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").map(f => (
                     <div key={f.id} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                         <div>
@@ -429,11 +429,11 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             )}
 
             {/* 자금 현황 */}
-            {consult.funds && consult.funds.length > 0 && (
+            {consult.funds && consult.funds.filter(f => (f.status as string) === "승인").length > 0 && (
               <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-                <p style={{ fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>🏦 담당 정책자금</p>
+                <p style={{ fontSize: "14px", fontWeight: "800", color: "#34D399", marginBottom: "14px" }}>🏦 승인완료 정책자금</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {consult.funds.map(fund => (
+                  {consult.funds.filter(fund => (fund.status as string) === "승인").map(fund => (
                     <div key={fund.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px" }}>
                       <div>
                         <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
