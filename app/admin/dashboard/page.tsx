@@ -1027,10 +1027,10 @@ ${name} 대표님!
       // 담당자 필터: 최고관리자는 전체, 일반 어드민은 본인 담당 고객만
       const myConsults = consultations.filter(c => c.name === u.name);
       const isMyClient = admin?.role === "superadmin" ||
-        myConsults.some(c => c.assignee === admin?.name);
+        myConsults.some(c => c.assignedName === admin?.name);
       const matchAssignee = filterAssignee === "전체"
         ? (admin?.role === "superadmin" || isMyClient)
-        : myConsults.some(c => c.assignee === filterAssignee);
+        : myConsults.some(c => c.assignedName === filterAssignee);
       return matchSearch && matchStatus && matchGrade && matchAssignee && (admin?.role === "superadmin" || isMyClient);
     })
     .sort((a, b) => {
@@ -1417,7 +1417,7 @@ ${name} 대표님!
                             <td className="col-hide-xs" style={{ padding: "9px 10px", fontSize: "10px", color: "#64748B", whiteSpace: "nowrap" }}>{u.registeredAt?.split(" ")[0] ?? "-"}</td>
                             <td className="col-hide-xs" style={{ padding: "9px 10px" }}>
                               {(() => {
-                                const isPortal = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === u.phone?.replace(/-/g,""));
+                                const isPortal = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === (u as {phone?:string}).phone?.replace(/-/g,""));
                                 return isPortal
                                   ? <span style={{ fontSize: "10px", fontWeight: "700", color: "#34D399", backgroundColor: "#052E1C", padding: "2px 7px", borderRadius: "999px", border: "1px solid #34D399" }}>✓ 개설</span>
                                   : <span style={{ fontSize: "10px", color: "#475569" }}>-</span>;
@@ -1631,136 +1631,6 @@ ${name} 대표님!
                           {c.alimtalkStatus === "failed" && (
                             <span style={{ fontSize: "11px", backgroundColor: "#450A0A", color: "#FCA5A5", padding: "2px 8px", borderRadius: "999px", fontWeight: "700", flexShrink: 0 }}>❌ 알림톡실패</span>
                           )}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </>
-          )}
-
-          {/* ── Manage (Users) Tab (superadmin) ── */}
-          {tab === "manage" && admin?.role === "superadmin" && (
-            <>
-              {/* 포털 회원 관리 토글 */}
-              <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showPortalUsers ? "16px" : "0" }}>
-                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#F59E0B", margin: 0 }}>🔑 포털 회원 관리</p>
-                  <button onClick={async () => {
-                    if (!showPortalUsers) {
-                      const res = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({value:[]}));
-                      setClientPortalUsers(res.value || []);
-                    }
-                    setShowPortalUsers(p => !p);
-                  }} style={{ padding: "5px 12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
-                    {showPortalUsers ? "▲ 접기" : "▼ 펼치기"}
-                  </button>
-                </div>
-
-                {showPortalUsers && (
-                  <>
-                    {/* 신규 직접 개설 */}
-                    <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "14px", border: "1px solid #334155" }}>
-                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#94A3B8", marginBottom: "10px" }}>➕ 직접 계정 개설</p>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
-                        <input value={newMember.name} onChange={e => setNewMember(p=>({...p,name:e.target.value}))} placeholder="이름 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
-                        <input value={newMember.phone} onChange={e => setNewMember(p=>({...p,phone:e.target.value}))} placeholder="연락처 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
-                        <input value={newMember.email} onChange={e => setNewMember(p=>({...p,email:e.target.value}))} placeholder="이메일" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
-                        <input value={newMember.password} onChange={e => setNewMember(p=>({...p,password:e.target.value}))} placeholder="비밀번호 *" style={{ padding: "8px 12px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", outline: "none" }} />
-                      </div>
-                      <button disabled={newMemberSaving} onClick={async () => {
-                        if (!newMember.name || !newMember.phone || !newMember.password) { alert("이름/연락처/비밀번호는 필수입니다"); return; }
-                        setNewMemberSaving(true);
-                        const updated = [...clientPortalUsers, { id: Date.now().toString(), ...newMember, createdAt: new Date().toISOString() }];
-                        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
-                        setClientPortalUsers(updated);
-                        setNewMember({ name:"", phone:"", email:"", password:"" });
-                        setNewMemberSaving(false);
-                        showSuccess("✅ 회원 계정 개설 완료");
-                      }} style={{ width: "100%", padding: "9px", backgroundColor: "#0F766E", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                        {newMemberSaving ? "⏳ 저장 중..." : "📥 계정 개설"}
-                      </button>
-                    </div>
-
-                    {/* 회원 목록 */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {clientPortalUsers.length === 0 && <p style={{ fontSize: "13px", color: "#64748B", textAlign: "center", padding: "16px" }}>등록된 포털 회원이 없어요</p>}
-                      {clientPortalUsers.map(u => (
-                        <div key={u.id} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-                                <span style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9" }}>{u.name}</span>
-                                <span style={{ fontSize: "12px", color: "#64748B" }}>{u.phone}</span>
-                              </div>
-                              {u.email && <p style={{ fontSize: "11px", color: "#64748B", margin: "0 0 4px" }}>📧 {u.email}</p>}
-                              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                                <span style={{ fontSize: "11px", color: "#94A3B8" }}>🔐 비번:</span>
-                                <code style={{ fontSize: "12px", color: showPasswords[u.id] ? "#34D399" : "#334155", backgroundColor: "#1E293B", padding: "2px 8px", borderRadius: "4px", letterSpacing: "2px" }}>
-                                  {showPasswords[u.id] ? (u.password || "(설정 전)") : "●●●●●●"}
-                                </code>
-                                <button onClick={() => setShowPasswords(p=>({...p,[u.id]:!p[u.id]}))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: "#64748B" }}>
-                                  {showPasswords[u.id] ? "🙈" : "👁️"}
-                                </button>
-                              </div>
-                            </div>
-                            <button onClick={async () => {
-                              if (!confirm(`${u.name} 회원을 삭제하시겠어요?`)) return;
-                              const updated = clientPortalUsers.filter(m => m.id !== u.id);
-                              await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
-                              setClientPortalUsers(updated);
-                              showSuccess("✅ 회원 삭제 완료");
-                            }} style={{ padding: "5px 10px", backgroundColor: "#450A0A", color: "#FCA5A5", border: "1px solid #EF4444", borderRadius: "6px", fontSize: "11px", cursor: "pointer", marginLeft: "8px" }}>
-                              🗑️
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px" }}>
-                <input
-                  placeholder="🔍 이름 / 연락처 검색"
-                  value={manageSearch}
-                  onChange={e => setManageSearch(e.target.value)}
-                  style={{ ...inp, width: "100%" }}
-                />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {users
-                  .filter(u => {
-                    const q = manageSearch.toLowerCase();
-                    return !q || u.name.toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
-                  })
-                  .sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime())
-                  .map(u => {
-                    const linked = consultations.filter(c => c.name === u.name);
-                    const latest = linked.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-                    const sc = latest ? (CONSULT_STATUS_COLORS[latest.status] || CONSULT_STATUS_COLORS["접수대기"]) : null;
-                    return (
-                      <div key={u.id} style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-                              <span style={{ fontSize: "15px", fontWeight: "800", color: "#F1F5F9" }}>{u.name}</span>
-                              <span style={{ fontSize: "12px", color: "#94A3B8" }}>{u.email}</span>
-                              {sc && latest && (
-                                <span style={{ fontSize: "11px", backgroundColor: sc.darkBg, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>연결상담: {latest.status}</span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#64748B", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                              <span>📅 가입: {u.registeredAt?.slice(0, 10) || "-"}</span>
-                              <span>💬 상담 {linked.length}건</span>
-                              {u.annual_revenue && <span>💰 연매출 {Number(u.annual_revenue).toLocaleString()}원</span>}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setDeleteConfirm(u.id)}
-                            style={{ padding: "7px 14px", backgroundColor: "#450A0A", color: "#FCA5A5", border: "1px solid #EF4444", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
-                            🗑️ 삭제
-                          </button>
                         </div>
                       </div>
                     );
