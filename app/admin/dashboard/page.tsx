@@ -2509,6 +2509,7 @@ ${name} 대표님!
                                   const STATUS_ALIM: Record<string, string> = {
                                     "승인": "approved",
                                     "심사중": "fund_reviewing",
+                                    "부결": "rejected",
                                   };
                                   const alimType = STATUS_ALIM[newStatus];
                                   if (alimType) {
@@ -2532,7 +2533,7 @@ ${name} 대표님!
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ consultation: enriched, templateType: alimType }),
                                       }).then(r => r.json()).catch(() => ({ ok: false }));
-                                      const label = newStatus === "승인" ? "승인완료" : "심사중";
+                                      const label = newStatus === "승인" ? "승인완료" : newStatus === "부결" ? "부결" : "심사중";
                                       showSuccess(alimRes.ok ? `✅ [${label}] 알림톡 자동 발송!` : "✅ 상태 변경 완료! (알림톡 실패)");
                                     } else { showSuccess("✅ 상태 변경 완료!"); }
                                   } else { showSuccess("✅ 상태 변경 완료!"); }
