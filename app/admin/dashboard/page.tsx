@@ -200,6 +200,12 @@ export default function AdminDashboard() {
   const [newClientPhone, setNewClientPhone] = useState("");
   const [newClientPassword, setNewClientPassword] = useState("");
   const [newClientBizType, setNewClientBizType] = useState("");
+  const [newClientBizPeriod, setNewClientBizPeriod] = useState("");
+  const [newClientRevenue, setNewClientRevenue] = useState("");
+  const [newClientNice, setNewClientNice] = useState("");
+  const [newClientKcb, setNewClientKcb] = useState("");
+  const [newClientDebt, setNewClientDebt] = useState("");
+  const [newClientDesired, setNewClientDesired] = useState("");
   const [createClientLoading, setCreateClientLoading] = useState(false);
   const [createClientError, setCreateClientError] = useState("");
 
@@ -209,30 +215,74 @@ export default function AdminDashboard() {
     }
     setCreateClientLoading(true); setCreateClientError("");
     try {
+      const phone = newClientPhone.trim().replace(/-/g,"");
       // clientUsers에 추가
       const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({ value: null }));
       const clientUsers: Array<{id:string;name:string;phone:string;email?:string;password:string;createdAt:string}> = dbRes.value || [];
-      const phone = newClientPhone.trim().replace(/-/g,"");
       if (clientUsers.find(u => u.phone === phone)) {
         setCreateClientError("이미 등록된 연락처입니다."); setCreateClientLoading(false); return;
       }
-      const newUser = { id: `CU-${Date.now()}`, name: newClientName.trim(), phone, password: newClientPassword || "", createdAt: new Date().toISOString() };
-      clientUsers.push(newUser);
+      const newCU = { id: `CU-${Date.now()}`, name: newClientName.trim(), phone, password: newClientPassword || "", createdAt: new Date().toISOString() };
+      clientUsers.push(newCU);
       await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "clientUsers", value: clientUsers }) });
       localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
-      // consultations에도 추가 (업종 입력 시)
-      if (newClientBizType.trim()) {
-        const cRes = await fetch("/api/db?key=consultations").then(r => r.json()).catch(() => ({ value: null }));
-        const consults = cRes.value || JSON.parse(localStorage.getItem("consultations") || "[]");
-        const cid = `CS-${Date.now()}`;
-        consults.push({ id: cid, name: newClientName.trim(), phone, businessType: newClientBizType.trim(), status: "접수완료", createdAt: new Date().toISOString() });
-        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: consults }) });
-        localStorage.setItem("consultations", JSON.stringify(consults));
-        setConsultations(consults);
+
+      // users DB에도 추가 (소호 등급 분류 반영)
+      const usersRes = await fetch("/api/db?key=users").then(r => r.json()).catch(() => ({ value: null }));
+      const allUsers = usersRes.value || JSON.parse(localStorage.getItem("users") || "[]");
+      const existUser = allUsers.find((u: {name:string; phone?:string}) => u.name === newClientName.trim() && u.phone === phone);
+      if (!existUser) {
+        const newUserRecord = {
+          id: `user_${Date.now()}`,
+          email: "",
+          password: newClientPassword || "",
+          name: newClientName.trim(),
+          phone,
+          age: "",
+          gender: "남성",
+          annual_revenue: newClientRevenue,
+          debt_policy: "0",
+          debt_bank1: "0",
+          debt_bank2: "0",
+          debt_card: "0",
+          currentDebt: newClientDebt,
+          nice_score: newClientNice,
+          kcb_score: newClientKcb,
+          businessType: newClientBizType,
+          businessPeriod: newClientBizPeriod,
+          desiredAmount: newClientDesired,
+          registeredAt: new Date().toISOString(),
+        };
+        allUsers.push(newUserRecord);
+        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allUsers }) });
+        localStorage.setItem("users", JSON.stringify(allUsers));
+        setUsers(allUsers);
       }
+
+      // consultations에도 추가
+      const cRes = await fetch("/api/db?key=consultations").then(r => r.json()).catch(() => ({ value: null }));
+      const consults = cRes.value || JSON.parse(localStorage.getItem("consultations") || "[]");
+      const cid = `CS-${Date.now()}`;
+      consults.push({
+        id: cid, name: newClientName.trim(), phone,
+        businessType: newClientBizType.trim(),
+        businessPeriod: newClientBizPeriod,
+        annual_revenue: newClientRevenue,
+        nice_score: newClientNice,
+        kcb_score: newClientKcb,
+        currentDebt: newClientDebt,
+        desiredAmount: newClientDesired,
+        status: "접수완료", createdAt: new Date().toISOString()
+      });
+      await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: consults }) });
+      localStorage.setItem("consultations", JSON.stringify(consults));
+      setConsultations(consults);
+
       setClientPortalUsers(clientUsers);
       setShowCreateClient(false);
-      setNewClientName(""); setNewClientPhone(""); setNewClientPassword(""); setNewClientBizType("");
+      setNewClientName(""); setNewClientPhone(""); setNewClientPassword("");
+      setNewClientBizType(""); setNewClientBizPeriod(""); setNewClientRevenue("");
+      setNewClientNice(""); setNewClientKcb(""); setNewClientDebt(""); setNewClientDesired("");
       showSuccess(`✅ ${newClientName.trim()} 클라이언트 생성 완료!`);
     } catch {
       setCreateClientError("생성 실패. 다시 시도해주세요.");
@@ -1456,8 +1506,14 @@ ${name} 대표님!
                       {[
                         { label: "이름 *", value: newClientName, setter: setNewClientName, placeholder: "홍길동" },
                         { label: "연락처 *", value: newClientPhone, setter: setNewClientPhone, placeholder: "01012345678" },
-                        { label: "초기 비밀번호 (미입력 시 없음)", value: newClientPassword, setter: setNewClientPassword, placeholder: "0000" },
-                        { label: "업종 (입력 시 상담 접수도 자동 생성)", value: newClientBizType, setter: setNewClientBizType, placeholder: "식점/카페 등" },
+                        { label: "초기 비밀번호", value: newClientPassword, setter: setNewClientPassword, placeholder: "0000" },
+                        { label: "업종", value: newClientBizType, setter: setNewClientBizType, placeholder: "식점/카페 등" },
+                        { label: "업력", value: newClientBizPeriod, setter: setNewClientBizPeriod, placeholder: "1년 미만 / 1~3년 / 3~5년 등" },
+                        { label: "연매출(원)", value: newClientRevenue, setter: setNewClientRevenue, placeholder: "예: 50000000" },
+                        { label: "NICE점수", value: newClientNice, setter: setNewClientNice, placeholder: "예: 720" },
+                        { label: "KCB점수", value: newClientKcb, setter: setNewClientKcb, placeholder: "예: 700" },
+                        { label: "기대출 합계(원)", value: newClientDebt, setter: setNewClientDebt, placeholder: "예: 30000000" },
+                        { label: "희망금액(원)", value: newClientDesired, setter: setNewClientDesired, placeholder: "예: 100000000" },
                       ].map(f => (
                         <div key={f.label}>
                           <label style={{ fontSize: "11px", color: "#64748B", display: "block", marginBottom: "4px" }}>{f.label}</label>
