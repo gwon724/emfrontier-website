@@ -24,9 +24,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-3180",
-    "status": "접수완료",
+    "status": "접수대기",
     "adminMemo": "",
-    "assignedTo": "son4291",
+    "assignedTo": "",
     "consultDate": "2026-04-29 14:00",
     "createdAt": "2026. 4. 28. 오후 4:26:25",
     "aiAnalysis": {
@@ -57,11 +57,8 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 8:10:22",
+    "updatedAt": "2026. 4. 28. 오후 8:13:20",
     "funds": [],
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-28T11:10:21.319Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 8:10:21",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-28T11:10:22.352Z"
   },

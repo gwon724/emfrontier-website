@@ -2203,6 +2203,20 @@ ${name} 대표님!
                                   </button>
                                 </>
                               )}
+                              {/* 전체 상담 탭 삭제 버튼 */}
+                              {consultTab === "mine" && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!window.confirm(`${c.name} 상담을 삭제하시겠습니까?`)) return;
+                                    const fresh = getAllConsultations().filter(x => x.id !== c.id);
+                                    await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                    setConsultations(fresh);
+                                  }}
+                                  style={{ padding: "6px 10px", backgroundColor: "#EF4444", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                                  🗑️
+                                </button>
+                              )}
                             </div>
                           </div>
                           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
