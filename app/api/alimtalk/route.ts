@@ -17,7 +17,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   register_portal:  "KA01TP260421142741105kr53kF0B6qf",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
-  docs_request_link: "KA01TP260428042944767QHY452d80Jp",
+  docs_request_link: "KA01TP260428105226107iNfbSt56pZJ",
   temp_password:     "KA01TP260428043128952glc3ZNHfXVO",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
   fund_waiting:    "KA01TP260421144920873mw6XDuWLJ0i",
