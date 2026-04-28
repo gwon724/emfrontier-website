@@ -2634,8 +2634,14 @@ ${name} 대표님!
                       };
                       try {
                         const res = await fetch("/api/ai-report", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ client: clientData }) });
-                        const data = await res.json();
-                        setAiReport(data.report || data.error || "오류 발생");
+                        const text = await res.text();
+                        if (!text || text.trim() === "") { setAiReport("오류: 서버 응답이 비어있습니다"); }
+                        else {
+                          try {
+                            const data = JSON.parse(text);
+                            setAiReport(data.report || data.error || "오류 발생");
+                          } catch { setAiReport("오류: " + text.slice(0, 200)); }
+                        }
                       } catch (e) { setAiReport("오류: " + e); }
                       setAiReportLoading(false);
                     }}

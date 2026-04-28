@@ -63,6 +63,8 @@ ${client.funds && client.funds.length > 0
 (전문가 의견 및 최종 권고사항)`;
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000);
     const res = await fetch(`${baseUrl}/v1/messages`, {
       method: "POST",
       headers: {
@@ -72,11 +74,18 @@ ${client.funds && client.funds.length > 0
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
-        max_tokens: 2000,
+        max_tokens: 1500,
         messages: [{ role: "user", content: prompt }],
       }),
+      signal: controller.signal,
     });
-    const data = await res.json();
+    clearTimeout(timeout);
+    const rawText = await res.text();
+    if (!rawText || rawText.trim() === "") {
+      return NextResponse.json({ error: "AI 응답이 비어있습니다" }, { status: 500 });
+    }
+    let data: { content?: Array<{text:string}>; error?: {message:string} };
+    try { data = JSON.parse(rawText); } catch { return NextResponse.json({ error: "응답 파싱 오류: " + rawText.slice(0,200) }, { status: 500 }); }
     if (!res.ok) return NextResponse.json({ error: data.error?.message || "AI 오류" }, { status: 500 });
     const text = data.content?.[0]?.text || "";
     return NextResponse.json({ ok: true, report: text });
