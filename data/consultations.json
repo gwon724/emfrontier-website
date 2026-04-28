@@ -24,7 +24,7 @@
     "inquiryContent": "테스트 진행",
     "privacyAgreed": true,
     "id": "CS-20260428-1530",
-    "status": "상담예약",
+    "status": "자금 신청",
     "adminMemo": "",
     "assignedTo": "손권찬",
     "consultDate": "2026.04.29 17:00",
@@ -56,6 +56,6 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 8:49:22"
+    "updatedAt": "2026. 4. 28. 오후 8:52:09"
   }
 ]

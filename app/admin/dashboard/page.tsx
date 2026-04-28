@@ -3221,11 +3221,10 @@ ${name} 대표님!
                                   setConsultations(all);
                                   // 진행단계별 자동 알림톡
                                   const STEP_TEMPLATE: Record<string, string> = {
-                                    "접수확인": "receipt_confirm",
-                                    "서류요청": "docs_request",
+                                    "상담예약": "consult_reserve",
+                                    "서류요청": "docs_request_link",
                                     "자금 신청": "fund_apply",
-                                    "승인완료": "approved",
-                                    "미승인": "rejected",
+                                    "리마인드": "remind",
                                     "상담종결": "consult_done",
                                   };
                                   const tmpl = STEP_TEMPLATE[step];
@@ -3233,8 +3232,10 @@ ${name} 대표님!
                                     const enriched = {
                                       ...latestConsult,
                                       manager: admin?.name,
-                                      managerPhone: admin?.phone,
+                                      managerPhone: admin?.phone || "01082114291",
                                       amount: latestConsult.desiredAmount || "-",
+                                      consultDate: latestConsult.consultDate || "",
+                                      assignedName: latestConsult.assignedName || admin?.name || "",
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",
