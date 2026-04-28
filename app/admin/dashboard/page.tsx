@@ -2779,12 +2779,37 @@ ${name} 대표님!
                                       <select
                                         value={fund.status}
                                         onChange={async e => {
-                                          const updated = (linkedConsult.funds || []).map(f => f.id === fund.id ? {...f, status: e.target.value as FundStatus} : f);
-                                          updateConsultation(linkedConsult.id, { funds: updated });
-                                          const fresh = getAllConsultations();
-                                          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
-                                          setConsultations(fresh);
-                                          showSuccess("✅ 상태 변경 완료!");
+                                          const newSt = e.target.value as FundStatus;
+                                          if (newSt === "부결") {
+                                            // 부결 시 미승인 섹션으로 이동 + 알림톡
+                                            const rejFundNew = {
+                                              id: `f_rej_${Date.now()}`,
+                                              fundName: fund.fundName,
+                                              amount: "-",
+                                              status: "부결" as FundStatus,
+                                              institution: "",
+                                              updatedAt: new Date().toLocaleString("ko-KR"),
+                                            };
+                                            const updatedFunds = (linkedConsult.funds || []).filter(f => f.id !== fund.id).concat(rejFundNew);
+                                            updateConsultation(linkedConsult.id, { funds: updatedFunds });
+                                            const fresh = getAllConsultations();
+                                            await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                            setConsultations(fresh);
+                                            // 미승인 알림톡 발송
+                                            const rejPh = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult.phone || "";
+                                            if (rejPh) {
+                                              const rejE = { name: selectedUser.name, phone: rejPh, fundName: fund.fundName, manager: admin?.name, managerPhone: admin?.phone || "01082114291" };
+                                              const rr = await fetch("/api/alimtalk", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ consultation: rejE, templateType: "rejected" }) }).then(r=>r.json()).catch(()=>({ok:false}));
+                                              showSuccess(rr.ok ? "✅ 미승인 이동 + 알림톡 발송!" : "✅ 미승인 이동 완료! (알림톡 실패)");
+                                            } else { showSuccess("✅ 미승인 이동 완료!"); }
+                                          } else {
+                                            const updated = (linkedConsult.funds || []).map(f => f.id === fund.id ? {...f, status: newSt} : f);
+                                            updateConsultation(linkedConsult.id, { funds: updated });
+                                            const fresh = getAllConsultations();
+                                            await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                            setConsultations(fresh);
+                                            showSuccess("✅ 상태 변경 완료!");
+                                          }
                                         }}
                                         style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                                       >
