@@ -58,5 +58,26 @@
     "businessPeriod": "3",
     "desiredAmount": "100000000",
     "registeredAt": "2026-04-28T07:24:06.168Z"
+  },
+  {
+    "id": "user_1777372463383",
+    "email": "",
+    "password": "",
+    "name": "테스트",
+    "phone": "01082114291",
+    "age": "34",
+    "gender": "남성",
+    "annual_revenue": "100000000",
+    "debt_policy": "0",
+    "debt_bank1": "0",
+    "debt_bank2": "0",
+    "debt_card": "0",
+    "currentDebt": "0",
+    "nice_score": "920",
+    "kcb_score": "920",
+    "businessType": "도소매업",
+    "businessPeriod": "1~3년",
+    "desiredAmount": "300000000",
+    "registeredAt": "2026-04-28T10:34:23.383Z"
   }
 ]

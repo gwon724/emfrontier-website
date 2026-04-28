@@ -1144,12 +1144,11 @@ ${name} 대표님!
       }
     } catch {}
 
-    // 담당자 + 상담일시 둘 다 있을 때만 상담예약 알림톡 자동 발송
+    // 담당자 + 상담일시 둘 다 있을 때 상담예약 알림톡 자동 발송
     if (cAssigned && cDate && selectedConsult?.phone) {
-      // 담당자 or 날짜가 변경됐을 때만 발송 (중복 방지)
-      const prevAssigned = selectedConsult.assignedTo || selectedConsult.assignedName || "";
+      // 날짜가 새로 입력/변경됐을 때 발송
       const prevDate = selectedConsult.consultDate || "";
-      if (cAssigned !== prevAssigned || cDate !== prevDate) {
+      if (cDate !== prevDate) {
         const managerAdmin = adminList.find((a) => a.name === cAssigned);
         const enriched = {
           name: selectedConsult.name,

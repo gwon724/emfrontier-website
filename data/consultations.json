@@ -1,7 +1,7 @@
 [
   {
     "name": "테스트",
-    "phone": "01022222222",
+    "phone": "01082114291",
     "email": "son713119@naver.com",
     "age": "34",
     "gender": "남성",
@@ -26,8 +26,8 @@
     "id": "CS-20260428-3180",
     "status": "접수대기",
     "adminMemo": "",
-    "assignedTo": "",
-    "consultDate": "",
+    "assignedTo": "손권찬",
+    "consultDate": "2026-04-29 13:00",
     "createdAt": "2026. 4. 28. 오후 4:26:25",
     "aiAnalysis": {
       "sohoGrade": "A",
@@ -57,7 +57,7 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 4:26:25"
+    "updatedAt": "2026. 4. 28. 오후 7:34:23"
   },
   {
     "name": "손권찬",
