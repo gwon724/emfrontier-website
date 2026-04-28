@@ -29,7 +29,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   fund_execute:    "KA01TP260417162409846tyV1faRd6EY",
   extra_apply:     "KA01TP260428042553990I8zTwD6Zul7",
   review:          "KA01TP2604171626327389q6Avs8y6ip",
-  new_fund:        "KA01TP260417162743447PU5rbPLrIOM",
+  new_fund:        "KA01TP260428042703616Gj4KquXFCDJ",
 };
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
@@ -476,7 +476,7 @@ ${name} 대표님!
 
 안녕하세요, ${name} 대표님! 
 이전에 정책자금 상담을 신청하신 이력 기준으로 
-신청 가능한 신규 자금이 확인되어 안내드립니다.
+추가로 요청하신 신청 가능한 신규 자금이 확인되어 안내드립니다.
 
 💰 자금명: ${fundName} 
 ✅ 한도: ${limit} 
