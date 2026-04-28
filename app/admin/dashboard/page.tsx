@@ -2468,11 +2468,9 @@ ${name} 대표님!
 
                   {/* 상담 연동 자금 현황 (FundProgress) */}
                   {(() => {
-                    const linkedConsult = consultations.find(c =>
-                      c.name === selectedUser.name &&
-                      ((c as Consultation & {phone?:string}).phone === (selectedUser as UserRecord & {phone?:string}).phone ||
-                       (c as Consultation & {phone?:string}).phone?.replace(/-/g,"") === (selectedUser as UserRecord & {phone?:string}).phone)
-                    );
+                    // 이름으로 매칭 후 최신 상담 우선
+                    const userConsults = consultations.filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id));
+                    const linkedConsult = userConsults[0];
                     if (!linkedConsult) return null;
                     return (
                       <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
@@ -2514,11 +2512,15 @@ ${name} 대표님!
                             + 추가
                           </button>
                         </div>
-                        {(!linkedConsult.funds || linkedConsult.funds.filter(f => (f.status as string) === "승인").length === 0) ? (
-                          <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>
-                        ) : (
+                        {(() => {
+                          type UF = {id:string;fundName:string;amount:string;status:string;addedAt?:string;institution?:string;updatedAt?:string};
+                          const approvedFromUser = ((selectedUser as UserRecord & {funds?: UF[]}).funds || []).filter(f => f.status === "승인");
+                          const approvedFromConsult = (linkedConsult.funds || []).filter(f => (f.status as string) === "승인");
+                          const allApproved = [...approvedFromUser, ...approvedFromConsult];
+                          if (allApproved.length === 0) return <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>;
+                          return (
                           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {linkedConsult.funds.filter(fund => (fund.status as string) === "승인").map(fund => {
+                            {allApproved.map(fund => {
                               const borderColor = FUND_STATUS_COLORS[fund.status] ? "#334155" : "#334155";
                               return (
                                 <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: `1px solid ${borderColor}` }}>
@@ -2560,7 +2562,8 @@ ${name} 대표님!
                               );
                             })}
                           </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     );
                   })()}
