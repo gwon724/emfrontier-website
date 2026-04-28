@@ -2802,104 +2802,139 @@ ${name} 대표님!
 
                   {/* AI 보고서 결과 패널 */}
                   {showAiReport && (
-                    <div style={{ marginTop: "12px", backgroundColor: "#0F172A", border: "1px solid #7C3AED", borderRadius: "12px", padding: "16px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#A78BFA" }}>🤖 AI 분석 보고서</p>
-                        <button onClick={() => setShowAiReport(false)}
-                          style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "16px" }}>×</button>
+                    <div style={{ marginTop: "12px", backgroundColor: "#EEF2FF", borderRadius: "16px", padding: "0", overflow: "hidden", border: "1px solid #C7D2FE" }}>
+                      {/* 헤더 */}
+                      <div style={{ background: "linear-gradient(90deg,#4F46E5,#7C3AED)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#FFF" }}>🤖 AI 기업분석 보고서</p>
+                        <button onClick={() => setShowAiReport(false)} style={{ background: "none", border: "none", color: "#C7D2FE", cursor: "pointer", fontSize: "18px", lineHeight: 1 }}>×</button>
                       </div>
+                      <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "12px", maxHeight: "600px", overflowY: "auto" }}>
                       {aiReportLoading ? (
-                        <div style={{ textAlign: "center", padding: "32px 0" }}>
-                          <p style={{ fontSize: "24px", marginBottom: "8px" }}>⏳</p>
-                          <p style={{ fontSize: "13px", color: "#A78BFA" }}>AI가 분석 중입니다...</p>
-                          <p style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>10~20초 소요</p>
+                        <div style={{ textAlign: "center", padding: "40px 0" }}>
+                          <p style={{ fontSize: "28px", marginBottom: "10px" }}>⏳</p>
+                          <p style={{ fontSize: "13px", color: "#4F46E5", fontWeight: "700" }}>AI가 분석 중입니다...</p>
+                          <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "4px" }}>10~20초 소요</p>
                         </div>
-                      ) : aiStructured ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "520px", overflowY: "auto" }}>
-                          {/* SOHO 등급 카드 */}
-                          <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", padding: "14px", border: "1px solid #334155" }}>
-                            <p style={{ fontSize: "11px", color: "#94A3B8", marginBottom: "8px", fontWeight: "700" }}>🏆 SOHO 신용등급</p>
-                            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-                              <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "900", color: "#FFF", flexShrink: 0 }}>
-                                {calcGrade(selectedUser).grade}
-                              </div>
-                              <div>
-                                <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9" }}>{aiStructured.grade.label}</p>
-                                <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
-                                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>추천자금 <strong style={{ color: "#60A5FA" }}>{aiStructured.grade.recFundCount}개</strong></span>
-                                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>최대 <strong style={{ color: "#34D399" }}>{aiStructured.grade.maxPossibleAmount}</strong></span>
-                                </div>
-                              </div>
+                      ) : aiStructured ? (<>
+                        {/* SOHO 등급 카드 */}
+                        <div style={{ backgroundColor: "#FFF", borderRadius: "12px", padding: "16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                          <p style={{ fontSize: "11px", color: "#6B7280", marginBottom: "10px", fontWeight: "700" }}>🏆 SOHO 신용등급</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "10px" }}>
+                            <div style={{ width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "#10B981", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}>
+                              <span style={{ fontSize: "22px", fontWeight: "900", color: "#FFF", lineHeight: 1 }}>{calcGrade(selectedUser).grade}</span>
+                              <span style={{ fontSize: "9px", color: "#D1FAE5", marginTop: "2px" }}>최우수</span>
                             </div>
-                            <p style={{ fontSize: "11px", color: "#CBD5E1", lineHeight: "1.7" }}>{aiStructured.grade.summary}</p>
-                            <div style={{ marginTop: "8px" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>
-                                <span>종합 점수</span><span>{aiStructured.grade.score} / {aiStructured.grade.maxScore}점</span>
-                              </div>
-                              <div style={{ height: "6px", backgroundColor: "#334155", borderRadius: "3px" }}>
-                                <div style={{ height: "100%", width: `${Math.round(aiStructured.grade.score / aiStructured.grade.maxScore * 100)}%`, backgroundColor: "#059669", borderRadius: "3px" }} />
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontSize: "15px", fontWeight: "800", color: "#111827", marginBottom: "4px" }}>{aiStructured.grade.label}</p>
+                              <p style={{ fontSize: "11px", color: "#6B7280", lineHeight: "1.6" }}>{aiStructured.grade.summary}</p>
+                              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                                <div style={{ textAlign: "center" }}>
+                                  <p style={{ fontSize: "10px", color: "#9CA3AF", marginBottom: "2px" }}>추천 자금</p>
+                                  <p style={{ fontSize: "18px", fontWeight: "900", color: "#1D4ED8" }}>{aiStructured.grade.recFundCount}개</p>
+                                </div>
+                                <div style={{ textAlign: "center" }}>
+                                  <p style={{ fontSize: "10px", color: "#9CA3AF", marginBottom: "2px" }}>최대 가능 금액</p>
+                                  <p style={{ fontSize: "18px", fontWeight: "900", color: "#059669" }}>{aiStructured.grade.maxPossibleAmount}</p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                          {/* SWOT */}
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                            <div style={{ backgroundColor: "#052e16", borderRadius: "8px", padding: "10px", border: "1px solid #166534" }}>
-                              <p style={{ fontSize: "11px", fontWeight: "800", color: "#4ADE80", marginBottom: "6px" }}>💪 강점 (Strength)</p>
-                              {aiStructured.swot.strengths.map((s, i) => <p key={i} style={{ fontSize: "10px", color: "#BBF7D0", lineHeight: "1.6", paddingLeft: "8px" }}>• {s}</p>)}
+                          <div style={{ marginTop: "6px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#9CA3AF", marginBottom: "4px" }}>
+                              <span>종합 점수</span><span style={{ fontWeight: "700", color: "#374151" }}>{aiStructured.grade.score} / {aiStructured.grade.maxScore}점</span>
                             </div>
-                            <div style={{ backgroundColor: "#431407", borderRadius: "8px", padding: "10px", border: "1px solid #9A3412" }}>
-                              <p style={{ fontSize: "11px", fontWeight: "800", color: "#FB923C", marginBottom: "6px" }}>⚠️ 약점 (Weakness)</p>
-                              {aiStructured.swot.weaknesses.map((s, i) => <p key={i} style={{ fontSize: "10px", color: "#FED7AA", lineHeight: "1.6", paddingLeft: "8px" }}>• {s}</p>)}
-                            </div>
-                            <div style={{ backgroundColor: "#0c1445", borderRadius: "8px", padding: "10px", border: "1px solid #1e40af" }}>
-                              <p style={{ fontSize: "11px", fontWeight: "800", color: "#60A5FA", marginBottom: "6px" }}>🚀 기회 (Opportunity)</p>
-                              {aiStructured.swot.opportunities.map((s, i) => <p key={i} style={{ fontSize: "10px", color: "#BFDBFE", lineHeight: "1.6", paddingLeft: "8px" }}>• {s}</p>)}
-                            </div>
-                            <div style={{ backgroundColor: "#2d0a0a", borderRadius: "8px", padding: "10px", border: "1px solid #7f1d1d" }}>
-                              <p style={{ fontSize: "11px", fontWeight: "800", color: "#F87171", marginBottom: "6px" }}>🔴 리스크 (Risk)</p>
-                              {aiStructured.swot.risks.map((s, i) => <p key={i} style={{ fontSize: "10px", color: "#FECACA", lineHeight: "1.6", paddingLeft: "8px" }}>• {s}</p>)}
+                            <div style={{ height: "8px", backgroundColor: "#E5E7EB", borderRadius: "4px" }}>
+                              <div style={{ height: "100%", width: `${Math.round(aiStructured.grade.score / aiStructured.grade.maxScore * 100)}%`, background: "linear-gradient(90deg,#10B981,#059669)", borderRadius: "4px", transition: "width 0.6s ease" }} />
                             </div>
                           </div>
-                          {/* 자금 전략 */}
-                          {aiStructured.fundStrategy.length > 0 && (
-                            <div style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px", border: "1px solid #334155" }}>
-                              <p style={{ fontSize: "11px", fontWeight: "800", color: "#A78BFA", marginBottom: "8px" }}>📋 추천 자금 전략</p>
-                              {aiStructured.fundStrategy.map((f, i) => (
-                                <div key={i} style={{ marginBottom: "8px", paddingBottom: "8px", borderBottom: i < aiStructured.fundStrategy.length-1 ? "1px solid #1E293B" : "none" }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
-                                    <span style={{ fontSize: "11px", fontWeight: "700", color: "#F1F5F9" }}>{f.name}</span>
-                                    <span style={{ fontSize: "10px", color: "#34D399", fontWeight: "700" }}>{f.amount}</span>
-                                  </div>
-                                  <p style={{ fontSize: "10px", color: "#94A3B8", lineHeight: "1.6" }}>{f.strategy}</p>
-                                  <span style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "4px", backgroundColor: f.probability === "높음" ? "#052e16" : "#1c1917", color: f.probability === "높음" ? "#4ADE80" : "#A8A29E" }}>승인 가능성: {f.probability}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {/* 액션플랜 */}
-                          <div style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px", border: "1px solid #334155" }}>
-                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#FBBF24", marginBottom: "8px" }}>⚡ 컨설팅 액션플랜</p>
-                            {aiStructured.actionPlan.map((a) => (
-                              <div key={a.step} style={{ display: "flex", gap: "8px", marginBottom: "8px", alignItems: "flex-start" }}>
-                                <span style={{ width: "20px", height: "20px", borderRadius: "50%", backgroundColor: a.priority === "high" ? "#DC2626" : a.priority === "medium" ? "#D97706" : "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: "800", color: "#FFF", flexShrink: 0 }}>{a.step}</span>
-                                <div>
-                                  <p style={{ fontSize: "11px", fontWeight: "700", color: "#F1F5F9" }}>{a.title}</p>
-                                  <p style={{ fontSize: "10px", color: "#94A3B8", lineHeight: "1.6" }}>{a.desc}</p>
-                                </div>
+                        </div>
+                        {/* SWOT */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                          <div style={{ backgroundColor: "#F0FDF4", borderRadius: "10px", padding: "12px", border: "1px solid #BBF7D0" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#15803D", marginBottom: "8px" }}>💪 강점 (Strength)</p>
+                            {aiStructured.swot.strengths.map((s: string, i: number) => <p key={i} style={{ fontSize: "10px", color: "#166534", lineHeight: "1.7", display: "flex", gap: "4px" }}><span style={{ color: "#16A34A", flexShrink: 0 }}>●</span>{s}</p>)}
+                          </div>
+                          <div style={{ backgroundColor: "#FFF7ED", borderRadius: "10px", padding: "12px", border: "1px solid #FED7AA" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#C2410C", marginBottom: "8px" }}>⚠️ 약점 (Weakness)</p>
+                            {aiStructured.swot.weaknesses.map((s: string, i: number) => <p key={i} style={{ fontSize: "10px", color: "#9A3412", lineHeight: "1.7", display: "flex", gap: "4px" }}><span style={{ color: "#EA580C", flexShrink: 0 }}>●</span>{s}</p>)}
+                          </div>
+                          <div style={{ backgroundColor: "#EFF6FF", borderRadius: "10px", padding: "12px", border: "1px solid #BFDBFE" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#1D4ED8", marginBottom: "8px" }}>🚀 기회 (Opportunity)</p>
+                            {aiStructured.swot.opportunities.map((s: string, i: number) => <p key={i} style={{ fontSize: "10px", color: "#1E40AF", lineHeight: "1.7", display: "flex", gap: "4px" }}><span style={{ color: "#2563EB", flexShrink: 0 }}>●</span>{s}</p>)}
+                          </div>
+                          <div style={{ backgroundColor: "#FEF2F2", borderRadius: "10px", padding: "12px", border: "1px solid #FECACA" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#B91C1C", marginBottom: "8px" }}>🔴 리스크 (Risk)</p>
+                            {aiStructured.swot.risks.map((s: string, i: number) => <p key={i} style={{ fontSize: "10px", color: "#991B1B", lineHeight: "1.7", display: "flex", gap: "4px" }}><span style={{ color: "#EF4444", flexShrink: 0 }}>●</span>{s}</p>)}
+                          </div>
+                        </div>
+                        {/* 신청 정보 */}
+                        <div style={{ backgroundColor: "#FFF", borderRadius: "12px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                          <p style={{ fontSize: "11px", fontWeight: "700", color: "#374151", marginBottom: "10px" }}>📋 신청 정보</p>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0" }}>
+                            {[
+                              ["신청자", `${selectedUser.name} (${selectedUser.gender || "-"}, ${selectedUser.age || "-"}세)`],
+                              ["연락처", (selectedUser as UserRecord & {phone?:string}).phone || "-"],
+                              ["업종", (selectedUser as UserRecord & {businessType?:string}).businessType || "-"],
+                              ["사업 기간", (selectedUser as UserRecord & {businessPeriod?:string}).businessPeriod || "-"],
+                              ["연매출액", selectedUser.annual_revenue ? Number(selectedUser.annual_revenue).toLocaleString() + "원" : "-"],
+                              ["희망 대출", (selectedUser as UserRecord & {desiredAmount?:string}).desiredAmount ? Number((selectedUser as UserRecord & {desiredAmount?:string}).desiredAmount).toLocaleString() + "원" : "-"],
+                              ["대출 목적", "-"],
+                              ["NICE / KCB", `${selectedUser.nice_score || "-"}점 / ${selectedUser.kcb_score || "-"}점`],
+                              ["기대출 합계", (selectedUser as UserRecord & {currentDebt?:string}).currentDebt ? Number((selectedUser as UserRecord & {currentDebt?:string}).currentDebt).toLocaleString() + "원" : "0원"],
+                            ].map(([label, value], i) => (
+                              <div key={i} style={{ padding: "7px 8px", borderBottom: "1px solid #F3F4F6", display: "flex", gap: "6px" }}>
+                                <span style={{ fontSize: "10px", color: "#9CA3AF", minWidth: "52px", flexShrink: 0 }}>{label}</span>
+                                <span style={{ fontSize: "10px", color: "#111827", fontWeight: "600" }}>{value}</span>
                               </div>
                             ))}
                           </div>
-                          {/* 종합 의견 */}
-                          <div style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px", border: "1px solid #334155" }}>
-                            <p style={{ fontSize: "11px", fontWeight: "800", color: "#38BDF8", marginBottom: "6px" }}>💬 종합 의견</p>
-                            <p style={{ fontSize: "11px", color: "#CBD5E1", lineHeight: "1.8" }}>{aiStructured.overallComment}</p>
-                          </div>
                         </div>
-                      ) : (
-                        <div style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.8", whiteSpace: "pre-wrap", maxHeight: "400px", overflowY: "auto" }}>
-                          {aiReport}
+                        {/* 자금 전략 */}
+                        {aiStructured.fundStrategy.length > 0 && (
+                          <div style={{ backgroundColor: "#FFF", borderRadius: "12px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                            <p style={{ fontSize: "11px", fontWeight: "700", color: "#374151", marginBottom: "10px" }}>📌 추천 자금 전략</p>
+                            {aiStructured.fundStrategy.map((f: {name:string;amount:string;strategy:string;probability:string}, i: number) => (
+                              <div key={i} style={{ marginBottom: i < aiStructured.fundStrategy.length-1 ? "10px" : 0, paddingBottom: i < aiStructured.fundStrategy.length-1 ? "10px" : 0, borderBottom: i < aiStructured.fundStrategy.length-1 ? "1px solid #F3F4F6" : "none" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
+                                  <span style={{ fontSize: "11px", fontWeight: "700", color: "#1F2937" }}>{f.name}</span>
+                                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                    <span style={{ fontSize: "10px", color: "#059669", fontWeight: "700" }}>{f.amount}</span>
+                                    <span style={{ fontSize: "9px", padding: "2px 7px", borderRadius: "20px", backgroundColor: f.probability === "높음" ? "#D1FAE5" : "#FEF3C7", color: f.probability === "높음" ? "#065F46" : "#92400E", fontWeight: "700" }}>{f.probability}</span>
+                                  </div>
+                                </div>
+                                <p style={{ fontSize: "10px", color: "#6B7280", lineHeight: "1.6" }}>{f.strategy}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {/* 액션플랜 */}
+                        <div style={{ backgroundColor: "#FFF", borderRadius: "12px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                          <p style={{ fontSize: "11px", fontWeight: "700", color: "#374151", marginBottom: "10px" }}>⚡ 컨설팅 액션플랜</p>
+                          {aiStructured.actionPlan.map((a: {step:number;title:string;desc:string;priority:string}) => (
+                            <div key={a.step} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "flex-start" }}>
+                              <span style={{ width: "22px", height: "22px", borderRadius: "50%", backgroundColor: a.priority === "high" ? "#EF4444" : a.priority === "medium" ? "#F59E0B" : "#10B981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "900", color: "#FFF", flexShrink: 0 }}>{a.step}</span>
+                              <div>
+                                <p style={{ fontSize: "11px", fontWeight: "700", color: "#1F2937", marginBottom: "2px" }}>{a.title}</p>
+                                <p style={{ fontSize: "10px", color: "#6B7280", lineHeight: "1.6" }}>{a.desc}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* 종합 의견 */}
+                        <div style={{ backgroundColor: "#FFF", borderRadius: "12px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                          <p style={{ fontSize: "11px", fontWeight: "700", color: "#374151", marginBottom: "6px" }}>💬 종합 의견</p>
+                          <p style={{ fontSize: "11px", color: "#374151", lineHeight: "1.8" }}>{aiStructured.overallComment}</p>
+                        </div>
+                        {/* AI 추천 자금 보기 버튼 */}
+                        <button onClick={() => setShowAiReport(false)} style={{ width: "100%", padding: "14px", background: "linear-gradient(90deg,#2563EB,#4F46E5)", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "800", color: "#FFF", cursor: "pointer" }}>
+                          ★ AI 추천 자금 보기 ({aiStructured.grade.recFundCount}개) →
+                        </button>
+                      </>) : (
+                        <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
+                          {aiReport || "분석 결과가 없습니다."}
                         </div>
                       )}
+                      </div>
                     </div>
                   )}
                 </div>
