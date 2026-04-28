@@ -1736,6 +1736,243 @@ ${name} 대표님!
                 )}
               </div>
 
+            </>
+          )}
+        </div>
+
+        {/* Add User Modal */}
+        {showAddUser && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
+            <div style={{ maxWidth: "480px", width: "100%", backgroundColor: "#1E293B", borderRadius: "16px", border: "1px solid #334155", padding: "24px", marginTop: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <p style={{ fontSize: "17px", fontWeight: "900", color: "#F1F5F9" }}>➕ 회원 직접 추가</p>
+                <button onClick={() => setShowAddUser(false)}
+                  style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {([
+                  ["이름", "name", "text", "홍길동", true],
+                  ["이메일", "email", "email", "example@email.com", true],
+                  ["비밀번호", "password", "password", "비밀번호 설정", true],
+                  ["나이", "age", "number", "예: 35", false],
+                  ["연매출(원)", "annual_revenue", "number", "예: 50000000", false],
+                  ["NICE점수", "nice_score", "number", "예: 720", false],
+                  ["KCB점수", "kcb_score", "number", "예: 700", false],
+                ] as [string, keyof typeof newUser, string, string, boolean][]).map(([label, key, type, ph, required]) => (
+                  <div key={key}>
+                    <label style={{ fontSize: "11px", color: "#94A3B8", display: "block", marginBottom: "4px" }}>
+                      {label} {required && <span style={{ color: "#EF4444" }}>*</span>}
+                    </label>
+                    <input
+                      type={type} value={newUser[key]}
+                      onChange={e => setNewUser(prev => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={ph}
+                      style={{ width: "100%", padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", color: "#F1F5F9", fontSize: "13px", outline: "none", fontFamily: "inherit" }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize: "11px", color: "#94A3B8", display: "block", marginBottom: "4px" }}>성별</label>
+                  <select value={newUser.gender} onChange={e => setNewUser(prev => ({ ...prev, gender: e.target.value }))}
+                    style={{ width: "100%", padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", color: "#F1F5F9", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }}>
+                    <option>남성</option>
+                    <option>여성</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
+                <button onClick={() => setShowAddUser(false)}
+                  style={{ flex: 1, padding: "12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+                  취소
+                </button>
+                <button onClick={handleAddUser} disabled={addUserSaving}
+                  style={{ flex: 2, padding: "12px", backgroundColor: addUserSaving ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: addUserSaving ? "not-allowed" : "pointer" }}>
+                  {addUserSaving ? "저장 중..." : "➕ 회원 추가"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* User Detail Modal */}
+        {selectedUser && (() => {
+          const { grade } = calcGrade(selectedUser);
+          const gc = gradeColor(grade);
+          const statusC = selectedUser.application ? STATUS_COLORS[selectedUser.application.status] : null;
+          return (
+            <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
+              <div style={{ maxWidth: "580px", width: "100%", margin: "0 auto" }}>
+
+                {/* 헤더 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: `${gc}20`, border: `2px solid ${gc}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: "16px", fontWeight: "900", color: gc }}>{grade}</span>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: "16px", fontWeight: "900", color: "#F1F5F9" }}>{selectedUser.name} 고객</p>
+                        <p style={{ fontSize: "11px", color: "#64748B" }}>{selectedUser.id}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedUser(null)}
+                      style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
+                  </div>
+
+                  {/* 기본 정보 */}
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "8px" }}>👤 고객 정보</p>
+                  <div className="consult-detail-grid">
+                    {([
+                      ["이메일", selectedUser.email],
+                      ["나이/성별", `${selectedUser.age}세 / ${selectedUser.gender}`],
+                      ["연매출", `${Number(selectedUser.annual_revenue || 0).toLocaleString()}원`],
+                      ["NICE점수", selectedUser.nice_score || "-"],
+                      ["KCB점수", selectedUser.kcb_score || "-"],
+                      ["가입일", selectedUser.registeredAt?.slice(0,10) || "-"],
+                    ] as [string,string][]).map(([k,v]) => (
+                      <div key={k} style={{ padding: "8px 10px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
+                        <p style={{ fontSize: "10px", color: "#64748B" }}>{k}</p>
+                        <p style={{ fontSize: "12px", color: "#CBD5E1", fontWeight: "600", marginTop: "2px", wordBreak: "break-all" }}>{v}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 신청 현황 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📋 신청 현황</p>
+                  {!selectedUser.application ? (
+                    <p style={{ fontSize: "13px", color: "#64748B" }}>아직 신청 내역이 없습니다</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 상태</span>
+                        {statusC && <span style={{ fontSize: "12px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px", backgroundColor: statusC.bg, color: statusC.text, border: `1px solid ${statusC.border}` }}>{selectedUser.application.status}</span>}
+                      </div>
+                      {selectedUser.application && (
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 자금 수</span>
+                          <span style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{selectedUser.application.funds?.length || 0}개</span>
+                        </div>
+                      )}
+                      {selectedUser.adminMemo ? (
+                        <div style={{ backgroundColor: "#0F172A", borderRadius: "8px", padding: "10px 12px" }}>
+                          <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>관리자 메모</p>
+                          <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.6" }}>{selectedUser.adminMemo}</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+
+                {/* 이메일 발송 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📧 이메일 발송</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
+                    {["접수대기", "상담예약", "서류요청", "신청진행", "상담완료", "종결"].map(s => (
+                      <button key={s} onClick={() => setUserEmailStatus(s)}
+                        style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
+                          border: `2px solid ${userEmailStatus === s ? "#3B82F6" : "#334155"}`,
+                          backgroundColor: userEmailStatus === s ? "rgba(59,130,246,0.15)" : "#0F172A",
+                          color: userEmailStatus === s ? "#60A5FA" : "#64748B" }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={sendUserEmail} disabled={userEmailSending}
+                    style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
+                      cursor: userEmailSending ? "not-allowed" : "pointer",
+                      backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E",
+                      color: "#FFF" }}>
+                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
+                  </button>
+                </div>
+
+                {/* 카카오 알림톡 발송 */}
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>💬 카카오 알림톡</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
+                    {[
+                      { value: "register", label: "접수확인" },
+                      { value: "consult_reserve", label: "상담예약" },
+                      { value: "docs_request", label: "서류요청" },
+                      { value: "fund_apply", label: "자금신청" },
+                      { value: "approved", label: "승인완료" },
+                      { value: "rejected", label: "미승인" },
+                      { value: "remind", label: "리마인드" },
+                      { value: "consult_done", label: "상담종결" },
+                    ].map(t => (
+                      <button key={t.value} onClick={() => setUserAlimTemplate(t.value)}
+                        style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
+                          border: `2px solid ${userAlimTemplate === t.value ? "#F59E0B" : "#334155"}`,
+                          backgroundColor: userAlimTemplate === t.value ? "rgba(245,158,11,0.15)" : "#0F172A",
+                          color: userAlimTemplate === t.value ? "#F59E0B" : "#64748B" }}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={sendUserAlimtalk} disabled={userAlimSending}
+                    style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
+                      cursor: userAlimSending ? "not-allowed" : "pointer",
+                      backgroundColor: userAlimSent ? "#16A34A" : userAlimSending ? "#334155" : "#B45309",
+                      color: "#FFF" }}>
+                    {userAlimSent ? "✓ 알림톡 발송완료!" : userAlimSending ? "⏳ 전송 중..." : `💬 ${userAlimTemplate} 알림톡 발송`}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Success Banner */}
+        {successBanner && (
+          <div style={{ position: "fixed", top: "16px", right: "16px", zIndex: 100, backgroundColor: "#052E1C", border: "2px solid #10B981", borderRadius: "12px", padding: "14px 20px", color: "#34D399", fontSize: "14px", fontWeight: "700", fontFamily: font, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "320px" }}>
+            {successBanner}
+          </div>
+        )}
+
+        {/* Fail Modal */}
+        {failModal?.visible && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
+            <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "28px", maxWidth: "400px", width: "100%", border: "2px solid #EF4444", fontFamily: font }}>
+              <p style={{ fontSize: "18px", fontWeight: "800", color: "#EF4444", marginBottom: "16px" }}>❌ 알림톡 발송 실패</p>
+              <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>👤 고객명: <strong>{failModal.clientName}</strong></p>
+                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>📞 연락처: {failModal.phone}</p>
+                <p style={{ fontSize: "13px", color: "#FCA5A5" }}>❌ 실패사유: {failModal.error}</p>
+              </div>
+              {failModal.registerLink && (
+                <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
+                  <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "8px" }}>링크를 직접 복사해서 전달해주세요:</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <code style={{ fontSize: "11px", color: "#60A5FA", wordBreak: "break-all", flex: 1 }}>{failModal.registerLink}</code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(failModal.registerLink!); showSuccess("📋 링크 복사됨"); }}
+                      style={{ padding: "6px 14px", backgroundColor: "#1E3A5F", color: "#60A5FA", border: "1px solid #3B82F6", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
+                      📋 링크 복사
+                    </button>
+                  </div>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handleFailModalRetry}
+                  disabled={failModalRetrying}
+                  style={{ flex: 1, padding: "12px", backgroundColor: failModalRetrying ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: failModalRetrying ? "not-allowed" : "pointer" }}>
+                  {failModalRetrying ? "⏳ 재발송 중..." : "🔄 재발송"}
+                </button>
+                <button
+                  onClick={() => setFailModal(null)}
+                  style={{ flex: 1, padding: "12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>
+                  ✕ 닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Modal */}
               {/* Consult Detail Overlay */}
               {selectedConsult && showConsultDetail && (
                 <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
@@ -2132,243 +2369,7 @@ ${name} 대표님!
                   </div>
                 </div>
               )}
-            </>
-          )}
-        </div>
 
-        {/* Add User Modal */}
-        {showAddUser && (
-          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
-            <div style={{ maxWidth: "480px", width: "100%", backgroundColor: "#1E293B", borderRadius: "16px", border: "1px solid #334155", padding: "24px", marginTop: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <p style={{ fontSize: "17px", fontWeight: "900", color: "#F1F5F9" }}>➕ 회원 직접 추가</p>
-                <button onClick={() => setShowAddUser(false)}
-                  style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {([
-                  ["이름", "name", "text", "홍길동", true],
-                  ["이메일", "email", "email", "example@email.com", true],
-                  ["비밀번호", "password", "password", "비밀번호 설정", true],
-                  ["나이", "age", "number", "예: 35", false],
-                  ["연매출(원)", "annual_revenue", "number", "예: 50000000", false],
-                  ["NICE점수", "nice_score", "number", "예: 720", false],
-                  ["KCB점수", "kcb_score", "number", "예: 700", false],
-                ] as [string, keyof typeof newUser, string, string, boolean][]).map(([label, key, type, ph, required]) => (
-                  <div key={key}>
-                    <label style={{ fontSize: "11px", color: "#94A3B8", display: "block", marginBottom: "4px" }}>
-                      {label} {required && <span style={{ color: "#EF4444" }}>*</span>}
-                    </label>
-                    <input
-                      type={type} value={newUser[key]}
-                      onChange={e => setNewUser(prev => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={ph}
-                      style={{ width: "100%", padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", color: "#F1F5F9", fontSize: "13px", outline: "none", fontFamily: "inherit" }}
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label style={{ fontSize: "11px", color: "#94A3B8", display: "block", marginBottom: "4px" }}>성별</label>
-                  <select value={newUser.gender} onChange={e => setNewUser(prev => ({ ...prev, gender: e.target.value }))}
-                    style={{ width: "100%", padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", color: "#F1F5F9", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }}>
-                    <option>남성</option>
-                    <option>여성</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
-                <button onClick={() => setShowAddUser(false)}
-                  style={{ flex: 1, padding: "12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
-                  취소
-                </button>
-                <button onClick={handleAddUser} disabled={addUserSaving}
-                  style={{ flex: 2, padding: "12px", backgroundColor: addUserSaving ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: addUserSaving ? "not-allowed" : "pointer" }}>
-                  {addUserSaving ? "저장 중..." : "➕ 회원 추가"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* User Detail Modal */}
-        {selectedUser && (() => {
-          const { grade } = calcGrade(selectedUser);
-          const gc = gradeColor(grade);
-          const statusC = selectedUser.application ? STATUS_COLORS[selectedUser.application.status] : null;
-          return (
-            <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 200, overflowY: "auto", padding: "16px" }}>
-              <div style={{ maxWidth: "580px", width: "100%", margin: "0 auto" }}>
-
-                {/* 헤더 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: `${gc}20`, border: `2px solid ${gc}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: "16px", fontWeight: "900", color: gc }}>{grade}</span>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "16px", fontWeight: "900", color: "#F1F5F9" }}>{selectedUser.name} 고객</p>
-                        <p style={{ fontSize: "11px", color: "#64748B" }}>{selectedUser.id}</p>
-                      </div>
-                    </div>
-                    <button onClick={() => setSelectedUser(null)}
-                      style={{ width: "30px", height: "30px", backgroundColor: "#334155", border: "none", borderRadius: "50%", color: "#94A3B8", cursor: "pointer", fontSize: "16px" }}>×</button>
-                  </div>
-
-                  {/* 기본 정보 */}
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "8px" }}>👤 고객 정보</p>
-                  <div className="consult-detail-grid">
-                    {([
-                      ["이메일", selectedUser.email],
-                      ["나이/성별", `${selectedUser.age}세 / ${selectedUser.gender}`],
-                      ["연매출", `${Number(selectedUser.annual_revenue || 0).toLocaleString()}원`],
-                      ["NICE점수", selectedUser.nice_score || "-"],
-                      ["KCB점수", selectedUser.kcb_score || "-"],
-                      ["가입일", selectedUser.registeredAt?.slice(0,10) || "-"],
-                    ] as [string,string][]).map(([k,v]) => (
-                      <div key={k} style={{ padding: "8px 10px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
-                        <p style={{ fontSize: "10px", color: "#64748B" }}>{k}</p>
-                        <p style={{ fontSize: "12px", color: "#CBD5E1", fontWeight: "600", marginTop: "2px", wordBreak: "break-all" }}>{v}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 신청 현황 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px", marginBottom: "10px" }}>
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📋 신청 현황</p>
-                  {!selectedUser.application ? (
-                    <p style={{ fontSize: "13px", color: "#64748B" }}>아직 신청 내역이 없습니다</p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 상태</span>
-                        {statusC && <span style={{ fontSize: "12px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px", backgroundColor: statusC.bg, color: statusC.text, border: `1px solid ${statusC.border}` }}>{selectedUser.application.status}</span>}
-                      </div>
-                      {selectedUser.application && (
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: "13px", color: "#CBD5E1" }}>신청 자금 수</span>
-                          <span style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{selectedUser.application.funds?.length || 0}개</span>
-                        </div>
-                      )}
-                      {selectedUser.adminMemo ? (
-                        <div style={{ backgroundColor: "#0F172A", borderRadius: "8px", padding: "10px 12px" }}>
-                          <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>관리자 메모</p>
-                          <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.6" }}>{selectedUser.adminMemo}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-
-                {/* 이메일 발송 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#60A5FA", marginBottom: "10px" }}>📧 이메일 발송</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
-                    {["접수대기", "상담예약", "서류요청", "신청진행", "상담완료", "종결"].map(s => (
-                      <button key={s} onClick={() => setUserEmailStatus(s)}
-                        style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
-                          border: `2px solid ${userEmailStatus === s ? "#3B82F6" : "#334155"}`,
-                          backgroundColor: userEmailStatus === s ? "rgba(59,130,246,0.15)" : "#0F172A",
-                          color: userEmailStatus === s ? "#60A5FA" : "#64748B" }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                  <button onClick={sendUserEmail} disabled={userEmailSending}
-                    style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
-                      cursor: userEmailSending ? "not-allowed" : "pointer",
-                      backgroundColor: userEmailSent ? "#16A34A" : userEmailSending ? "#334155" : "#0F766E",
-                      color: "#FFF" }}>
-                    {userEmailSent ? "✓ 이메일 발송완료!" : userEmailSending ? "📧 전송 중..." : `📧 ${userEmailStatus} 상태로 이메일 발송`}
-                  </button>
-                </div>
-
-                {/* 카카오 알림톡 발송 */}
-                <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "16px" }}>
-                  <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>💬 카카오 알림톡</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
-                    {[
-                      { value: "register", label: "접수확인" },
-                      { value: "consult_reserve", label: "상담예약" },
-                      { value: "docs_request", label: "서류요청" },
-                      { value: "fund_apply", label: "자금신청" },
-                      { value: "approved", label: "승인완료" },
-                      { value: "rejected", label: "미승인" },
-                      { value: "remind", label: "리마인드" },
-                      { value: "consult_done", label: "상담종결" },
-                    ].map(t => (
-                      <button key={t.value} onClick={() => setUserAlimTemplate(t.value)}
-                        style={{ padding: "5px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer",
-                          border: `2px solid ${userAlimTemplate === t.value ? "#F59E0B" : "#334155"}`,
-                          backgroundColor: userAlimTemplate === t.value ? "rgba(245,158,11,0.15)" : "#0F172A",
-                          color: userAlimTemplate === t.value ? "#F59E0B" : "#64748B" }}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                  <button onClick={sendUserAlimtalk} disabled={userAlimSending}
-                    style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700",
-                      cursor: userAlimSending ? "not-allowed" : "pointer",
-                      backgroundColor: userAlimSent ? "#16A34A" : userAlimSending ? "#334155" : "#B45309",
-                      color: "#FFF" }}>
-                    {userAlimSent ? "✓ 알림톡 발송완료!" : userAlimSending ? "⏳ 전송 중..." : `💬 ${userAlimTemplate} 알림톡 발송`}
-                  </button>
-                </div>
-
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Success Banner */}
-        {successBanner && (
-          <div style={{ position: "fixed", top: "16px", right: "16px", zIndex: 100, backgroundColor: "#052E1C", border: "2px solid #10B981", borderRadius: "12px", padding: "14px 20px", color: "#34D399", fontSize: "14px", fontWeight: "700", fontFamily: font, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "320px" }}>
-            {successBanner}
-          </div>
-        )}
-
-        {/* Fail Modal */}
-        {failModal?.visible && (
-          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
-            <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "28px", maxWidth: "400px", width: "100%", border: "2px solid #EF4444", fontFamily: font }}>
-              <p style={{ fontSize: "18px", fontWeight: "800", color: "#EF4444", marginBottom: "16px" }}>❌ 알림톡 발송 실패</p>
-              <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>👤 고객명: <strong>{failModal.clientName}</strong></p>
-                <p style={{ fontSize: "13px", color: "#CBD5E1" }}>📞 연락처: {failModal.phone}</p>
-                <p style={{ fontSize: "13px", color: "#FCA5A5" }}>❌ 실패사유: {failModal.error}</p>
-              </div>
-              {failModal.registerLink && (
-                <div style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "14px", marginBottom: "16px" }}>
-                  <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "8px" }}>링크를 직접 복사해서 전달해주세요:</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                    <code style={{ fontSize: "11px", color: "#60A5FA", wordBreak: "break-all", flex: 1 }}>{failModal.registerLink}</code>
-                    <button
-                      onClick={() => { navigator.clipboard.writeText(failModal.registerLink!); showSuccess("📋 링크 복사됨"); }}
-                      style={{ padding: "6px 14px", backgroundColor: "#1E3A5F", color: "#60A5FA", border: "1px solid #3B82F6", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
-                      📋 링크 복사
-                    </button>
-                  </div>
-                </div>
-              )}
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={handleFailModalRetry}
-                  disabled={failModalRetrying}
-                  style={{ flex: 1, padding: "12px", backgroundColor: failModalRetrying ? "#334155" : "#2563EB", color: "#FFF", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: failModalRetrying ? "not-allowed" : "pointer" }}>
-                  {failModalRetrying ? "⏳ 재발송 중..." : "🔄 재발송"}
-                </button>
-                <button
-                  onClick={() => setFailModal(null)}
-                  style={{ flex: 1, padding: "12px", backgroundColor: "#334155", color: "#CBD5E1", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>
-                  ✕ 닫기
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Modal */}
         {deleteConfirm && (
           <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px" }}>
             <div style={{ backgroundColor: "#1E293B", borderRadius: "14px", padding: "28px", maxWidth: "340px", width: "100%", border: "1px solid #334155" }}>
