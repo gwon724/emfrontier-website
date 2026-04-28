@@ -21,7 +21,7 @@ function getStepIndex(status: string) {
   return idx; // -1 이면 해당 없음
 }
 
-function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
+function LoginView({ onLogin }: { onLogin: (name: string, isTempPw?: boolean) => void }) {
   const [phone, setPhone] = useState("");
   const [name, setName] = useState(""); // 이름은 비번찾기용으로만 사용
   const [password, setPassword] = useState("");
@@ -46,7 +46,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
         body: JSON.stringify({ name: resetName, phone: resetPhone }),
       });
       const data = await res.json();
-      if (data.ok) setResetMsg(`✅ ${data.email}로 임시 비밀번호를 발송했습니다.`);
+      if (data.ok) setResetMsg(`✅ 카카오 알림톡으로 임시 비밀번호를 발송했습니다.${data.kakaoSent ? '' : data.emailSent ? ' (이메일 발송)' : ''}`);
       else setResetError(data.error || "오류가 발생했습니다.");
     } catch {
       setResetError("네트워크 오류가 발생했습니다.");
@@ -69,14 +69,14 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
       } catch {
         users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
       }
-      const user = users.find((u) => u.phone?.replace(/-/g,"") === phone.trim().replace(/-/g,"") && u.password === password.trim());
+      const user = users.find((u: {name:string;phone?:string;password:string;isTempPassword?:boolean}) => u.phone?.replace(/-/g,"") === phone.trim().replace(/-/g,"") && u.password === password.trim());
       if (!user) {
         setError("전화번호 또는 비밀번호가 올바르지 않습니다");
         setLoading(false);
         return;
       }
       localStorage.setItem("clientSession", JSON.stringify({ name: user.name, phone: user.phone || "" }));
-      onLogin(user.name);
+      onLogin(user.name, !!(user as {isTempPassword?:boolean}).isTempPassword);
     } catch {
       setError("로그인 중 오류가 발생했습니다");
     }
@@ -174,7 +174,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
   );
 }
 
-function PortalView({ clientName, onLogout }: { clientName: string; onLogout: () => void }) {
+function PortalView({ clientName, onLogout, isTempPw }: { clientName: string; onLogout: () => void; isTempPw?: boolean }) {
   const [consult, setConsult] = useState<Consultation | null>(null);
   const [docStatuses, setDocStatuses] = useState<Record<string, "idle"|"sending"|"done"|"error">>({});
   const [extraDocs, setExtraDocs] = useState<{id: string; name: string}[]>([]);
@@ -182,7 +182,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   const [showFinance, setShowFinance] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false);
   // 비밀번호 변경
-  const [showPwChange, setShowPwChange] = useState(false);
+  const [showPwChange, setShowPwChange] = useState(isTempPw === true);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -206,7 +206,10 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
     if (newPw.length < 4) { setPwError("비밀번호는 4자 이상이어야 합니다."); return; }
     if (newPw !== confirmPw) { setPwError("새 비밀번호가 일치하지 않습니다."); return; }
     users[idx].password = newPw;
+    delete users[idx].isTempPassword; // 임시비밀번호 플래그 제거
     localStorage.setItem("clientUsers", JSON.stringify(users));
+    // 서버 DB도 업데이트
+    fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "clientUsers", value: users }) }).catch(() => {});
     setPwSuccess(true);
     setCurrentPw(""); setNewPw(""); setConfirmPw("");
     setTimeout(() => { setPwSuccess(false); setShowPwChange(false); }, 2000);
@@ -545,6 +548,12 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
               </button>
               {showPwChange && (
                 <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {isTempPw && (
+                    <div style={{ backgroundColor: "#1E3A5F", border: "1px solid #3B82F6", borderRadius: "10px", padding: "12px", marginBottom: "4px" }}>
+                      <p style={{ fontSize: "12px", color: "#93C5FD", fontWeight: "700", marginBottom: "4px", fontFamily: font }}>🔐 임시 비밀번호로 로그인됨</p>
+                      <p style={{ fontSize: "11px", color: "#BFDBFE", fontFamily: font }}>보안을 위해 새 비밀번호를 설정해주세요. 현재 비밀번호 칸은 비워두셔도 됩니다.</p>
+                    </div>
+                  )}
                   {[
                     { label: "현재 비밀번호", value: currentPw, setter: setCurrentPw, placeholder: "현재 비밀번호 입력 (처음 설정이면 비워두세요)" },
                     { label: "새 비밀번호", value: newPw, setter: setNewPw, placeholder: "새 비밀번호 (4자 이상)" },
@@ -583,6 +592,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
 export default function ClientPortal() {
   const router = useRouter();
   const [clientName, setClientName] = useState<string | null>(null);
+  const [isTempPw, setIsTempPw] = useState(false);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
@@ -611,8 +621,8 @@ export default function ClientPortal() {
   }
 
   if (!clientName) {
-    return <LoginView onLogin={name => setClientName(name)} />;
+    return <LoginView onLogin={(name, tempPw) => { setClientName(name); setIsTempPw(!!tempPw); }} />;
   }
 
-  return <PortalView clientName={clientName} onLogout={handleLogout} />;
+  return <PortalView clientName={clientName} onLogout={handleLogout} isTempPw={isTempPw} />;
 }

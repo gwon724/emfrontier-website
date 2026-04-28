@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // 임시 비밀번호 생성
     const tempPw = generateTempPassword();
     const updatedUsers = users.map(u =>
-      u.name === user.name && u.phone === user.phone ? { ...u, password: tempPw } : u
+      u.name === user.name && u.phone === user.phone ? { ...u, password: tempPw, isTempPassword: true } : u
     );
     writeClientUsers(updatedUsers);
 
