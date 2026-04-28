@@ -447,7 +447,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                           {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
                         </div>
                         <span style={{ padding: "4px 12px", borderRadius: "999px", backgroundColor: "#0F172A", color: "#94A3B8", fontSize: "12px", fontWeight: "800", flexShrink: 0, border: "1px solid #334155" }}>
-                          승인완료
+                          집행완료
                         </span>
                       </div>
                     ))}
