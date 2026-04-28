@@ -430,37 +430,27 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
               </div>
             )}
 
-            {/* 진행 단계 타임라인 — 자금별 */}
-            {consult.funds && consult.funds.length > 0 ? (
-              consult.funds.map(fund => {
-                const isRejected = (fund.status as string) === "부결" || (fund.status as string) === "보완";
-                const fundStepIdx = FUND_PROGRESS_STEPS.indexOf(fund.status as string);
-                return (
-                  <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-                    {/* 자금명 + 금액 */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+            {/* 자금 현황 */}
+            {consult.funds && consult.funds.length > 0 && (
+              <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
+                <p style={{ fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>🏦 담당 정책자금</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {consult.funds.map(fund => (
+                    <div key={fund.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px" }}>
                       <div>
                         <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
                         {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
                       </div>
-                      <span style={{ padding: "3px 10px", borderRadius: "999px",
+                      <span style={{ padding: "4px 12px", borderRadius: "999px",
                         backgroundColor: (fund.status as string) === "승인" ? "#052E1C" : (fund.status as string) === "부결" ? "#450A0A" : (fund.status as string) === "보완" ? "#1C1800" : "#0F172A",
                         color: (fund.status as string) === "승인" ? "#34D399" : (fund.status as string) === "부결" ? "#EF4444" : (fund.status as string) === "보완" ? "#FBBF24" : "#60A5FA",
-                        fontSize: "11px", fontWeight: "800", flexShrink: 0,
+                        fontSize: "12px", fontWeight: "800", flexShrink: 0,
                         border: `1px solid ${(fund.status as string) === "승인" ? "#166534" : (fund.status as string) === "부결" ? "#DC2626" : (fund.status as string) === "보완" ? "#92400E" : "#1E3A8A"}` }}>
                         {fund.status}
                       </span>
                     </div>
-
-
-                  </div>
-                );
-              })
-            ) : (
-              // 자금 없으면 기존 방식 (상담 전체 진행단계)
-              <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-
-
+                  ))}
+                </div>
               </div>
             )}
 
