@@ -34,6 +34,7 @@ export interface UserRecord {
   registeredAt: string;
   application?: Application;
   adminMemo?: string;
+  funds?: Array<{ id: string; fundName: string; fundId?: string; amount: string; status: string; addedAt: string }>;
 }
 
 export interface Application {

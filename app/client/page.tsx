@@ -215,6 +215,9 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   // 담당자 telegramChatId 조회
   const [chatId, setChatId] = useState("");
 
+  // 회원 정보 (users DB)
+  const [userRecord, setUserRecord] = useState<import("@/lib/store").UserRecord | null>(null);
+
   useEffect(() => {
     // 서버에서 최신 데이터 로드
     fetch("/api/db?key=consultations").then(r => r.json()).then(j => {
@@ -224,6 +227,13 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
       const found = all.find(c => c.name === clientName);
       setConsult(found || null);
     });
+    // users DB에서 회원 정책자금 로드
+    fetch("/api/db?key=users").then(r => r.json()).then(j => {
+      if (j.value) {
+        const u = j.value.find((x: import("@/lib/store").UserRecord & {name?:string}) => x.name === clientName);
+        if (u) setUserRecord(u);
+      }
+    }).catch(() => {});
     fetch("/api/db?key=adminAccounts").then(r => r.json()).then(j => {
       if (j.value) {
         const admins: Array<{username: string; telegramChatId?: string}> = j.value;
@@ -386,6 +396,31 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
               </div>
 
             </div>
+
+            {/* 회원 정책자금 목록 (admin에서 추가한 자금) */}
+            {userRecord && (userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds && ((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).length > 0 && (
+              <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #1E3A8A" }}>
+                <p style={{ fontSize: "14px", fontWeight: "800", color: "#60A5FA", marginBottom: "14px" }}>🏦 담당 정책자금</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).map(f => (
+                    <div key={f.id} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                        <div>
+                          <p style={{ fontSize: "13px", fontWeight: "700", color: "#F1F5F9" }}>{f.fundName}</p>
+                          <p style={{ fontSize: "11px", color: "#64748B", marginTop: "2px" }}>{f.amount}</p>
+                        </div>
+                        <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px",
+                          backgroundColor: f.status === "승인완료" ? "#052E1C" : f.status === "부결" ? "#450A0A" : "#0F172A",
+                          color: f.status === "승인완료" ? "#34D399" : f.status === "부결" ? "#EF4444" : "#60A5FA",
+                          border: `1px solid ${f.status === "승인완료" ? "#166534" : f.status === "부결" ? "#DC2626" : "#1E3A8A"}` }}>
+                          {f.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 진행 단계 타임라인 — 자금별 */}
             {consult.funds && consult.funds.length > 0 ? (

@@ -72,6 +72,8 @@ export default function AdminDashboard() {
   const [uDesiredAmount, setUDesiredAmount] = useState("");
   const [uMemo, setUMemo] = useState("");
   const [uSaved, setUSaved] = useState(false);
+  const [newUserFundName, setNewUserFundName] = useState("");
+  const [newUserFundAmount, setNewUserFundAmount] = useState("");
   // AI 보고서
   const [aiReport, setAiReport] = useState("");
   const [aiReportLoading, setAiReportLoading] = useState(false);
@@ -2364,6 +2366,118 @@ ${name} 대표님!
                       cursor: "pointer", backgroundColor: uSaved ? "#16A34A" : "#1D4ED8", color: "#FFF" }}>
                     {uSaved ? "✓ 저장완료" : "💾 정보 저장"}
                   </button>
+
+                  {/* 회원 정책자금 관리 */}
+                  <div style={{ marginTop: "12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
+                    <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "10px" }}>🏦 정책자금 관리</p>
+                    {/* 자금 드롭다운 추가 */}
+                    <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+                      <select
+                        value={newUserFundName}
+                        onChange={e => {
+                          const selected = getAllFunds().find(f => f.name === e.target.value);
+                          setNewUserFundName(e.target.value);
+                          if (selected) setNewUserFundAmount(`최대 ${Number(selected.maxAmount).toLocaleString()}원`);
+                          else setNewUserFundAmount("");
+                        }}
+                        style={{ flex: 2, minWidth: "160px", padding: "8px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9", cursor: "pointer" }}
+                      >
+                        <option value="">정책자금 선택...</option>
+                        {getAllFunds().filter(f => f.active).map(f => (
+                          <option key={f.id} value={f.name}>[{f.category}] {f.name} (최대 {Number(f.maxAmount).toLocaleString()}원)</option>
+                        ))}
+                        <option value="__custom__">직접 입력...</option>
+                      </select>
+                      {newUserFundName === "__custom__" && (
+                        <input value={newUserFundAmount} onChange={e => setNewUserFundName(e.target.value)}
+                          placeholder="자금명" style={{ flex: 1, padding: "8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }} />
+                      )}
+                      <input
+                        value={newUserFundAmount}
+                        onChange={e => setNewUserFundAmount(e.target.value)}
+                        placeholder="승인금액"
+                        style={{ flex: 1, minWidth: "90px", padding: "8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                      />
+                      <button
+                        disabled={!newUserFundName || newUserFundName === "__custom__"}
+                        onClick={async () => {
+                          if (!newUserFundName || newUserFundName === "__custom__") return;
+                          const fund = getAllFunds().find(f => f.name === newUserFundName);
+                          const newFund = {
+                            id: `uf_${Date.now()}`,
+                            fundName: newUserFundName,
+                            fundId: fund?.id || "",
+                            amount: newUserFundAmount,
+                            status: "진행중",
+                            addedAt: new Date().toISOString(),
+                          };
+                          const existingFunds = (selectedUser as UserRecord & {funds?: typeof newFund[]}).funds || [];
+                          const updatedUser = { ...selectedUser, funds: [...existingFunds, newFund] };
+                          upsertUser(updatedUser as UserRecord);
+                          // 서버 DB 저장
+                          const allU = getAllUsers();
+                          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
+                          localStorage.setItem("users", JSON.stringify(allU));
+                          setUsers(allU);
+                          setSelectedUser(updatedUser as UserRecord);
+                          setNewUserFundName(""); setNewUserFundAmount("");
+                          showSuccess("✅ 자금 추가 완료!");
+                        }}
+                        style={{ padding: "8px 14px", backgroundColor: newUserFundName && newUserFundName !== "__custom__" ? "#2563EB" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
+                        + 추가
+                      </button>
+                    </div>
+                    {/* 자금 목록 */}
+                    {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).length === 0 ? (
+                      <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "12px 0" }}>등록된 자금이 없어요.</p>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).map((f, idx) => (
+                          <div key={f.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1E3A8A", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <div>
+                              <p style={{ fontSize: "13px", fontWeight: "700", color: "#60A5FA" }}>{f.fundName}</p>
+                              <p style={{ fontSize: "11px", color: "#64748B" }}>{f.amount} · {f.status}</p>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
+                              <select
+                                value={f.status}
+                                onChange={async e => {
+                                  const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
+                                  const updated = (type.funds || []).map((x, i) => i === idx ? {...x, status: e.target.value} : x);
+                                  const updatedUser = { ...selectedUser, funds: updated };
+                                  upsertUser(updatedUser as UserRecord);
+                                  const allU = getAllUsers();
+                                  await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
+                                  localStorage.setItem("users", JSON.stringify(allU));
+                                  setUsers(allU);
+                                  setSelectedUser(updatedUser as UserRecord);
+                                }}
+                                style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
+                              >
+                                {["진행중","승인완료","부결","대기중"].map(s => <option key={s} value={s}>{s}</option>)}
+                              </select>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm("이 자금을 삭제하시겠어요?")) return;
+                                  const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
+                                  const updated = (type.funds || []).filter((_, i) => i !== idx);
+                                  const updatedUser = { ...selectedUser, funds: updated };
+                                  upsertUser(updatedUser as UserRecord);
+                                  const allU = getAllUsers();
+                                  await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
+                                  localStorage.setItem("users", JSON.stringify(allU));
+                                  setUsers(allU);
+                                  setSelectedUser(updatedUser as UserRecord);
+                                }}
+                                style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   {/* AI 보고서 버튼 */}
                   <button
