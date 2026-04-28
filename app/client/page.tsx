@@ -452,7 +452,27 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                       </span>
                     </div>
                     <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "12px" }}>📍 진행 단계</p>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
+                    {/* 현재 자금 단계 강조 카드 */}
+                    {fundStepIdx >= 0 && (() => {
+                      const st = FUND_PROGRESS_STEPS[fundStepIdx];
+                      const isRej = (fund.status as string) === "부결";
+                      const isBowan = (fund.status as string) === "보완";
+                      const isApprv = (fund.status as string) === "승인";
+                      const col = isRej ? "#EF4444" : isBowan ? "#FBBF24" : isApprv ? "#34D399" : "#3B82F6";
+                      return (
+                        <div style={{ backgroundColor: "#0F172A", borderRadius: "12px", padding: "12px 16px", marginBottom: "12px", border: `1px solid ${col}`, display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ width: "44px", height: "44px", borderRadius: "50%", backgroundColor: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "800", color: "#FFF", flexShrink: 0, boxShadow: `0 0 0 5px ${col}30` }}>
+                            {isRej ? "✕" : isBowan ? "!" : fundStepIdx + 1}
+                          </div>
+                          <div>
+                            <p style={{ fontSize: "10px", color: col, fontWeight: "700", marginBottom: "2px" }}>현재 단계</p>
+                            <p style={{ fontSize: "16px", fontWeight: "800", color: "#F1F5F9" }}>{st}</p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {/* 전체 스텝 미니 바 */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "2px" }}>
                       {FUND_PROGRESS_STEPS.map((st, i) => {
                         const done = fundStepIdx > i && fundStepIdx !== -1;
                         const current = fundStepIdx === i;
@@ -461,14 +481,14 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                         const col = isRej ? "#EF4444" : isBowan ? "#FBBF24" : st === "승인" && current ? "#34D399" : done ? "#10B981" : current ? "#3B82F6" : "#334155";
                         return (
                           <div key={st} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                              <div style={{ width: "44px", height: "44px", borderRadius: "50%", backgroundColor: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 4px ${col}40` : "none" }}>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <div style={{ width: current ? "30px" : "22px", height: current ? "30px" : "22px", borderRadius: "50%", backgroundColor: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: current ? "11px" : "9px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 3px ${col}50` : "none" }}>
                                 {done ? "✓" : isRej ? "✕" : isBowan ? "!" : i + 1}
                               </div>
-                              <span style={{ fontSize: "10px", color: current || isRej || isBowan ? col : done ? "#10B981" : "#475569", fontWeight: current || isRej || isBowan ? "800" : "500", whiteSpace: "nowrap", textAlign: "center" }}>{st}</span>
+                              <span style={{ fontSize: "8px", color: current || isRej || isBowan ? col : done ? "#10B981" : "#475569", fontWeight: current || isRej || isBowan ? "800" : "500", whiteSpace: "nowrap" }}>{st}</span>
                             </div>
                             {i < FUND_PROGRESS_STEPS.length - 1 && (
-                              <div style={{ width: "14px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 2px", marginBottom: "24px", flexShrink: 0 }} />
+                              <div style={{ width: "10px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 1px", marginBottom: "16px", flexShrink: 0 }} />
                             )}
                           </div>
                         );
@@ -480,22 +500,35 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             ) : (
               // 자금 없으면 기존 방식 (상담 전체 진행단계)
               <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-                <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "16px" }}>📍 진행 단계</p>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 0, overflowX: "auto", paddingBottom: "4px" }}>
+                <p style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", marginBottom: "14px" }}>📍 진행 단계</p>
+                {/* 현재 단계 강조 카드 */}
+                {stepIdx >= 0 && (
+                  <div style={{ backgroundColor: "#0F172A", borderRadius: "12px", padding: "14px 18px", marginBottom: "14px", border: "1px solid #3B82F6", display: "flex", alignItems: "center", gap: "14px" }}>
+                    <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: "800", color: "#FFF", flexShrink: 0, boxShadow: "0 0 0 6px #3B82F640" }}>
+                      {stepIdx + 1}
+                    </div>
+                    <div>
+                      <p style={{ fontSize: "11px", color: "#60A5FA", fontWeight: "700", marginBottom: "2px" }}>현재 단계</p>
+                      <p style={{ fontSize: "17px", fontWeight: "800", color: "#F1F5F9" }}>{PROGRESS_STEPS[stepIdx]}</p>
+                    </div>
+                  </div>
+                )}
+                {/* 전체 스텝 미니 바 */}
+                <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: "2px" }}>
                   {PROGRESS_STEPS.map((step, i) => {
                     const done = stepIdx > i;
                     const current = stepIdx === i;
                     const color = done ? "#10B981" : current ? "#3B82F6" : "#334155";
                     return (
                       <div key={step} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                          <div style={{ width: "44px", height: "44px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 4px ${color}40` : "none" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                          <div style={{ width: current ? "32px" : "24px", height: current ? "32px" : "24px", borderRadius: "50%", backgroundColor: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: current ? "12px" : "10px", color: "#FFF", fontWeight: "800", flexShrink: 0, boxShadow: current ? `0 0 0 3px ${color}50` : "none", transition: "all .2s" }}>
                             {done ? "✓" : i + 1}
                           </div>
-                          <span style={{ fontSize: "10px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap", textAlign: "center" }}>{step}</span>
+                          <span style={{ fontSize: "8px", color: current ? "#60A5FA" : done ? "#10B981" : "#475569", fontWeight: current ? "800" : "500", whiteSpace: "nowrap" }}>{step}</span>
                         </div>
                         {i < PROGRESS_STEPS.length - 1 && (
-                          <div style={{ width: "18px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 2px", marginBottom: "24px", flexShrink: 0 }} />
+                          <div style={{ width: "14px", height: "2px", backgroundColor: done ? "#10B981" : "#1E3A5F", borderRadius: "1px", margin: "0 2px", marginBottom: "16px", flexShrink: 0 }} />
                         )}
                       </div>
                     );
