@@ -751,6 +751,7 @@ ${name} 대표님!
   const [cRevenue, setCRevenue] = useState("");
   const [cDebt, setCDebt] = useState("");
   const [cNice, setCNice] = useState("");
+  const [cKcb, setCKcb] = useState("");
   const [cDesiredAmount, setCDesiredAmount] = useState("");
   const [cInquiry, setCInquiry] = useState("");
 
@@ -855,7 +856,7 @@ ${name} 대표님!
     setCName(c.name || ""); setCPhone(c.phone || ""); setCEmail(c.email || "");
     setCAge(c.age || ""); setCGender(c.gender || ""); setCBizType(c.businessType || "");
     setCBizPeriod(c.businessPeriod || ""); setCRevenue(c.annual_revenue || "");
-    setCDebt(c.currentDebt || ""); setCNice(c.nice_score || "");
+    setCDebt(c.currentDebt || ""); setCNice(c.nice_score || ""); setCKcb(c.kcb_score || "");
     setCDesiredAmount(c.desiredAmount || ""); setCInquiry(c.inquiryContent || "");
     setShowConsultDetail(true);
   };
@@ -866,7 +867,7 @@ ${name} 대표님!
       status: cNewStatus, adminMemo: cMemo, assignedTo: cAssigned, consultDate: cDate,
       name: cName, phone: cPhone, email: cEmail, age: cAge, gender: cGender,
       businessType: cBizType, businessPeriod: cBizPeriod,
-      annual_revenue: cRevenue, currentDebt: cDebt, nice_score: cNice,
+      annual_revenue: cRevenue, currentDebt: cDebt, nice_score: cNice, kcb_score: cKcb,
       desiredAmount: cDesiredAmount, inquiryContent: cInquiry,
     });
     // 서버에 즉시 동기화
@@ -2083,6 +2084,7 @@ ${name} 대표님!
                           ["연매출(원)", cRevenue, setCRevenue, "number"],
                           ["기대출(원)", cDebt, setCDebt, "number"],
                           ["NICE점수", cNice, setCNice, "number"],
+                          ["KCB점수", cKcb, setCKcb, "number"],
                           ["희망금액", cDesiredAmount, setCDesiredAmount, "text"],
                         ] as [string, string, (v: string) => void, string][]).map(([label, val, setter, type]) => (
                           <div key={label} style={{ padding: "6px 8px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
