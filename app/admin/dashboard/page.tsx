@@ -2602,15 +2602,17 @@ ${name} 대표님!
                               setNewFundName(""); setNewFundAmount("");
                               // 승인완료 알림톡 자동 발송
                               const apPhone = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult.phone || "";
-                              if (apPhone) {
+                              const apAmount = newFundAmount.trim();
+                              const apFundName = newFundName.trim();
+                              if (apPhone && apAmount && apFundName) {
                                 const enriched = {
                                   name: selectedUser.name,
                                   phone: apPhone,
                                   id: selectedUser.id,
                                   manager: admin?.name,
                                   managerPhone: admin?.phone,
-                                  amount: newFundAmount.trim() || "-",
-                                  fundName: newFundName.trim(),
+                                  amount: apAmount,
+                                  fundName: apFundName,
                                 };
                                 const alimRes = await fetch("/api/alimtalk", {
                                   method: "POST",
