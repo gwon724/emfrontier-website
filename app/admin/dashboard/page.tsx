@@ -1143,6 +1143,31 @@ ${name} 대표님!
         setUsers(allUsersArr);
       }
     } catch {}
+
+    // 담당자 배정 + 상담예약일시 있으면 상담예약 알림톡 자동 발송
+    if (cAssigned && cDate && selectedConsult?.phone) {
+      // 이전 상태와 비교 — 담당자 or 날짜가 새로 입력됐을 때만 발송
+      const prevAssigned = selectedConsult.assignedTo || selectedConsult.assignedName || "";
+      const prevDate = selectedConsult.consultDate || "";
+      if (cAssigned !== prevAssigned || cDate !== prevDate) {
+        const managerAdmin = adminList.find((a) => a.name === cAssigned);
+        const enriched = {
+          name: selectedConsult.name,
+          phone: selectedConsult.phone,
+          id: selectedConsult.id,
+          manager: cAssigned,
+          managerPhone: managerAdmin?.phone || admin?.phone || "",
+          consultDatetime: cDate,
+        };
+        const alimRes = await fetch("/api/alimtalk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consultation: enriched, templateType: "consult_reserve" }),
+        }).then(r => r.json()).catch(() => ({ ok: false }));
+        if (alimRes.ok) showSuccess("✅ 저장 완료 + 상담예약 알림톡 발송!");
+      }
+    }
+
     await refresh();
     setShowConsultDetail(false);
     setTab("members");
