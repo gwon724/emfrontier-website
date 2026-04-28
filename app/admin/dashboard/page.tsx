@@ -246,6 +246,8 @@ export default function AdminDashboard() {
   const [reassignTarget, setReassignTarget] = useState<string | null>(null); // consultation id
   const [reassignAdminId, setReassignAdminId] = useState("");
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  // 접수대기 카드에서 담당자 선택
+  const [waitingAssignMap, setWaitingAssignMap] = useState<Record<string, string>>({});
   const [showHistory, setShowHistory] = useState(false);
   const [cSearch, setCSearch] = useState("");
   const [cStatusFilter, setCStatusFilter] = useState<ConsultStatus | "">("");
@@ -974,12 +976,12 @@ ${name} 대표님!
   };
 
   // 타사 접수완료 (예약완료) 버튼
-  const handleAssign = async (c: Consultation) => {
+  const handleAssign = async (c: Consultation, targetAdmin?: AdminAccount) => {
     if (!admin || assigningId === c.id) return;
+    const assignTo = targetAdmin || admin;
     setAssigningId(c.id);
     try {
-      assignConsultation(c.id, admin);
-      // 알림톡 발송
+      assignConsultation(c.id, assignTo);
       let alimOk = false;
       let alimErr = "";
       try {
@@ -987,7 +989,7 @@ ${name} 대표님!
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            consultation: { ...c, manager: admin.name, managerPhone: admin.phone },
+            consultation: { ...c, manager: assignTo.name, managerPhone: assignTo.phone },
             templateType: "consult_reserve",
           }),
         });
@@ -1007,13 +1009,14 @@ ${name} 대표님!
       if (updated) { setSelectedConsult(updated); setCNewStatus(updated.status); }
       if (!alimOk) {
         const capturedC = c;
+        const capturedAssignTo = assignTo;
         showFailModal(
           capturedC.name, capturedC.phone, alimErr,
           async () => {
             const r = await fetch("/api/alimtalk", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: { ...capturedC, manager: admin?.name, managerPhone: admin?.phone }, templateType: "consult_reserve" }),
+              body: JSON.stringify({ consultation: { ...capturedC, manager: capturedAssignTo?.name, managerPhone: capturedAssignTo?.phone }, templateType: "consult_reserve" }),
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
@@ -1295,6 +1298,7 @@ ${name} 대표님!
           <Link href="/admin/doc-collect" style={{ backgroundColor: "#065F46", color: "#34D399" }} onClick={() => setMobileNav(false)}>📁 서류 수집</Link>
           {admin?.role === "superadmin" && (<>
             <button className="mob-link" style={{ backgroundColor: "#1E3A5F", color: "#93C5FD" }} onClick={() => { setTab("all-consults"); setMobileNav(false); }}>📋 전체상담</button>
+            <Link href="/setting" style={{ backgroundColor: "#4C1D95", color: "#DDD6FE" }} onClick={() => setMobileNav(false)}>⚙️ 계정관리</Link>
           </>)}
           <button className="mob-link" onClick={() => { setMobileNav(false); logout(); }}>로그아웃</button>
         </div>
@@ -1317,6 +1321,7 @@ ${name} 대표님!
                 {admin?.role === "superadmin" && (
                   <>
                     <button onClick={() => setTab("all-consults")} style={{ backgroundColor: tab === "all-consults" ? "#1D4ED8" : "#334155", color: tab === "all-consults" ? "#FFF" : "#CBD5E1", border: "none", borderRadius: "6px", padding: "5px 12px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>📋 전체상담</button>
+                    <Link href="/setting" style={{ backgroundColor: "#4C1D95", color: "#DDD6FE" }}>⚙️ 계정관리</Link>
                   </>
                 )}
               </nav>
@@ -1829,12 +1834,34 @@ ${name} 대표님!
                             </div>
                             <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                               {consultTab === "waiting" && (
-                                <button
-                                  disabled={isAssigning}
-                                  onClick={async (e) => { e.stopPropagation(); await handleAssign(c); }}
-                                  style={{ padding: "6px 12px", backgroundColor: isAssigning ? "#334155" : "#10B981", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: isAssigning ? "not-allowed" : "pointer" }}>
-                                  {isAssigning ? "⏳" : "✅ 예약완료"}
-                                </button>
+                                <>
+                                  {admin?.role === "superadmin" && (
+                                    <select
+                                      value={waitingAssignMap[c.id] || ""}
+                                      onChange={e => setWaitingAssignMap(p => ({ ...p, [c.id]: e.target.value }))}
+                                      onClick={e => e.stopPropagation()}
+                                      style={{ padding: "6px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer", fontFamily: font, maxWidth: "110px" }}
+                                    >
+                                      <option value="">내 계정</option>
+                                      {adminList.map(a => (
+                                        <option key={a.username} value={a.username}>{a.name}</option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  <button
+                                    disabled={isAssigning}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      let targetAdm: AdminAccount | undefined = undefined;
+                                      if (admin?.role === "superadmin" && waitingAssignMap[c.id]) {
+                                        targetAdm = adminList.find(a => a.username === waitingAssignMap[c.id]);
+                                      }
+                                      await handleAssign(c, targetAdm);
+                                    }}
+                                    style={{ padding: "6px 12px", backgroundColor: isAssigning ? "#334155" : "#10B981", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: isAssigning ? "not-allowed" : "pointer" }}>
+                                    {isAssigning ? "⏳" : "✅ 배정"}
+                                  </button>
+                                </>
                               )}
                               <button onClick={(e) => { e.stopPropagation(); openConsult(c); }}
                                 style={{ padding: "6px 14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>상세</button>
