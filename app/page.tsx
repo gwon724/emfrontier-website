@@ -77,7 +77,7 @@ export default function ConsultPage() {
 
         /* ─ 헤더 ─ */
         .ct-header { background: #0A1628; padding: 0 16px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1E2D47; }
-        .ct-header-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 56px; }
+        .ct-header-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 72px; }
 
         /* ─ 히어로 ─ */
         .ct-hero { background: linear-gradient(160deg, #0A1628 0%, #0D2244 45%, #112D5E 100%); padding: 60px 16px 80px; position: relative; overflow: hidden; }
@@ -158,7 +158,7 @@ export default function ConsultPage() {
       <header className="ct-header">
         <div className="ct-header-inner">
           <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-            <img src={LOGO_B64} alt="엠프론티어" width={60} height={60} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0 }} />
+            <img src={LOGO_B64} alt="엠프론티어" width={64} height={64} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0, display: "block" }} />
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: "14px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>엠프론티어</p>
               <p style={{ fontSize: "9px", color: "#60A5FA", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>정책자금 전문 컨설팅</p>
