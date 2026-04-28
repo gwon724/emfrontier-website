@@ -5,7 +5,7 @@ import {
   getAllConsultations, getAllUsers, upsertUser,
   LOGO_B64, FONT, CONSULT_STATUS_LIST,
   FUND_STATUS_LIST, FUND_STATUS_COLORS,
-  Consultation,
+  Consultation, ConsultStatus,
 } from "@/lib/store";
 
 const font = FONT;
@@ -237,6 +237,24 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
   }, [clientName]);
 
   const stepIdx = consult ? getStepIndex(consult.status) : -1;
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleCancelConsult = async () => {
+    if (!consult) return;
+    setCancelLoading(true);
+    try {
+      const all = getAllConsultations();
+      const updated = all.map(c => c.id === consult.id ? { ...c, status: "상담취소" as ConsultStatus } : c);
+      await fetch("/api/db", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "consultations", value: updated }) });
+      localStorage.setItem("consultations", JSON.stringify(updated));
+      setConsult(updated.find(c => c.id === consult.id) || null);
+      setShowCancelModal(false);
+      setCancelReason("");
+    } catch { /* ignore */ }
+    setCancelLoading(false);
+  };
 
   const sendDoc = async (docName: string, file: File) => {
     setDocStatuses(p => ({ ...p, [docName]: "sending" }));
@@ -296,6 +314,33 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0B1120", fontFamily: font }}>
+      {/* 취소 확인 모달 */}
+      {showCancelModal && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "28px 24px", maxWidth: "360px", width: "100%", border: "1px solid #EF4444" }}>
+            <p style={{ fontSize: "20px", marginBottom: "8px", textAlign: "center" }}>🚫</p>
+            <p style={{ fontSize: "16px", fontWeight: "800", color: "#F1F5F9", textAlign: "center", marginBottom: "8px" }}>상담 취소 신청</p>
+            <p style={{ fontSize: "13px", color: "#94A3B8", textAlign: "center", marginBottom: "20px", lineHeight: "1.6" }}>상담를 취소하면 진행 중인 자산 교섭이 충단됩니다.<br/>정말 취소하시겠습니까?</p>
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder="취소 사유 (선택 사항)"
+              rows={3}
+              style={{ width: "100%", padding: "10px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", resize: "none", outline: "none", marginBottom: "16px" }}
+            />
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => { setShowCancelModal(false); setCancelReason(""); }}
+                style={{ flex: 1, padding: "11px 0", backgroundColor: "transparent", border: "1px solid #334155", borderRadius: "8px", color: "#94A3B8", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: font }}>
+                돌아가기
+              </button>
+              <button onClick={handleCancelConsult} disabled={cancelLoading}
+                style={{ flex: 1, padding: "11px 0", backgroundColor: "#EF4444", border: "none", borderRadius: "8px", color: "#FFF", fontSize: "13px", fontWeight: "800", cursor: "pointer", fontFamily: font, opacity: cancelLoading ? 0.6 : 1 }}>
+                {cancelLoading ? "요청중..." : "취소 확인"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* 헤더 */}
       <div style={{ backgroundColor: "#0F172A", borderBottom: "1px solid #1E293B", padding: "0 16px" }}>
         <div style={{ maxWidth: "480px", margin: "0 auto", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -339,6 +384,20 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
                   </div>
                 ))}
               </div>
+              {/* 상담 취소 버튼 */}
+              {consult.status !== "상담취소" && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  style={{ marginTop: "12px", width: "100%", padding: "9px 0", backgroundColor: "transparent", border: "1px solid #EF4444", borderRadius: "8px", color: "#EF4444", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: font }}
+                >
+                  🚫 상담 취소 신청
+                </button>
+              )}
+              {consult.status === "상담취소" && (
+                <div style={{ marginTop: "12px", padding: "10px 14px", backgroundColor: "#1F1010", border: "1px solid #EF4444", borderRadius: "8px", textAlign: "center" }}>
+                  <p style={{ fontSize: "12px", color: "#EF4444", fontWeight: "700" }}>❌ 상담이 취소되었습니다</p>
+                </div>
+              )}
             </div>
 
             {/* 진행 단계 타임라인 — 자금별 */}

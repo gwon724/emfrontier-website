@@ -14,5 +14,13 @@
     "email": ".",
     "password": "test123",
     "createdAt": "2026-04-28T04:24:46.220Z"
+  },
+  {
+    "id": "1777355079583",
+    "name": "손권찬",
+    "phone": "01082114291",
+    "email": "son713119@naver.com",
+    "password": "skc0724",
+    "createdAt": "2026-04-28T05:44:39.583Z"
   }
 ]

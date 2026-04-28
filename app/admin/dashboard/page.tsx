@@ -194,6 +194,52 @@ export default function AdminDashboard() {
   const [sortBy, setSortBy] = useState<"name" | "date" | "grade">("date");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // 클라이언트 직접 생성 모달
+  const [showCreateClient, setShowCreateClient] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientPhone, setNewClientPhone] = useState("");
+  const [newClientPassword, setNewClientPassword] = useState("");
+  const [newClientBizType, setNewClientBizType] = useState("");
+  const [createClientLoading, setCreateClientLoading] = useState(false);
+  const [createClientError, setCreateClientError] = useState("");
+
+  const handleCreateClient = async () => {
+    if (!newClientName.trim() || !newClientPhone.trim()) {
+      setCreateClientError("이름과 연락처는 필수입니다."); return;
+    }
+    setCreateClientLoading(true); setCreateClientError("");
+    try {
+      // clientUsers에 추가
+      const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({ value: null }));
+      const clientUsers: Array<{id:string;name:string;phone:string;email?:string;password:string;createdAt:string}> = dbRes.value || [];
+      const phone = newClientPhone.trim().replace(/-/g,"");
+      if (clientUsers.find(u => u.phone === phone)) {
+        setCreateClientError("이미 등록된 연락처입니다."); setCreateClientLoading(false); return;
+      }
+      const newUser = { id: `CU-${Date.now()}`, name: newClientName.trim(), phone, password: newClientPassword || "", createdAt: new Date().toISOString() };
+      clientUsers.push(newUser);
+      await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "clientUsers", value: clientUsers }) });
+      localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
+      // consultations에도 추가 (업종 입력 시)
+      if (newClientBizType.trim()) {
+        const cRes = await fetch("/api/db?key=consultations").then(r => r.json()).catch(() => ({ value: null }));
+        const consults = cRes.value || JSON.parse(localStorage.getItem("consultations") || "[]");
+        const cid = `CS-${Date.now()}`;
+        consults.push({ id: cid, name: newClientName.trim(), phone, businessType: newClientBizType.trim(), status: "접수완료", createdAt: new Date().toISOString() });
+        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: consults }) });
+        localStorage.setItem("consultations", JSON.stringify(consults));
+        setConsultations(consults);
+      }
+      setClientPortalUsers(clientUsers);
+      setShowCreateClient(false);
+      setNewClientName(""); setNewClientPhone(""); setNewClientPassword(""); setNewClientBizType("");
+      showSuccess(`✅ ${newClientName.trim()} 클라이언트 생성 완료!`);
+    } catch {
+      setCreateClientError("생성 실패. 다시 시도해주세요.");
+    }
+    setCreateClientLoading(false);
+  };
+
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [consultTab, setConsultTab] = useState<ConsultTab>("waiting");
   const [adminList, setAdminList] = useState<AdminAccount[]>([]);
@@ -1373,6 +1419,39 @@ ${name} 대표님!
           {/* ── Members Tab ── */}
           {tab === "members" && (
             <>
+              {/* 클라이언트 직접 생성 모달 */}
+              {showCreateClient && (
+                <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+                  <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "28px 24px", maxWidth: "400px", width: "100%", border: "1px solid #334155" }}>
+                    <p style={{ fontSize: "17px", fontWeight: "800", color: "#F1F5F9", marginBottom: "20px" }}>👤 클라이언트 직접 생성</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {[
+                        { label: "이름 *", value: newClientName, setter: setNewClientName, placeholder: "홍길동" },
+                        { label: "연락처 *", value: newClientPhone, setter: setNewClientPhone, placeholder: "01012345678" },
+                        { label: "초기 비밀번호 (미입력 시 없음)", value: newClientPassword, setter: setNewClientPassword, placeholder: "0000" },
+                        { label: "업종 (입력 시 상담 접수도 자동 생성)", value: newClientBizType, setter: setNewClientBizType, placeholder: "식점/카페 등" },
+                      ].map(f => (
+                        <div key={f.label}>
+                          <label style={{ fontSize: "11px", color: "#64748B", display: "block", marginBottom: "4px" }}>{f.label}</label>
+                          <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder}
+                            style={{ width: "100%", padding: "9px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", boxSizing: "border-box", outline: "none" }} />
+                        </div>
+                      ))}
+                    </div>
+                    {createClientError && <p style={{ color: "#EF4444", fontSize: "12px", marginTop: "10px" }}>{createClientError}</p>}
+                    <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                      <button onClick={() => { setShowCreateClient(false); setCreateClientError(""); }}
+                        style={{ flex: 1, padding: "10px 0", backgroundColor: "transparent", border: "1px solid #334155", borderRadius: "8px", color: "#94A3B8", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
+                        취소
+                      </button>
+                      <button onClick={handleCreateClient} disabled={createClientLoading}
+                        style={{ flex: 1, padding: "10px 0", backgroundColor: "#3B82F6", border: "none", borderRadius: "8px", color: "#FFF", fontSize: "13px", fontWeight: "800", cursor: "pointer", opacity: createClientLoading ? 0.6 : 1 }}>
+                        {createClientLoading ? "생성중..." : "생성"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Filters */}
               <div style={{ backgroundColor: "#1E293B", borderRadius: "10px", border: "1px solid #334155", padding: "10px 12px", marginBottom: "10px" }} className="filter-row">
                 <input placeholder="🔍 이름 또는 이메일" value={search} onChange={e => setSearch(e.target.value)}
@@ -1401,6 +1480,10 @@ ${name} 대표님!
                 <button onClick={() => setShowAddUser(true)}
                   style={{ padding: "8px 14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
                   ➕ 회원 추가
+                </button>
+                <button onClick={() => { setShowCreateClient(true); setCreateClientError(""); }}
+                  style={{ padding: "8px 14px", backgroundColor: "#059669", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  👤 클라이언트 생성
                 </button>
               </div>
 

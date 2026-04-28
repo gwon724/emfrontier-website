@@ -3110,6 +3110,7 @@ export type ConsultStatus =
   | "집행중"
   | "사후관리"
   | "종결"
+  | "상담취소"
   // legacy 상태 (구 데이터 호환)
   | "서류요청"
   | "승인진행"
@@ -3209,6 +3210,7 @@ export const CONSULT_STATUS_COLORS: Record<ConsultStatus, { bg: string; text: st
   "집행중":   { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
   "사후관리": { bg: "#D1FAE5", text: "#065F46", border: "#A7F3D0", darkBg: "#022C22",   darkText: "#34D399" },
   "종결":     { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#64748B" },
+  "상담취소": { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
   // legacy
   "서류요청": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
   "승인진행": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },

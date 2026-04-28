@@ -24,7 +24,7 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-2459",
-    "status": "접수대기",
+    "status": "접수완료",
     "adminMemo": "",
     "assignedTo": "",
     "consultDate": "",
@@ -60,89 +60,10 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 2:30:41"
+    "updatedAt": "2026. 4. 28. 오후 2:45:10"
   },
   {
-    "name": "테스트",
-    "phone": "01082114291",
-    "email": ".",
-    "age": "35",
-    "gender": "남성",
-    "businessType": "음식점/카페",
-    "businessPeriod": "1년 미만",
-    "annual_revenue": "100000",
-    "desiredAmount": "25000000",
-    "exactAmount": "3000만원 이하",
-    "purposeType": "운전자금",
-    "currentDebt": "0",
-    "nice_score": "920",
-    "kcb_score": "920",
-    "inquiryContent": "",
-    "privacyAgreed": true,
-    "id": "CS-20260421-9768",
-    "status": "접수완료",
-    "adminMemo": "",
-    "assignedTo": "son4291",
-    "consultDate": "",
-    "createdAt": "2026. 4. 21. 오후 9:49:34",
-    "aiAnalysis": {
-      "sohoGrade": "B",
-      "sohoScore": 60,
-      "summary": "SOHO 등급 B(우수) · 60점. 음식점/카페 1년 미만 사업체 기준 총 5개 정책자금 신청 가능. 신용점수 920점, 연매출 10만원 기준 최대 4억원 규모 자금 활용 가능.",
-      "strengths": [
-        "신용점수 920점으로 최상위 등급 — 우대금리 적용 가능",
-        "기존 대출 없음 — 신규 대출 한도 최대치 활용 가능",
-        "만 35세 청년 대표자 — 청년 전용 우대 자금 신청 가능"
-      ],
-      "weaknesses": [
-        "연매출 3천만원 미만 — 매출 기반 대출 한도 낮을 수 있음",
-        "업력 1년 미만 — 일부 경영안정자금 신청 제한"
-      ],
-      "opportunities": [
-        "음식점/카페 업종 맞춤 정책자금 다수 존재",
-        "희망 금액 0.3억원, 복수 자금 조합으로 목표 달성 가능",
-        "정부 정책자금 + 보증부대출 병행 전략으로 총 한도 극대화 가능"
-      ],
-      "risks": [
-        "정책자금 신청 증가로 예산 소진 전 조기 신청 권장",
-        "초기 사업장 임대차 계약 안정성 확보 필요"
-      ],
-      "totalRecommended": 5,
-      "maxPossibleAmount": "390000000"
-    },
-    "recommendedFundIds": [
-      "fund_001",
-      "fund_002",
-      "fund_007",
-      "fund_034",
-      "fund_027",
-      "fund_004"
-    ],
-    "updatedAt": "2026. 4. 28. 오후 12:30:38",
-    "funds": [
-      {
-        "id": "1776777200468",
-        "fundName": "소진공",
-        "amount": "3000",
-        "status": "부결",
-        "updatedAt": "2026. 4. 21. 오후 10:48:56"
-      },
-      {
-        "id": "1776778384514",
-        "fundName": "ㅇㅇ",
-        "amount": "3000만원",
-        "status": "준비",
-        "updatedAt": "2026. 4. 21. 오후 10:33:04"
-      }
-    ],
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-21T13:49:27.672Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 21. 오후 10:49:27",
-    "alimtalkStatus": "sent",
-    "alimtalkSentAt": "2026-04-21T13:49:28.653Z"
-  },
-  {
-    "name": "테스트",
+    "name": "손권찬",
     "phone": "01082114291",
     "email": "son713119@naver.com",
     "age": "35",
@@ -152,15 +73,15 @@
     "annual_revenue": "10000000",
     "desiredAmount": "40000000",
     "purposeType": "시설자금",
-    "currentDebt": "50000000",
+    "currentDebt": "0",
     "nice_score": "920",
     "kcb_score": "920",
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260421-5713",
-    "status": "접수완료",
+    "status": "상담중",
     "adminMemo": "",
-    "assignedTo": "son4291",
+    "assignedTo": "",
     "consultDate": "",
     "createdAt": "2026. 4. 21. 오후 8:07:36",
     "aiAnalysis": {
@@ -197,11 +118,15 @@
       "fund_004",
       "fund_035"
     ],
-    "updatedAt": "2026. 4. 21. 오후 9:50:01",
+    "updatedAt": "2026. 4. 28. 오후 2:49:31",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-21T12:50:01.194Z",
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-21T12:50:00.268Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 21. 오후 9:50:00"
+    "debtDetail": {
+      "first": "",
+      "second": "",
+      "cardLoan": "",
+      "capital": "",
+      "policy": ""
+    }
   }
 ]
