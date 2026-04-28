@@ -224,7 +224,11 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
     fetch("/api/db?key=consultations").then(r => r.json()).then(j => {
       if (j.value) {
         localStorage.setItem("consultations", JSON.stringify(j.value));
-        const matched = (j.value as import("@/lib/store").Consultation[]).filter(c => c.name === clientName);
+        const clientPhone = (() => { try { return JSON.parse(localStorage.getItem("clientSession") || "{}").phone || ""; } catch { return ""; } })();
+        const allConsults = j.value as import("@/lib/store").Consultation[];
+        const matched = clientPhone
+          ? allConsults.filter(c => (c as import("@/lib/store").Consultation & {phone?:string}).phone?.replace(/-/g,"") === clientPhone.replace(/-/g,"") || c.name === clientName)
+          : allConsults.filter(c => c.name === clientName);
         const found = matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null;
         setConsult(found);
       } else {
