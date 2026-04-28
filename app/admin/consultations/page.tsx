@@ -48,6 +48,9 @@ export default function AdminConsultationsPage() {
   const [delConfirm, setDelConfirm] = useState(false);
   const [allFunds, setAllFunds] = useState<FundProduct[]>([]);
   const [detailTab, setDetailTab] = useState<"info" | "analysis" | "funds">("info");
+  const [aiReport, setAiReport] = useState("");
+  const [aiReportLoading, setAiReportLoading] = useState(false);
+  const [showAiReport, setShowAiReport] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -324,6 +327,8 @@ export default function AdminConsultationsPage() {
                   handleDelete={handleDelete}
                   onClose={() => { setSelected(null); setShowDetail(false); }}
                   onUpdateSelected={c => setSelected(c)}
+                  aiReport={aiReport} aiReportLoading={aiReportLoading} showAiReport={showAiReport}
+                  setAiReport={setAiReport} setAiReportLoading={setAiReportLoading} setShowAiReport={setShowAiReport}
                   GRADE_COLOR={GRADE_COLOR} inp={inp}
                 />
               </div>
@@ -344,6 +349,8 @@ export default function AdminConsultationsPage() {
                 handleDelete={handleDelete}
                 onClose={() => { setSelected(null); setShowDetail(false); }}
                 onUpdateSelected={c => setSelected(c)}
+                aiReport={aiReport} aiReportLoading={aiReportLoading} showAiReport={showAiReport}
+                setAiReport={setAiReport} setAiReportLoading={setAiReportLoading} setShowAiReport={setShowAiReport}
                 GRADE_COLOR={GRADE_COLOR} inp={inp}
               />
             </div>
@@ -361,7 +368,9 @@ function DetailPanel({
   memo, setMemo, assignedTo, setAssignedTo,
   consultDate, setConsultDate,
   saved, handleSave, delConfirm, setDelConfirm, handleDelete,
-  onClose, onUpdateSelected, GRADE_COLOR, inp,
+  onClose, onUpdateSelected,
+  aiReport, aiReportLoading, showAiReport, setAiReport, setAiReportLoading, setShowAiReport,
+  GRADE_COLOR, inp,
 }: {
   selected: Consultation;
   detailTab: "info" | "analysis" | "funds";
@@ -376,6 +385,8 @@ function DetailPanel({
   handleDelete: () => void;
   onClose: () => void;
   onUpdateSelected: (c: Consultation) => void;
+  aiReport: string; aiReportLoading: boolean; showAiReport: boolean;
+  setAiReport: (v: string) => void; setAiReportLoading: (v: boolean) => void; setShowAiReport: (v: boolean) => void;
   GRADE_COLOR: Record<string, { bg: string; text: string }>;
   inp: React.CSSProperties;
 }) {
@@ -450,6 +461,85 @@ function DetailPanel({
       {/* AI Analysis Tab */}
       {detailTab === "analysis" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* AI 보고서 생성 버튼 */}
+          <button
+            onClick={async () => {
+              setAiReportLoading(true); setShowAiReport(true); setAiReport("");
+              const grade = calcGrade(selected) as string;
+              const nice = Number(selected.nice_score) || 0;
+              const rev = Number(selected.annual_revenue) || 0;
+              const debt = Number(selected.currentDebt) || 0;
+              const recFunds = allFunds.filter(f => {
+                if (!f.active) return false;
+                if (!f.eligibleGrades.includes(grade)) return false;
+                if (Number(f.minRevenue) > 0 && rev < Number(f.minRevenue)) return false;
+                if (Number(f.minCreditScore) > 0 && nice < Number(f.minCreditScore)) return false;
+                if ((f as FundProduct & {maxCreditScore?:string}).maxCreditScore && Number((f as FundProduct & {maxCreditScore?:string}).maxCreditScore) > 0 && nice > Number((f as FundProduct & {maxCreditScore?:string}).maxCreditScore)) return false;
+                if (Number(f.maxDebt) > 0 && debt > Number(f.maxDebt)) return false;
+                return true;
+              }).slice(0, 6);
+              try {
+                const res = await fetch("/api/ai-report", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ client: {
+                    name: selected.name,
+                    businessType: selected.businessType || "",
+                    businessPeriod: selected.businessPeriod || "",
+                    annual_revenue: selected.annual_revenue,
+                    nice_score: selected.nice_score,
+                    kcb_score: "",
+                    currentDebt: selected.currentDebt || "0",
+                    desiredAmount: selected.desiredAmount || "",
+                    grade,
+                    assignedName: selected.assignedName || "",
+                    funds: recFunds,
+                  }})
+                });
+                const data = await res.json();
+                setAiReport(data.report || data.error || "오류 발생");
+              } catch(e) { setAiReport("오류: " + e); }
+              setAiReportLoading(false);
+            }}
+            style={{ width: "100%", padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", cursor: "pointer", backgroundColor: "#7C3AED", color: "#FFF" }}>
+            🤖 AI 분석 보고서 생성
+          </button>
+
+          {/* AI 보고서 결과 */}
+          {showAiReport && (
+            <div style={{ backgroundColor: "#0F172A", border: "1px solid #7C3AED", borderRadius: "12px", padding: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <p style={{ fontSize: "13px", fontWeight: "800", color: "#A78BFA" }}>🤖 AI 분석 보고서</p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {!aiReportLoading && aiReport && (
+                    <button
+                      onClick={() => {
+                        const win = window.open("", "_blank");
+                        if (!win) return;
+                        win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${selected.name} 분석 보고서</title><style>body{font-family:'Malgun Gothic',sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.8}h2{color:#1d4ed8;border-left:4px solid #3b82f6;padding-left:12px;margin-top:24px}strong{color:#059669}.meta{background:#f0f4ff;padding:16px;border-radius:8px;margin-bottom:24px;font-size:14px}</style></head><body><div class="meta"><strong>고객명:</strong> ${selected.name} | <strong>업종:</strong> ${selected.businessType||'-'} | <strong>등급:</strong> ${calcGrade(selected)} | <strong>작성일:</strong> ${new Date().toLocaleDateString('ko-KR')}</div>${aiReport.replace(/\n/g,'<br/>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')}</body></html>`);
+                        win.document.close();
+                        setTimeout(() => win.print(), 500);
+                      }}
+                      style={{ padding: "6px 12px", backgroundColor: "#059669", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer" }}>
+                      📄 PDF
+                    </button>
+                  )}
+                  <button onClick={() => setShowAiReport(false)} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "18px" }}>×</button>
+                </div>
+              </div>
+              {aiReportLoading ? (
+                <div style={{ textAlign: "center", padding: "32px 0" }}>
+                  <p style={{ fontSize: "24px", marginBottom: "8px" }}>⏳</p>
+                  <p style={{ fontSize: "13px", color: "#A78BFA" }}>AI가 분석 중... (10~20초)</p>
+                </div>
+              ) : (
+                <div style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.8", whiteSpace: "pre-wrap", maxHeight: "500px", overflowY: "auto" }}>
+                  {aiReport}
+                </div>
+              )}
+            </div>
+          )}
+
           {!ai ? (
             <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "40px", textAlign: "center" }}>
               <p style={{ fontSize: "28px", marginBottom: "10px" }}>🧠</p>
