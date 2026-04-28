@@ -637,7 +637,7 @@ export default function AdminDashboard() {
       id: Date.now().toString(),
       fundName: newFundName.trim(),
       amount: newFundAmount.trim(),
-      status: "준비",
+      status: "접수대기",
       updatedAt: new Date().toLocaleString("ko-KR"),
     };
     const existing = selectedConsult.funds || [];

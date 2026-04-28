@@ -2969,21 +2969,21 @@ export function calcGrade(u: UserRecord): { grade: string; score: number } {
 // ────────────────────────────────────────────
 
 export type FundStatus =
-  | "준비" | "접수완료" | "심사대기" | "심사중" | "심사완료" | "자금집행" | "부결" | "승인";
+  | "접수대기" | "접수완료" | "심사대기" | "심사중" | "실사중" | "승인" | "부결" | "보완";
 
 export const FUND_STATUS_LIST: FundStatus[] = [
-  "준비", "접수완료", "심사대기", "심사중", "심사완료", "자금집행", "부결", "승인"
+  "접수대기", "접수완료", "심사대기", "심사중", "실사중", "승인", "부결", "보완"
 ];
 
 export const FUND_STATUS_COLORS: Record<string, string> = {
-  "준비":    "#94A3B8",
+  "접수대기": "#64748B",
   "접수완료": "#3B82F6",
   "심사대기": "#F59E0B",
   "심사중":  "#8B5CF6",
-  "심사완료": "#10B981",
-  "자금집행": "#06B6D4",
-  "부결":    "#EF4444",
+  "실사중":  "#A78BFA",
   "승인":    "#34D399",
+  "부결":    "#EF4444",
+  "보완":    "#FBBF24",
 };
 
 export interface FundProgress {
