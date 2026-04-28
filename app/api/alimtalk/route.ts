@@ -57,12 +57,12 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
   const name      = c.name || "고객";
   const id        = c.id || "-";
   const biz       = c.businessType || "-";
-  const amount    = c.exactAmount || c.desiredAmount || "-";
+  const amount    = c.exactAmount || c.amount || c.desiredAmount || "-";
   const manager   = c.manager || "담당 매니저";
   const contact   = c.managerPhone || "1234-5678";
   const datetime  = c.consultDatetime || "담당자 안내 예정";
   const reviewUrl = c.reviewUrl || "https://emfrontier.team";
-  const fundName  = c.fundName || amount;
+  const fundName  = c.fundName || "-";
   const limit     = c.fundLimit || "담당자 안내 예정";
   const deadline  = c.fundDeadline || "담당자 안내 예정";
   const reapplyDate = c.reapplyDate || "담당자 안내 예정";
@@ -142,7 +142,7 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     // [엠프론티어] 정책자금 승인 완료!
     approved: {
       "#{이름}":    name,
-      "#{희망금액}": amount,
+      "#{희망금액}": fundName !== "-" ? `${fundName} ${amount}` : amount,
     },
     // [엠프론티어] 상담 종결 안내
     consult_done: {
@@ -199,12 +199,12 @@ function buildText(templateType: string, c: Record<string, string>): string {
   const name      = c.name || "고객";
   const id        = c.id || "-";
   const biz       = c.businessType || "-";
-  const amount    = c.exactAmount || c.desiredAmount || "-";
+  const amount    = c.exactAmount || c.amount || c.desiredAmount || "-";
   const manager   = c.manager || "담당 매니저";
   const contact   = c.managerPhone || "1234-5678";
   const datetime  = c.consultDatetime || "담당자 안내 예정";
   const reviewUrl = c.reviewUrl || "https://emfrontier.team";
-  const fundName  = c.fundName || amount;
+  const fundName  = c.fundName || "-";
   const limit     = c.fundLimit || "담당자 안내 예정";
   const deadline  = c.fundDeadline || "담당자 안내 예정";
   const reapplyDate = c.reapplyDate || "담당자 안내 예정";
@@ -366,7 +366,7 @@ ${name} 대표님, 안녕하세요!
 ${name} 대표님! 
 신청하신 정책자금 승인이 완료되었습니다.
 
-💰 승인 자금: ${amount}
+💰 승인 자금: ${fundName !== "-" ? fundName : amount}
 ✅ 승인 금액: ${amount}
 📅 집행 예정일: 담당자 안내 예정
 
