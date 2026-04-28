@@ -26,7 +26,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   approved:        "KA01TP260417161535606HdiLHSz5XXf",
   consult_done:    "KA01TP260417161717800dFkrLYiFkfQ",
   reserve_done:    "KA01TP260417161717800dFkrLYiFkfQ",
-  rejected:        "KA01TP260417161958704ibbzfHzxy5y",
+  rejected:        "KA01TP260428131339130EwFjx8QTzek",
   remind:          "KA01TP2604171621062160gbxFR1tGo1",
   fund_execute:    "KA01TP260417162409846tyV1faRd6EY",
   extra_apply:     "KA01TP260428042553990I8zTwD6Zul7",
@@ -161,6 +161,7 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     rejected: {
       "#{이름}":   name,
       "#{자금명}": fundName,
+      "#{금액}":   amount || "-",
     },
     // [엠프론티어] 상담 신청 확인 안내
     remind: {
@@ -410,9 +411,10 @@ ${name} 대표님!
 신청하신 정책자금 심사 결과를 안내드립니다.
 
 💼 신청 자금: ${fundName}
-📋 심사 결과: 미승인
+💰신청 자금: ${amount || "-"}
+📋 심사 결과: 부결
 
-미승인 사유와 재신청 가능 여부를 검토하여
+부결 사유와 재신청 가능 여부를 검토하여
 담당자가 곧 연락드리겠습니다.
 
 엠프론티어`,
