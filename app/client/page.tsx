@@ -75,7 +75,7 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
         setLoading(false);
         return;
       }
-      localStorage.setItem("clientSession", JSON.stringify({ name: user.name }));
+      localStorage.setItem("clientSession", JSON.stringify({ name: user.name, phone: user.phone || "" }));
       onLogin(user.name);
     } catch {
       setError("로그인 중 오류가 발생했습니다");
@@ -236,7 +236,8 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
     // users DB에서 회원 정책자금 로드
     fetch("/api/db?key=users").then(r => r.json()).then(j => {
       if (j.value) {
-        const u = j.value.find((x: import("@/lib/store").UserRecord & {name?:string}) => x.name === clientName);
+        const clientPhone = (() => { try { return JSON.parse(localStorage.getItem("clientSession") || "{}").phone || ""; } catch { return ""; } })();
+        const u = j.value.find((x: import("@/lib/store").UserRecord & {name?:string; phone?:string}) => clientPhone ? x.phone?.replace(/-/g,"") === clientPhone.replace(/-/g,"") : x.name === clientName);
         if (u) setUserRecord(u);
       }
     }).catch(() => {});
@@ -434,6 +435,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
               const approvedUser = ((userRecord as typeof userRecord & {funds?: UF[]})?.funds || []).filter(f => f.status === "승인");
               const approvedConsult = (consult.funds || []).filter(f => (f.status as string) === "승인");
               const allApproved = [...approvedUser, ...approvedConsult];
+              console.log("[디버그] approvedUser:", approvedUser.length, "approvedConsult:", approvedConsult.length, "total:", allApproved.length);
               if (allApproved.length === 0) return null;
               return (
                 <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #166534" }}>
