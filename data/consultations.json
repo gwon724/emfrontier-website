@@ -27,7 +27,7 @@
     "status": "접수대기",
     "adminMemo": "",
     "assignedTo": "손권찬",
-    "consultDate": "2026-04-29 13:00",
+    "consultDate": "2026-04-29 14:00",
     "createdAt": "2026. 4. 28. 오후 4:26:25",
     "aiAnalysis": {
       "sohoGrade": "A",
@@ -57,7 +57,7 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 7:34:23"
+    "updatedAt": "2026. 4. 28. 오후 7:40:13"
   },
   {
     "name": "손권찬",

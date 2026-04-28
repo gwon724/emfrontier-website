@@ -1146,25 +1146,21 @@ ${name} 대표님!
 
     // 담당자 + 상담일시 둘 다 있을 때 상담예약 알림톡 자동 발송
     if (cAssigned && cDate && selectedConsult?.phone) {
-      // 날짜가 새로 입력/변경됐을 때 발송
-      const prevDate = selectedConsult.consultDate || "";
-      if (cDate !== prevDate) {
-        const managerAdmin = adminList.find((a) => a.name === cAssigned);
-        const enriched = {
-          name: selectedConsult.name,
-          phone: selectedConsult.phone,
-          id: selectedConsult.id,
-          manager: cAssigned,
-          managerPhone: managerAdmin?.phone || admin?.phone || "01082114291",
-          consultDatetime: cDate,
-        };
-        const alimRes = await fetch("/api/alimtalk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ consultation: enriched, templateType: "consult_reserve" }),
-        }).then(r => r.json()).catch(() => ({ ok: false }));
-        if (alimRes.ok) showSuccess("✅ 저장 완료 + 상담예약 알림톡 발송!");
-      }
+      const managerAdmin = adminList.find((a) => a.name === cAssigned);
+      const enriched = {
+        name: selectedConsult.name,
+        phone: selectedConsult.phone,
+        id: selectedConsult.id,
+        manager: cAssigned,
+        managerPhone: managerAdmin?.phone || admin?.phone || "01082114291",
+        consultDatetime: cDate,
+      };
+      const alimRes = await fetch("/api/alimtalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consultation: enriched, templateType: "consult_reserve" }),
+      }).then(r => r.json()).catch(() => ({ ok: false }));
+      if (alimRes.ok) showSuccess("✅ 저장 완료 + 상담예약 알림톡 발송!");
     }
 
     await refresh();
