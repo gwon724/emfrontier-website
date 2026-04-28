@@ -2530,17 +2530,26 @@ ${name} 대표님!
                                       <select
                                         value={fund.status}
                                         onChange={async e => {
-                                          await handleFundStatus(fund.id, e.target.value as FundStatus, false);
+                                          const updated = (linkedConsult.funds || []).map(f => f.id === fund.id ? {...f, status: e.target.value as FundStatus} : f);
+                                          updateConsultation(linkedConsult.id, { funds: updated });
                                           const fresh = getAllConsultations();
-                                          setConsultations(fresh);
                                           await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                          setConsultations(fresh);
+                                          showSuccess("✅ 상태 변경 완료!");
                                         }}
                                         style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                                       >
                                         {FUND_STATUS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
                                       </select>
                                       <button
-                                        onClick={() => handleFundDelete(fund.id)}
+                                        onClick={async () => {
+                                          const updated = (linkedConsult.funds || []).filter(f => f.id !== fund.id);
+                                          updateConsultation(linkedConsult.id, { funds: updated });
+                                          const fresh = getAllConsultations();
+                                          await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
+                                          setConsultations(fresh);
+                                          showSuccess("✅ 자금 삭제 완료!");
+                                        }}
                                         style={{ padding: "4px 8px", backgroundColor: "#450A0A", border: "1px solid #EF4444", borderRadius: "6px", color: "#EF4444", fontSize: "11px", cursor: "pointer" }}>
                                         ✕
                                       </button>
