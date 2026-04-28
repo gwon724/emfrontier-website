@@ -2414,7 +2414,27 @@ ${name} 대표님!
                           setUsers(allU);
                           setSelectedUser(updatedUser as UserRecord);
                           setNewUserFundName(""); setNewUserFundAmount("");
-                          showSuccess("✅ 자금 추가 완료!");
+                          // 자금신청 알림톡 자동 발송
+                          const userPhone = (selectedUser as UserRecord & {phone?:string}).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
+                          if (userPhone) {
+                            const enriched = {
+                              name: selectedUser.name,
+                              phone: userPhone,
+                              id: selectedUser.id,
+                              manager: admin?.name,
+                              managerPhone: admin?.phone,
+                              amount: newFund.amount || "-",
+                              fundName: newFund.fundName,
+                            };
+                            const alimRes = await fetch("/api/alimtalk", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ consultation: enriched, templateType: "fund_apply" }),
+                            }).then(r => r.json()).catch(() => ({ ok: false }));
+                            showSuccess(alimRes.ok ? "✅ 자금 추가 + 자금신청 알림톡 발송 완료!" : "✅ 자금 추가 완료! (알림톡 실패)");
+                          } else {
+                            showSuccess("✅ 자금 추가 완료!");
+                          }
                         }}
                         style={{ padding: "8px 14px", backgroundColor: newUserFundName && newUserFundName !== "__custom__" ? "#2563EB" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
                         + 추가
@@ -2450,7 +2470,29 @@ ${name} 대표님!
                                   const allU = getAllUsers();
                                   setUsers(allU);
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
-                                  showSuccess("✅ 상태 변경 완료!");
+                                  // 승인 시 승인완료 알림톡 자동 발송
+                                  if (newStatus === "승인") {
+                                    const uPhone = (selectedUser as UserRecord & {phone?:string}).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
+                                    if (uPhone) {
+                                      const enriched = {
+                                        name: selectedUser.name,
+                                        phone: uPhone,
+                                        id: selectedUser.id,
+                                        manager: admin?.name,
+                                        managerPhone: admin?.phone,
+                                        fundName: type2.funds?.find(x => x.id === fundId)?.fundName || "-",
+                                        amount: type2.funds?.find(x => x.id === fundId)?.amount || "-",
+                                        execAmount: type2.funds?.find(x => x.id === fundId)?.amount || "-",
+                                        execDate: new Date().toLocaleDateString("ko-KR"),
+                                      };
+                                      const alimRes = await fetch("/api/alimtalk", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ consultation: enriched, templateType: "approved" }),
+                                      }).then(r => r.json()).catch(() => ({ ok: false }));
+                                      showSuccess(alimRes.ok ? "✅ 승인완료 알림톡 자동 발송!" : "✅ 상태 변경 완료! (알림톡 실패)");
+                                    } else { showSuccess("✅ 상태 변경 완료!"); }
+                                  } else { showSuccess("✅ 상태 변경 완료!"); }
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >
@@ -2858,12 +2900,37 @@ ${name} 대표님!
                               <div
                                 onClick={async () => {
                                   if (!latestConsult) return;
-                                  const updated = { ...latestConsult, status: step };
                                   updateConsultation(latestConsult.id, { status: step });
                                   const all = getAllConsultations();
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: all }) });
                                   setConsultations(all);
-                                  showSuccess(`✅ 진행단계 → ${step}`);
+                                  // 진행단계별 자동 알림톡
+                                  const STEP_TEMPLATE: Record<string, string> = {
+                                    "접수확인": "receipt_confirm",
+                                    "서류요청": "docs_request",
+                                    "자금 신청": "fund_apply",
+                                    "승인완료": "approved",
+                                    "미승인": "rejected",
+                                    "상담종결": "consult_done",
+                                  };
+                                  const tmpl = STEP_TEMPLATE[step];
+                                  if (tmpl && latestConsult.phone) {
+                                    const enriched = {
+                                      ...latestConsult,
+                                      manager: admin?.name,
+                                      managerPhone: admin?.phone,
+                                      amount: latestConsult.desiredAmount || "-",
+                                    };
+                                    const alimRes = await fetch("/api/alimtalk", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ consultation: enriched, templateType: tmpl }),
+                                    }).then(r => r.json()).catch(() => ({ ok: false, error: "네트워크 오류" }));
+                                    if (alimRes.ok) showSuccess(`✅ [${step}] 알림톡 자동 발송 완료`);
+                                    else showSuccess(`✅ 진행단계 → ${step} (알림톡 실패: ${alimRes.error})`);
+                                  } else {
+                                    showSuccess(`✅ 진행단계 → ${step}`);
+                                  }
                                 }}
                                 style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}
                               >
