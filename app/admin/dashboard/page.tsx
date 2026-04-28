@@ -422,7 +422,7 @@ export default function AdminDashboard() {
     if (!selectedConsult) return;
     if (!window.confirm(`${selectedConsult.name} 대표님을 포털 회원으로 등록하시겠어요?\n(비밀번호는 고객이 링크로 직접 설정합니다)`)) return;
     try {
-      // 서버 DB에서 clientUsers 조회
+      // clientUsers에 추가
       const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({ value: null }));
       const clientUsers: Array<{id: string; name: string; phone: string; email?: string; password: string; createdAt: string}> = dbRes.value || JSON.parse(localStorage.getItem("clientUsers") || "[]");
       const exists = clientUsers.find(u => u.name === selectedConsult.name && u.phone === selectedConsult.phone);
@@ -435,7 +435,6 @@ export default function AdminDashboard() {
           password: "",
           createdAt: new Date().toISOString(),
         });
-        // 서버 DB 저장
         const saveRes = await fetch("/api/db", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -445,9 +444,46 @@ export default function AdminDashboard() {
         if (!saveData.ok) throw new Error("서버 저장 실패");
         localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
       }
+
+      // users DB에도 추가 (회원 탭 표시용)
+      const usersRes = await fetch("/api/db?key=users").then(r => r.json()).catch(() => ({ value: null }));
+      const allUsers = usersRes.value || JSON.parse(localStorage.getItem("users") || "[]");
+      const existsUser = allUsers.find((u: {name:string; phone?:string}) =>
+        u.name === selectedConsult.name && u.phone === selectedConsult.phone.replace(/-/g,"")
+      );
+      if (!existsUser) {
+        const newUser = {
+          id: `user_${Date.now()}`,
+          email: selectedConsult.email || "",
+          password: "",
+          name: selectedConsult.name,
+          phone: selectedConsult.phone.replace(/-/g,""),
+          age: selectedConsult.age || "",
+          gender: selectedConsult.gender || "남성",
+          annual_revenue: selectedConsult.annual_revenue || "",
+          debt_policy: "0",
+          debt_bank1: "0",
+          debt_bank2: "0",
+          debt_card: "0",
+          currentDebt: selectedConsult.currentDebt || "0",
+          nice_score: selectedConsult.nice_score || "",
+          kcb_score: "",
+          businessType: selectedConsult.businessType || "",
+          businessPeriod: selectedConsult.businessPeriod || "",
+          desiredAmount: selectedConsult.desiredAmount || "",
+          registeredAt: new Date().toISOString(),
+        };
+        allUsers.push(newUser);
+        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allUsers }) });
+        localStorage.setItem("users", JSON.stringify(allUsers));
+        setUsers(allUsers);
+      }
+
       setConvertDone(true);
       setTimeout(() => setConvertDone(false), 3000);
-      showSuccess("✅ 포털 회원 등록 완료! 회원가입 링크를 발송해주세요.");
+      showSuccess("✅ 포털 회원 등록 완료!");
+      setShowConsultDetail(false);
+      setTab("members"); // 회원 탭으로 이동
     } catch(e) {
       alert("회원 등록 실패: " + e);
     }
