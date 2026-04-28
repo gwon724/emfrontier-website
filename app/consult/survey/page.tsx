@@ -15,6 +15,11 @@ type FormData = {
   desiredAmount: string;
   nice_score: string;
   currentDebt: string;
+  debt_first: string;
+  debt_second: string;
+  debt_cardloan: string;
+  debt_capital: string;
+  debt_policy: string;
   name: string;
   phone: string;
   email: string;
@@ -26,7 +31,7 @@ type FormData = {
 
 const EMPTY: FormData = {
   bizType: "", businessType: "", businessPeriod: "",
-  purposeType: "", desiredAmount: "", nice_score: "", currentDebt: "",
+  purposeType: "", desiredAmount: "", nice_score: "", currentDebt: "", debt_first: "", debt_second: "", debt_cardloan: "", debt_capital: "", debt_policy: "",
   name: "", phone: "", email: "", age: "",
   annual_revenue: "", inquiryContent: "", privacyAgreed: false,
 };
@@ -121,16 +126,10 @@ const STEPS = [
   },
   {
     id: "currentDebt",
-    question: "현재 사업 관련 대출이 있으신가요?",
-    desc: "기존 대출 여부에 따라 추천 자금이 달라집니다",
-    type: "card",
-    options: [
-      { value: "0", label: "없음", sub: "현재 사업 관련 대출 없음" },
-      { value: "30000000", label: "3,000만원 미만", sub: "소액 대출 보유" },
-      { value: "70000000", label: "3,000 ~ 7,000만원", sub: "중간 규모 대출 보유" },
-      { value: "150000000", label: "7,000만 ~ 1억 5천", sub: "상당 규모 대출 보유" },
-      { value: "300000000", label: "1억 5천만원 이상", sub: "고액 대출 보유" },
-    ],
+    question: "현재 기대출 현황을 입력해 주세요",
+    desc: "종류별 잔액을 입력해주세요 (없으면 0 또는 빈칸)",
+    type: "debt_input",
+    options: [],
   },
 ];
 
@@ -207,7 +206,20 @@ export default function SurveyPage() {
       desiredAmount: amountMap[form.desiredAmount] || "50000000",
       exactAmount: (form as unknown as Record<string, string>).exactAmount || form.desiredAmount || "-",
       purposeType: form.purposeType || "운전자금",
-      currentDebt: debtMap[form.currentDebt] || "0",
+      currentDebt: String([
+        (form as unknown as Record<string,string>).debt_first,
+        (form as unknown as Record<string,string>).debt_second,
+        (form as unknown as Record<string,string>).debt_cardloan,
+        (form as unknown as Record<string,string>).debt_capital,
+        (form as unknown as Record<string,string>).debt_policy,
+      ].reduce((sum, v) => sum + (Number(v)||0), 0)),
+      debtDetail: {
+        first: (form as unknown as Record<string,string>).debt_first || "0",
+        second: (form as unknown as Record<string,string>).debt_second || "0",
+        cardLoan: (form as unknown as Record<string,string>).debt_cardloan || "0",
+        capital: (form as unknown as Record<string,string>).debt_capital || "0",
+        policy: (form as unknown as Record<string,string>).debt_policy || "0",
+      },
       nice_score: niceMap[form.nice_score] || "700",
       kcb_score: niceMap[form.nice_score] || "700",
       inquiryContent: form.inquiryContent,
@@ -345,6 +357,49 @@ export default function SurveyPage() {
                     onFocus={e => e.currentTarget.style.borderColor = "#2563EB"}
                     onBlur={e => e.currentTarget.style.borderColor = "#E8EDF5"}
                   />
+                ) : currentStepData.type === "debt_input" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {[
+                      { key: "debt_first", label: "1금융권", placeholder: "예: 50000000" },
+                      { key: "debt_second", label: "2금융권", placeholder: "예: 20000000" },
+                      { key: "debt_cardloan", label: "카드론", placeholder: "예: 5000000" },
+                      { key: "debt_capital", label: "캐피탈", placeholder: "예: 10000000" },
+                      { key: "debt_policy", label: "정책자금", placeholder: "예: 30000000" },
+                    ].map(({ key, label, placeholder }) => (
+                      <div key={key} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ width: "80px", fontSize: "14px", fontWeight: "700", color: "#1E293B", fontFamily: font, flexShrink: 0 }}>{label}</span>
+                        <div style={{ position: "relative", flex: 1 }}>
+                          <input
+                            type="number"
+                            value={(form as unknown as Record<string, string>)[key] || ""}
+                            onChange={e => setField(key, e.target.value)}
+                            placeholder={placeholder}
+                            style={{
+                              width: "100%", padding: "14px 50px 14px 16px", borderRadius: "12px",
+                              border: "2px solid #E8EDF5", fontSize: "15px", fontFamily: font,
+                              color: "#1E293B", outline: "none", boxSizing: "border-box",
+                              backgroundColor: "#FAFBFF",
+                            }}
+                            onFocus={e => e.currentTarget.style.borderColor = "#2563EB"}
+                            onBlur={e => e.currentTarget.style.borderColor = "#E8EDF5"}
+                          />
+                          <span style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", color: "#94A3B8", fontFamily: font }}>원</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ backgroundColor: "#EFF6FF", borderRadius: "10px", padding: "12px 16px", border: "1px solid #BFDBFE" }}>
+                      <p style={{ fontSize: "13px", color: "#1D4ED8", fontWeight: "700", fontFamily: font }}>
+                        합계: {[
+                          (form as unknown as Record<string,string>).debt_first,
+                          (form as unknown as Record<string,string>).debt_second,
+                          (form as unknown as Record<string,string>).debt_cardloan,
+                          (form as unknown as Record<string,string>).debt_capital,
+                          (form as unknown as Record<string,string>).debt_policy,
+                        ].reduce((sum, v) => sum + (Number(v)||0), 0).toLocaleString()}원
+                      </p>
+                      <p style={{ fontSize: "11px", color: "#3B82F6", fontFamily: font, marginTop: "2px" }}>없는 항목은 빈칸으로 두세요</p>
+                    </div>
+                  </div>
                 ) : (
                 <div className={`sv-options-grid ${!currentStepData.options ? "sv-options-1" : currentStepData.options!.length <= 3 ? "sv-options-1" : currentStepData.options!.length <= 4 ? "sv-options-2" : "sv-options-3"}`}>
                   {currentStepData.options!.map(opt => {

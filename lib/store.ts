@@ -3135,6 +3135,13 @@ export interface Consultation {
   exactAmount?: string;         // 정확한 희망금액 (직접 입력)
   purposeType: string;          // 목적 (운전자금/시설자금/기타)
   currentDebt: string;          // 현재 총 기대출
+  debtDetail?: {
+    first: string;   // 1금융권
+    second: string;  // 2금융권
+    cardLoan: string; // 카드론
+    capital: string; // 캐피탈
+    policy: string;  // 정책자금
+  };
   // 신용 정보
   nice_score: string;
   kcb_score: string;

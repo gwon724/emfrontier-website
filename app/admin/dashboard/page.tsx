@@ -2082,7 +2082,7 @@ ${name} 대표님!
                           ["업종", cBizType, setCBizType, "text"],
                           ["업력", cBizPeriod, setCBizPeriod, "text"],
                           ["연매출(원)", cRevenue, setCRevenue, "number"],
-                          ["기대출(원)", cDebt, setCDebt, "number"],
+                          ["기대출 합계(원)", cDebt, setCDebt, "number"],
                           ["NICE점수", cNice, setCNice, "number"],
                           ["KCB점수", cKcb, setCKcb, "number"],
                           ["희망금액", cDesiredAmount, setCDesiredAmount, "text"],
@@ -2104,6 +2104,41 @@ ${name} 대표님!
                           style={{ ...inp, width: "100%", resize: "vertical", fontSize: "12px" }} />
                       </div>
                     </div>
+
+                    {/* 기대출 상세 */}
+                    {selectedConsult.debtDetail && Object.values(selectedConsult.debtDetail).some(v => v && v !== "0") && (
+                      <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
+                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px" }}>🏦 기대출 상세</p>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                          {([
+                            ["1금융권", selectedConsult.debtDetail.first],
+                            ["2금융권", selectedConsult.debtDetail.second],
+                            ["카드론", selectedConsult.debtDetail.cardLoan],
+                            ["캐피탈", selectedConsult.debtDetail.capital],
+                            ["정책자금", selectedConsult.debtDetail.policy],
+                          ] as [string, string][]).map(([k, v]) => (
+                            <div key={k} style={{ padding: "8px 10px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
+                              <p style={{ fontSize: "10px", color: "#64748B" }}>{k}</p>
+                              <p style={{ fontSize: "13px", fontWeight: "700", color: v && v !== "0" ? "#F1F5F9" : "#334155", marginTop: "2px" }}>
+                                {v && v !== "0" ? `${Number(v).toLocaleString()}원` : "-"}
+                              </p>
+                            </div>
+                          ))}
+                          <div style={{ padding: "8px 10px", backgroundColor: "#1E3A5F", borderRadius: "8px", border: "1px solid #3B82F6" }}>
+                            <p style={{ fontSize: "10px", color: "#93C5FD" }}>합계</p>
+                            <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginTop: "2px" }}>
+                              {[
+                                selectedConsult.debtDetail.first,
+                                selectedConsult.debtDetail.second,
+                                selectedConsult.debtDetail.cardLoan,
+                                selectedConsult.debtDetail.capital,
+                                selectedConsult.debtDetail.policy,
+                              ].reduce((s, v) => s + (Number(v)||0), 0).toLocaleString()}원
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* 상담 관리 */}
                     <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>
