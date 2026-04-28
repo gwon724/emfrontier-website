@@ -1962,6 +1962,7 @@ ${name} 대표님!
                               await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
                               setShowConvertForm(false);
                               setSelectedConsult(null);
+                              setShowConsultDetail(false);
                               setTab("manage");
                               showSuccess("✅ 회원 개설 + 비밀번호 설정 완료");
                             }} style={{ padding: "9px 16px", backgroundColor: "#7C3AED", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
