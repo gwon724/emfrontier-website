@@ -3399,6 +3399,49 @@ export function lookupConsultations(name: string, phone: string): Consultation[]
 }
 
 // ────────────────────────────────────────────
+// 상담 → 회원 자동 전환
+// 담당자가 배정되면 clientUsers에 자동 등록
+// ────────────────────────────────────────────
+
+/**
+ * 담당자 배정 완료 시 상담 고객을 clientUsers에 자동 등록
+ * - 이미 등록된 경우(이름+연락처 동일) 스킵
+ * - 임시 비밀번호: 연락처 뒤 4자리
+ * - 반환값: { created: boolean; user: ClientUser }
+ */
+export function convertConsultationToMember(consultation: Consultation): { created: boolean; user: ClientUser } {
+  const users = getAllClientUsers();
+  const phone = consultation.phone.replace(/-/g, "");
+  const existing = users.find(
+    u => u.name === consultation.name && u.phone.replace(/-/g, "") === phone
+  );
+  if (existing) return { created: false, user: existing };
+
+  // 임시 비밀번호: 연락처 뒤 4자리
+  const tempPw = phone.slice(-4);
+  const newUser: ClientUser = {
+    id: `CU-${Date.now()}`,
+    name: consultation.name,
+    phone: consultation.phone,
+    password: tempPw,
+    createdAt: new Date().toISOString(),
+  };
+  users.push(newUser);
+  localStorage.setItem("clientUsers", JSON.stringify(users));
+
+  // 서버 동기화
+  if (typeof window !== "undefined") {
+    fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "clientUsers", value: users }),
+    }).catch(() => {});
+  }
+
+  return { created: true, user: newUser };
+}
+
+// ────────────────────────────────────────────
 // 서버사이드 동기화 (localStorage → /api/db)
 // 클라이언트 데이터를 서버에 영구 저장
 // ────────────────────────────────────────────
