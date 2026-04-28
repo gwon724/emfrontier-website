@@ -24,9 +24,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-3180",
-    "status": "접수대기",
+    "status": "접수완료",
     "adminMemo": "",
-    "assignedTo": "손권찬",
+    "assignedTo": "son4291",
     "consultDate": "2026-04-29 14:00",
     "createdAt": "2026. 4. 28. 오후 4:26:25",
     "aiAnalysis": {
@@ -57,7 +57,13 @@
       "fund_001",
       "fund_007"
     ],
-    "updatedAt": "2026. 4. 28. 오후 7:46:26"
+    "updatedAt": "2026. 4. 28. 오후 8:10:22",
+    "funds": [],
+    "assignedName": "손권찬",
+    "assignedAt": "2026-04-28T11:10:21.319Z",
+    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 8:10:21",
+    "alimtalkStatus": "sent",
+    "alimtalkSentAt": "2026-04-28T11:10:22.352Z"
   },
   {
     "name": "손권찬",
@@ -84,9 +90,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-2459",
-    "status": "접수확인",
+    "status": "접수대기",
     "adminMemo": "",
-    "assignedTo": "admin",
+    "assignedTo": "",
     "consultDate": "",
     "createdAt": "2026. 4. 28. 오후 2:30:40",
     "aiAnalysis": {
@@ -120,10 +126,7 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 7:13:58",
-    "assignedName": "슈퍼 관리자",
-    "assignedAt": "2026-04-28T07:22:12.397Z",
-    "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:22:12",
+    "updatedAt": "2026. 4. 28. 오후 8:10:49",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-28T07:22:13.333Z",
     "funds": [
@@ -154,9 +157,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260421-5713",
-    "status": "접수완료",
+    "status": "접수대기",
     "adminMemo": "",
-    "assignedTo": "son4291",
+    "assignedTo": "",
     "consultDate": "",
     "createdAt": "2026. 4. 21. 오후 8:07:36",
     "aiAnalysis": {
@@ -193,7 +196,7 @@
       "fund_004",
       "fund_035"
     ],
-    "updatedAt": "2026. 4. 28. 오후 4:18:54",
+    "updatedAt": "2026. 4. 28. 오후 8:10:43",
     "alimtalkStatus": "sent",
     "debtDetail": {
       "first": "",
@@ -202,9 +205,6 @@
       "capital": "",
       "policy": ""
     },
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-28T07:18:53.230Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 4:18:53",
     "alimtalkSentAt": "2026-04-28T07:18:54.271Z"
   },
   {
@@ -212,10 +212,10 @@
     "name": "테스트",
     "phone": "01011111111",
     "businessType": "카페",
-    "status": "접수완료",
+    "status": "접수대기",
     "createdAt": "2026-04-28T06:25:56.711Z",
     "adminMemo": "",
-    "assignedTo": "son4291",
+    "assignedTo": "",
     "consultDate": "",
     "email": "test@test.com",
     "age": "31",
@@ -234,10 +234,7 @@
     "kcb_score": "457",
     "desiredAmount": "100000000",
     "inquiryContent": "",
-    "updatedAt": "2026. 4. 28. 오후 4:24:05",
-    "assignedName": "손권찬",
-    "assignedAt": "2026-04-28T07:24:04.027Z",
-    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 4:24:04",
+    "updatedAt": "2026. 4. 28. 오후 8:10:37",
     "alimtalkStatus": "sent",
     "alimtalkSentAt": "2026-04-28T07:24:05.462Z"
   }
