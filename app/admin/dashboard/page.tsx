@@ -610,28 +610,27 @@ export default function AdminDashboard() {
       const docText = docList && docList.length > 0
         ? `\n\n필요 서류 (${docList.length}개):\n` + docList.map((d,i) => `${i+1}. ${d}`).join("\n")
         : "";
+      // docs_request 알림톡 (서류 목록 + 담당자 정보)
+      const docsConsult = { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone || "01082114291", selectedDocs: docList || [], uploadLink: link, docList: docText };
       const res = await fetch("/api/alimtalk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link, docList: docText },
-          templateType: "docs_request_link",
-        }),
+        body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request" }),
       });
       const data = await res.json();
       if (data.ok) {
         setUploadLinkSent(true);
-        showSuccess("✅ 서류 제출 링크 발송 완료");
+        showSuccess("✅ 서류 제출 안내 발송 완료");
         setTimeout(() => setUploadLinkSent(false), 4000);
       } else {
         setUploadLinkToken(tokenData.token);
         showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link, docList: docText }, templateType: "docs_request_link" }) });
+              body: JSON.stringify({ consultation: docsConsult, templateType: "docs_request" }) });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
-            showSuccess("✅ 서류 링크 재발송 성공");
+            showSuccess("✅ 서류 안내 재발송 성공");
           }
         );
       }
@@ -3275,7 +3274,6 @@ ${name} 대표님!
                                   const STEP_TEMPLATE: Record<string, string> = {
                                     "접수확인": "consult_reserve",
                                     "상담예약": "consult_reserve",
-                                    "서류요청": "docs_request",
                                     "자금 신청": "fund_apply",
                                     "미승인": "rejected",
                                     "리마인드": "remind",
@@ -3296,7 +3294,6 @@ ${name} 대표님!
                                       consultDate: latestConsult.consultDate || "",
                                       assignedName: latestConsult.assignedName || admin?.name || "",
                                       fundName: lastRejFund?.fundName || anyFund?.fundName || "신청 자금",
-                                      selectedDocs: selectedDocs.length > 0 ? selectedDocs : undefined,
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",
