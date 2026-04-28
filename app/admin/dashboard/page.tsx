@@ -2837,7 +2837,7 @@ ${name} 대표님!
                                   showSuccess("✅ 미승인 자금 추가 완료!");
                                 }
                               }}
-                              style={{ padding: "8px 14px", backgroundColor: newRejFundName.trim() ? "#EF4444" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: newRejFundName.trim() ? "pointer" : "not-allowed" }}>
+                              style={{ padding: "8px 14px", backgroundColor: newRejFundName.trim() ? "#10B981" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: newRejFundName.trim() ? "pointer" : "not-allowed" }}>
                               + 추가
                             </button>
                           </div>
