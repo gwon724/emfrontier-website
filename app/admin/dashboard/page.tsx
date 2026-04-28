@@ -3274,6 +3274,7 @@ ${name} 대표님!
                                   const STEP_TEMPLATE: Record<string, string> = {
                                     "접수확인": "consult_reserve",
                                     "상담예약": "consult_reserve",
+                                    "서류요청": "docs_request",
                                     "자금 신청": "fund_apply",
                                     "미승인": "rejected",
                                     "리마인드": "remind",
@@ -3294,6 +3295,7 @@ ${name} 대표님!
                                       consultDate: latestConsult.consultDate || "",
                                       assignedName: latestConsult.assignedName || admin?.name || "",
                                       fundName: lastRejFund?.fundName || anyFund?.fundName || "신청 자금",
+                                      selectedDocs: step === "서류요청" && selectedDocs.length > 0 ? selectedDocs : undefined,
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",
