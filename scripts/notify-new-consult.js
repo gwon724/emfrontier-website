@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const BOT_TOKEN = "8461150221:AAHj6eijK8nBUbOcBZsPrHLK2_4nbyAT7p8";
+const BOT_TOKEN = "8720804043:AAESLW-vYqKiGjw7jzGEPPowvd5_1-dDZto";
 const ADMIN_CHAT_ID = "5500296822"; // 뭉님 chat ID
 const DATA_DIR = path.join(__dirname, "../data");
 const LAST_CHECK_FILE = path.join(DATA_DIR, "last_consult_check.json");

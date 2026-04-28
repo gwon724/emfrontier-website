@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-const BOT_TOKEN = "8461150221:AAHj6eijK8nBUbOcBZsPrHLK2_4nbyAT7p8";
+const BOT_TOKEN = "8723256496:AAERmlGYiwkPTOH8-nosyw2ymh9XNt6Kc7I";
 const ADMIN_CHAT_ID = "5500296822";
 const DATA_DIR = path.join(__dirname, "../data");
 
