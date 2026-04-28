@@ -2599,6 +2599,28 @@ ${name} 대표님!
                                       showSuccess(alimRes.ok ? `✅ [${label}] 알림톡 자동 발송!` : "✅ 상태 변경 완료! (알림톡 실패)");
                                     } else { showSuccess("✅ 상태 변경 완료!"); }
                                   } else { showSuccess("✅ 상태 변경 완료!"); }
+                                  // 부결 시 미승인 정책자금 섹션에도 자동 추가
+                                  if (newStatus === "부결") {
+                                    const rejFund = type2.funds?.find(x => x.id === fundId);
+                                    const linkedC = getAllConsultations().filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id))[0];
+                                    if (linkedC && rejFund) {
+                                      const alreadyRej = (linkedC.funds || []).some(f => f.fundName === rejFund.fundName && f.id !== fundId && f.status === "부결");
+                                      if (!alreadyRej) {
+                                        const newRejF = {
+                                          id: `f_rej_${Date.now()}`,
+                                          fundName: rejFund.fundName,
+                                          amount: "-",
+                                          status: "부결" as import("@/lib/store").FundStatus,
+                                          institution: "",
+                                          updatedAt: new Date().toLocaleString("ko-KR"),
+                                        };
+                                        updateConsultation(linkedC.id, { funds: [...(linkedC.funds || []), newRejF] });
+                                        const freshC = getAllConsultations();
+                                        await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: freshC }) });
+                                        setConsultations(freshC);
+                                      }
+                                    }
+                                  }
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >

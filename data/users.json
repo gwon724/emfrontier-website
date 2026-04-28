@@ -28,6 +28,14 @@
         "status": "부결",
         "addedAt": "2026-04-28T11:42:52.446Z"
       }
-    ]
+    ],
+    "debtDetail": {
+      "first": "",
+      "second": "",
+      "cardLoan": "",
+      "capital": "",
+      "policy": ""
+    },
+    "adminMemo": ""
   }
 ]
