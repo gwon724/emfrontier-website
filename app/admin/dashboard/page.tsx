@@ -353,9 +353,8 @@ export default function AdminDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone },
-          templateType: "docs_request",
-          kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: link, linkPc: link }] },
+          consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link },
+          templateType: "docs_request_link",
         }),
       });
       const data = await res.json();
@@ -368,7 +367,7 @@ export default function AdminDashboard() {
         showFailModal(selectedConsult.name, selectedConsult.phone, data.error || "오류",
           async () => {
             const r = await fetch("/api/alimtalk", { method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone }, templateType: "docs_request", kakaoOptions: { buttons: [{ name: "파일 제출하기", linkType: "WL", linkMo: link, linkPc: link }] } }) });
+              body: JSON.stringify({ consultation: { ...selectedConsult, manager: admin?.name, managerPhone: admin?.phone, uploadLink: link }, templateType: "docs_request_link" }) });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || "오류");
             showSuccess("✅ 서류 링크 재발송 성공");

@@ -15,6 +15,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   register_portal:  "KA01TP2604211426533112Vr01NzRn2R",
   consult_reserve: "KA01TP2604171605002570ctibgtaaqh",
   docs_request:    "KA01TP26041716110927854v9cH3OlJb",
+  docs_request_link: "KA01TP2604280406057149elyZra1i9A",
   fund_apply:      "KA01TP2604171614132005gH6sFhOGNM",
   fund_waiting:    "KA01TP260421144920873mw6XDuWLJ0i",
   fund_reviewing:  "KA01TP260421144921369tJ0SbbI62zZ",
@@ -94,6 +95,13 @@ function buildVariables(templateType: string, c: Record<string, string>): Record
     // [엠프론티어] 서류 제출 안내
     docs_request: {
       "#{이름}": name,
+    },
+    // [엠프론티어] 서류 제출 안내 (링크 포함)
+    docs_request_link: {
+      "#{이름}": name,
+      "#{링크}": c["uploadLink"] || "",
+      "#{매니저}": manager,
+      "#{매니저연락처}": contact,
     },
     // [엠프론티어] 자금 신청 진행 안내
     fund_apply: {
@@ -259,6 +267,21 @@ function buildText(templateType: string, c: Record<string, string>): string {
 서류 제출 후 빠르게 검토 도와드리겠습니다.
 
 엠프론티어`,
+
+    docs_request_link:
+`[엠프론티어] 서류 제출 안내
+
+#{이름} 대표님, 안녕하세요!
+정책자금 신청을 위한 서류 제출을 부탁드립니다.
+
+📎 서류 제출 링크:
+${c["uploadLink"] || ""}
+
+링크를 복사하여 브라우저에서 열어주세요.
+링크는 72시간 동안 유효합니다.
+
+담당 매니저: ${manager}
+연락처: ${contact}`,
 
     fund_apply:
 `[엠프론티어] 자금 신청 진행 안내
