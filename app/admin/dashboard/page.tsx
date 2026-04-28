@@ -2394,7 +2394,7 @@ ${name} 대표님!
                             fundName: newUserFundName,
                             fundId: fund?.id || "",
                             amount: newUserFundAmount,
-                            status: "진행중",
+                            status: "접수대기",
                             addedAt: new Date().toISOString(),
                           };
                           const existingFunds = (selectedUser as UserRecord & {funds?: typeof newFund[]}).funds || [];
@@ -2440,7 +2440,7 @@ ${name} 대표님!
                                 }}
                                 style={{ padding: "4px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "6px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer" }}
                               >
-                                {["진행중","승인완료","부결","대기중"].map(s => <option key={s} value={s}>{s}</option>)}
+                                {["접수대기","접수완료","심사대기","심사중","승인","부결","보완"].map(s => <option key={s} value={s}>{s}</option>)}
                               </select>
                               <button
                                 onClick={async () => {
