@@ -3228,9 +3228,12 @@ ${name} 대표님!
                                     "상담종결": "consult_done",
                                   };
                                   const tmpl = STEP_TEMPLATE[step];
-                                  if (tmpl && latestConsult.phone) {
+                                  const stepPhone = latestConsult.phone || (selectedUser as UserRecord & {phone?:string}).phone || "";
+                                  if (tmpl && stepPhone) {
                                     const enriched = {
                                       ...latestConsult,
+                                      phone: stepPhone,
+                                      name: latestConsult.name || selectedUser.name,
                                       manager: admin?.name,
                                       managerPhone: admin?.phone || "01082114291",
                                       amount: latestConsult.desiredAmount || "-",
@@ -3245,7 +3248,7 @@ ${name} 대표님!
                                     if (alimRes.ok) showSuccess(`✅ [${step}] 알림톡 자동 발송 완료`);
                                     else showSuccess(`✅ 진행단계 → ${step} (알림톡 실패: ${alimRes.error})`);
                                   } else {
-                                    showSuccess(`✅ 진행단계 → ${step}`);
+                                    showSuccess(`✅ 진행단계 → ${step} (전화번호 없음)`);
                                   }
                                 }}
                                 style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}
