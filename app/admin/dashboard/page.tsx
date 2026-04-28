@@ -208,7 +208,11 @@ export default function AdminDashboard() {
   const [newClientRevenue, setNewClientRevenue] = useState("");
   const [newClientNice, setNewClientNice] = useState("");
   const [newClientKcb, setNewClientKcb] = useState("");
-  const [newClientDebt, setNewClientDebt] = useState("");
+  const [newClientDebt1, setNewClientDebt1] = useState(""); // 1금융권
+  const [newClientDebt2, setNewClientDebt2] = useState(""); // 2금융권
+  const [newClientDebtCard, setNewClientDebtCard] = useState(""); // 카드론
+  const [newClientDebtCapital, setNewClientDebtCapital] = useState(""); // 캐피탈
+  const [newClientDebtPolicy, setNewClientDebtPolicy] = useState(""); // 정책자금
   const [newClientDesired, setNewClientDesired] = useState("");
   const [createClientLoading, setCreateClientLoading] = useState(false);
   const [createClientError, setCreateClientError] = useState("");
@@ -220,6 +224,10 @@ export default function AdminDashboard() {
     setCreateClientLoading(true); setCreateClientError("");
     try {
       const phone = newClientPhone.trim().replace(/-/g,"");
+      const totalDebt = String(
+        [newClientDebt1, newClientDebt2, newClientDebtCard, newClientDebtCapital, newClientDebtPolicy]
+          .reduce((s, v) => s + (Number(v) || 0), 0)
+      );
       // clientUsers에 추가
       const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({ value: null }));
       const clientUsers: Array<{id:string;name:string;phone:string;email?:string;password:string;createdAt:string}> = dbRes.value || [];
@@ -245,11 +253,12 @@ export default function AdminDashboard() {
           age: "",
           gender: "남성",
           annual_revenue: newClientRevenue,
-          debt_policy: "0",
-          debt_bank1: "0",
-          debt_bank2: "0",
-          debt_card: "0",
-          currentDebt: newClientDebt,
+          debt_policy: newClientDebtPolicy,
+          debt_bank1: newClientDebt1,
+          debt_bank2: newClientDebt2,
+          debt_card: newClientDebtCard,
+          currentDebt: totalDebt,
+          debtDetail: { first: newClientDebt1, second: newClientDebt2, cardLoan: newClientDebtCard, capital: newClientDebtCapital, policy: newClientDebtPolicy },
           nice_score: newClientNice,
           kcb_score: newClientKcb,
           businessType: newClientBizType,
@@ -274,7 +283,8 @@ export default function AdminDashboard() {
         annual_revenue: newClientRevenue,
         nice_score: newClientNice,
         kcb_score: newClientKcb,
-        currentDebt: newClientDebt,
+        currentDebt: totalDebt,
+        debtDetail: { first: newClientDebt1, second: newClientDebt2, cardLoan: newClientDebtCard, capital: newClientDebtCapital, policy: newClientDebtPolicy },
         desiredAmount: newClientDesired,
         status: "접수완료", createdAt: new Date().toISOString()
       });
@@ -286,7 +296,9 @@ export default function AdminDashboard() {
       setShowCreateClient(false);
       setNewClientName(""); setNewClientPhone(""); setNewClientPassword("");
       setNewClientBizType(""); setNewClientBizPeriod(""); setNewClientRevenue("");
-      setNewClientNice(""); setNewClientKcb(""); setNewClientDebt(""); setNewClientDesired("");
+      setNewClientNice(""); setNewClientKcb("");
+      setNewClientDebt1(""); setNewClientDebt2(""); setNewClientDebtCard(""); setNewClientDebtCapital(""); setNewClientDebtPolicy("");
+      setNewClientDesired("");
       showSuccess(`✅ ${newClientName.trim()} 클라이언트 생성 완료!`);
     } catch {
       setCreateClientError("생성 실패. 다시 시도해주세요.");
@@ -1517,7 +1529,40 @@ ${name} 대표님!
                         { label: "연매출(원)", value: newClientRevenue, setter: setNewClientRevenue, placeholder: "예: 50000000" },
                         { label: "NICE점수", value: newClientNice, setter: setNewClientNice, placeholder: "예: 720" },
                         { label: "KCB점수", value: newClientKcb, setter: setNewClientKcb, placeholder: "예: 700" },
-                        { label: "기대출 합계(원)", value: newClientDebt, setter: setNewClientDebt, placeholder: "예: 30000000" },
+                      ].map(f => (
+                        <div key={f.label}>
+                          <label style={{ fontSize: "11px", color: "#64748B", display: "block", marginBottom: "4px" }}>{f.label}</label>
+                          <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder}
+                            style={{ width: "100%", padding: "9px 12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "13px", color: "#F1F5F9", boxSizing: "border-box", outline: "none" }} />
+                        </div>
+                      ))}
+                      {/* 기대출 5종 */}
+                      <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", padding: "12px" }}>
+                        <p style={{ fontSize: "11px", color: "#60A5FA", fontWeight: "700", marginBottom: "10px" }}>💳 기대출 현황 (원)</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {[
+                            { label: "1금융권 (은행)", value: newClientDebt1, setter: setNewClientDebt1 },
+                            { label: "2금융권 (저축은행/새마을금고 등)", value: newClientDebt2, setter: setNewClientDebt2 },
+                            { label: "카드론", value: newClientDebtCard, setter: setNewClientDebtCard },
+                            { label: "캐피탈", value: newClientDebtCapital, setter: setNewClientDebtCapital },
+                            { label: "정책자금", value: newClientDebtPolicy, setter: setNewClientDebtPolicy },
+                          ].map(d => (
+                            <div key={d.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <label style={{ fontSize: "11px", color: "#94A3B8", width: "130px", flexShrink: 0 }}>{d.label}</label>
+                              <input value={d.value} onChange={e => d.setter(e.target.value)} placeholder="0"
+                                style={{ flex: 1, padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "6px", fontSize: "12px", color: "#F1F5F9", boxSizing: "border-box", outline: "none" }} />
+                            </div>
+                          ))}
+                          <div style={{ borderTop: "1px solid #334155", paddingTop: "8px", display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontSize: "11px", color: "#64748B" }}>합계</span>
+                            <span style={{ fontSize: "12px", fontWeight: "700", color: "#F1F5F9" }}>
+                              {([newClientDebt1, newClientDebt2, newClientDebtCard, newClientDebtCapital, newClientDebtPolicy]
+                                .reduce((s, v) => s + (Number(v) || 0), 0)).toLocaleString()}원
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {[
                         { label: "희망금액(원)", value: newClientDesired, setter: setNewClientDesired, placeholder: "예: 100000000" },
                       ].map(f => (
                         <div key={f.label}>
