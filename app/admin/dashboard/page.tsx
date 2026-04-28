@@ -2569,12 +2569,14 @@ ${name} 대표님!
                                             upsertUser(updatedUser);
                                             const allU = getAllUsers();
                                             await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
-                                            // 서버 저장 후 다시 fetch해서 state 완전 교체
+                                            // 서버 저장 후 state 완전 교체
                                             const freshRes = await fetch("/api/db?key=users").then(r=>r.json());
                                             const freshUsers: UserRecord[] = freshRes.value || [];
-                                            setUsers(freshUsers);
-                                            const freshSelected = freshUsers.find(u => u.id === selectedUser.id);
-                                            if (freshSelected) setSelectedUser(freshSelected);
+                                            const freshSelected = freshUsers.find(u => u.id === selectedUser.id) || null;
+                                            if (freshSelected) {
+                                              setUsers(freshUsers);
+                                              setSelectedUser({ ...freshSelected });
+                                            }
                                           } else {
                                             // consultations.funds에서 삭제
                                             const updated = (linkedConsult?.funds || []).filter(f => f.id !== fid);
