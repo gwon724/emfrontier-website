@@ -72,6 +72,10 @@ export default function AdminDashboard() {
   const [uDesiredAmount, setUDesiredAmount] = useState("");
   const [uMemo, setUMemo] = useState("");
   const [uSaved, setUSaved] = useState(false);
+  // AI 보고서
+  const [aiReport, setAiReport] = useState("");
+  const [aiReportLoading, setAiReportLoading] = useState(false);
+  const [showAiReport, setShowAiReport] = useState(false);
   const [userDocList, setUserDocList] = useState<string[]>([]);
   const [showUserDocChecklist, setShowUserDocChecklist] = useState(false);
   const [userUploadLinkSending, setUserUploadLinkSending] = useState(false);
@@ -2173,6 +2177,106 @@ ${name} 대표님!
                       cursor: "pointer", backgroundColor: uSaved ? "#16A34A" : "#1D4ED8", color: "#FFF" }}>
                     {uSaved ? "✓ 저장완료" : "💾 정보 저장"}
                   </button>
+
+                  {/* AI 보고서 버튼 */}
+                  <button
+                    onClick={async () => {
+                      setAiReportLoading(true); setShowAiReport(true); setAiReport("");
+                      const { grade } = calcGrade(selectedUser);
+                      const allFunds = getAllFunds();
+                      const nice = Number(selectedUser.nice_score) || 0;
+                      const rev = Number(selectedUser.annual_revenue) || 0;
+                      const debt = Number((selectedUser as UserRecord & {currentDebt?:string}).currentDebt) || 0;
+                      const recFunds = allFunds.filter(f => {
+                        if (!f.active) return false;
+                        if (!f.eligibleGrades.includes(grade)) return false;
+                        if (Number(f.minRevenue) > 0 && rev < Number(f.minRevenue)) return false;
+                        if (Number(f.minCreditScore) > 0 && nice < Number(f.minCreditScore)) return false;
+                        if (Number(f.maxDebt) > 0 && debt > Number(f.maxDebt)) return false;
+                        return true;
+                      }).slice(0, 6);
+                      const clientData = {
+                        name: selectedUser.name,
+                        businessType: (selectedUser as UserRecord & {businessType?:string}).businessType || "",
+                        businessPeriod: (selectedUser as UserRecord & {businessPeriod?:string}).businessPeriod || "",
+                        annual_revenue: selectedUser.annual_revenue,
+                        nice_score: selectedUser.nice_score,
+                        kcb_score: selectedUser.kcb_score,
+                        currentDebt: (selectedUser as UserRecord & {currentDebt?:string}).currentDebt || "0",
+                        desiredAmount: (selectedUser as UserRecord & {desiredAmount?:string}).desiredAmount || "",
+                        grade,
+                        assignedName: latestConsult?.assignedName || "",
+                        funds: recFunds,
+                      };
+                      try {
+                        const res = await fetch("/api/ai-report", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ client: clientData }) });
+                        const data = await res.json();
+                        setAiReport(data.report || data.error || "오류 발생");
+                      } catch (e) { setAiReport("오류: " + e); }
+                      setAiReportLoading(false);
+                    }}
+                    style={{ width: "100%", marginTop: "8px", padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", backgroundColor: "#7C3AED", color: "#FFF" }}>
+                    🤖 AI 분석 보고서 생성
+                  </button>
+
+                  {/* AI 보고서 결과 패널 */}
+                  {showAiReport && (
+                    <div style={{ marginTop: "12px", backgroundColor: "#0F172A", border: "1px solid #7C3AED", borderRadius: "12px", padding: "16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <p style={{ fontSize: "13px", fontWeight: "800", color: "#A78BFA" }}>🤖 AI 분석 보고서</p>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          {!aiReportLoading && aiReport && (
+                            <button
+                              onClick={() => {
+                                // PDF 다운로드
+                                const win = window.open("", "_blank");
+                                if (!win) return;
+                                win.document.write(`
+                                  <!DOCTYPE html><html><head>
+                                  <meta charset="utf-8">
+                                  <title>${selectedUser.name} 분석 보고서</title>
+                                  <style>
+                                    body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.8; }
+                                    h1 { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; }
+                                    h2 { color: #1d4ed8; margin-top: 28px; border-left: 4px solid #3b82f6; padding-left: 12px; }
+                                    strong { color: #059669; }
+                                    .meta { background: #f0f4ff; padding: 16px; border-radius: 8px; margin-bottom: 24px; font-size: 14px; }
+                                    @media print { body { margin: 20px; } }
+                                  </style>
+                                  </head><body>
+                                  <div class="meta">
+                                    <strong>고객명:</strong> ${selectedUser.name} &nbsp;|
+                                    <strong> 업종:</strong> ${(selectedUser as UserRecord & {businessType?:string}).businessType || "-"} &nbsp;|
+                                    <strong> SOHO등급:</strong> ${calcGrade(selectedUser).grade} &nbsp;|
+                                    <strong> 작성일:</strong> ${new Date().toLocaleDateString("ko-KR")}
+                                  </div>
+                                  ${aiReport.replace(/\n/g,"<br/>").replace(/#{1,2} /g,"<h2>").replace(/<h2>([^<]+)/g, "<h2>$1</h2>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")}
+                                  </body></html>
+                                `);
+                                win.document.close();
+                                setTimeout(() => win.print(), 500);
+                              }}
+                              style={{ padding: "6px 12px", backgroundColor: "#059669", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer" }}>
+                              📄 PDF 저장
+                            </button>
+                          )}
+                          <button onClick={() => setShowAiReport(false)}
+                            style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer", fontSize: "16px" }}>×</button>
+                        </div>
+                      </div>
+                      {aiReportLoading ? (
+                        <div style={{ textAlign: "center", padding: "32px 0" }}>
+                          <p style={{ fontSize: "24px", marginBottom: "8px" }}>⏳</p>
+                          <p style={{ fontSize: "13px", color: "#A78BFA" }}>AI가 분석 중입니다...</p>
+                          <p style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>10~20초 소요</p>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: "1.8", whiteSpace: "pre-wrap", maxHeight: "400px", overflowY: "auto" }}>
+                          {aiReport}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 연결된 상담 */}

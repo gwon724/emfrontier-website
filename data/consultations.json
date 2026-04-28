@@ -138,6 +138,27 @@
     "phone": "01011111111",
     "businessType": "카페",
     "status": "접수완료",
-    "createdAt": "2026-04-28T06:25:56.711Z"
+    "createdAt": "2026-04-28T06:25:56.711Z",
+    "adminMemo": "",
+    "assignedTo": "",
+    "consultDate": "",
+    "email": "test@test.com",
+    "age": "31",
+    "gender": "남자",
+    "businessPeriod": "3",
+    "annual_revenue": "16000000",
+    "currentDebt": "30000000",
+    "debtDetail": {
+      "first": "10000000",
+      "second": "20000000",
+      "cardLoan": "",
+      "capital": "",
+      "policy": ""
+    },
+    "nice_score": "794",
+    "kcb_score": "457",
+    "desiredAmount": "100000000",
+    "inquiryContent": "",
+    "updatedAt": "2026. 4. 28. 오후 3:34:35"
   }
 ]
