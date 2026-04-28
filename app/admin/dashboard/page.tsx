@@ -2580,17 +2580,20 @@ ${name} 대표님!
                           <input
                             value={newFundAmount}
                             onChange={e => setNewFundAmount(e.target.value)}
-                            placeholder="승인금액"
-                            style={{ flex: 1, minWidth: "80px", padding: "7px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                            placeholder="승인금액 (필수)"
+                            style={{ flex: 1, minWidth: "80px", padding: "7px 10px", backgroundColor: "#1E293B", border: `1px solid ${newFundAmount.trim() ? "#334155" : "#EF4444"}`, borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
                           />
                           <button
-                            disabled={!newFundName.trim()}
+                            disabled={!newFundName.trim() || !newFundAmount.trim()}
                             onClick={async () => {
-                              if (!newFundName.trim()) return;
+                              if (!newFundName.trim() || !newFundAmount.trim()) return;
+                              // 금액 뒤에 만원 자동 추가
+                              const rawAmount = newFundAmount.trim();
+                              const formattedAmount = rawAmount.endsWith("만원") ? rawAmount : rawAmount + "만원";
                               const newFund: FundProgress = {
                                 id: `f_${Date.now()}`,
                                 fundName: newFundName.trim(),
-                                amount: newFundAmount.trim(),
+                                amount: formattedAmount,
                                 status: "승인",
                                 institution: "",
                                 updatedAt: new Date().toLocaleString("ko-KR"),
@@ -2602,7 +2605,8 @@ ${name} 대표님!
                               setNewFundName(""); setNewFundAmount("");
                               // 승인완료 알림톡 자동 발송
                               const apPhone = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult.phone || "";
-                              const apAmount = newFundAmount.trim();
+                              const rawAmt = newFundAmount.trim();
+                              const apAmount = rawAmt.endsWith("만원") ? rawAmt : rawAmt + "만원";
                               const apFundName = newFundName.trim();
                               if (apPhone && apAmount && apFundName) {
                                 const enriched = {

@@ -25,7 +25,7 @@
         "fundName": "테스트1",
         "fundId": "",
         "amount": "5000",
-        "status": "접수대기",
+        "status": "심사중",
         "addedAt": "2026-04-28T10:12:32.864Z"
       }
     ],
