@@ -2565,7 +2565,27 @@ ${name} 대표님!
                               await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
                               setConsultations(fresh);
                               setNewFundName(""); setNewFundAmount("");
-                              showSuccess("✅ 자금 추가 완료!");
+                              // 승인완료 알림톡 자동 발송
+                              const apPhone = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult.phone || "";
+                              if (apPhone) {
+                                const enriched = {
+                                  name: selectedUser.name,
+                                  phone: apPhone,
+                                  id: selectedUser.id,
+                                  manager: admin?.name,
+                                  managerPhone: admin?.phone,
+                                  amount: newFundAmount.trim() || "-",
+                                  fundName: newFundName.trim(),
+                                };
+                                const alimRes = await fetch("/api/alimtalk", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ consultation: enriched, templateType: "approved" }),
+                                }).then(r => r.json()).catch(() => ({ ok: false }));
+                                showSuccess(alimRes.ok ? "✅ 승인완료 알림톡 자동 발송!" : "✅ 자금 추가 완료! (알림톡 실패)");
+                              } else {
+                                showSuccess("✅ 자금 추가 완료!");
+                              }
                             }}
                             style={{ padding: "7px 14px", backgroundColor: newFundName.trim() ? "#2563EB" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: newFundName.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>
                             + 추가
