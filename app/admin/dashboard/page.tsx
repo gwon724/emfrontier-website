@@ -3224,12 +3224,14 @@ ${name} 대표님!
                                     "상담예약": "consult_reserve",
                                     "서류요청": "docs_request",
                                     "자금 신청": "fund_apply",
+                                    "미승인": "rejected",
                                     "리마인드": "remind",
                                     "상담종결": "consult_done",
                                   };
                                   const tmpl = STEP_TEMPLATE[step];
                                   const stepPhone = latestConsult.phone || (selectedUser as UserRecord & {phone?:string}).phone || "";
                                   if (tmpl && stepPhone) {
+                                    const lastRejFund = (latestConsult.funds || []).filter(f => f.status === "부결").slice(-1)[0];
                                     const enriched = {
                                       ...latestConsult,
                                       phone: stepPhone,
@@ -3239,6 +3241,7 @@ ${name} 대표님!
                                       amount: latestConsult.desiredAmount || "-",
                                       consultDate: latestConsult.consultDate || "",
                                       assignedName: latestConsult.assignedName || admin?.name || "",
+                                      fundName: lastRejFund?.fundName || (latestConsult.funds || []).slice(-1)[0]?.fundName || "-",
                                     };
                                     const alimRes = await fetch("/api/alimtalk", {
                                       method: "POST",
