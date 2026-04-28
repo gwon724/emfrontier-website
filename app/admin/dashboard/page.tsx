@@ -1026,9 +1026,10 @@ ${name} 대표님!
           }
         );
       }
-      // 접수대기 탭에서 제거되면 물어보기 닫기
+      // 배정 완료 후 내 고객 탭으로 이동
       setShowConsultDetail(false);
       setConsultTab("mine");
+      setTab("consultations");
     } finally {
       setAssigningId(null);
     }
