@@ -659,7 +659,7 @@ export default function AdminDashboard() {
   // 자금 삭제
   const handleFundDelete = async (fundId: string) => {
     if (!selectedConsult) return;
-    if (!window.confirm("이 자금을 삭제하시겠습니까?")) return;
+    
     const funds = (selectedConsult.funds || []).filter(f => f.id !== fundId);
     updateConsultation(selectedConsult.id, { funds });
     const fresh = getAllConsultations();
@@ -2444,7 +2444,7 @@ ${name} 대표님!
                               </select>
                               <button
                                 onClick={async () => {
-                                  if (!window.confirm("이 자금을 삭제하시겠어요?")) return;
+                                  
                                   const type = selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;fundId?:string;amount:string;status:string;addedAt:string}>};
                                   const updated = (type.funds || []).filter((_, i) => i !== idx);
                                   const updatedUser = { ...selectedUser, funds: updated };
