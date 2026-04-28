@@ -1949,19 +1949,21 @@ ${name} 대표님!
                             />
                             <button onClick={async () => {
                               if (convertPassword.length < 6) { alert("비밀번호는 6자 이상이어야 합니다"); return; }
-                              await convertToMember();
-                              if (convertDone || true) {
-                                // 비밀번호 업데이트
-                                const dbRes = await fetch("/api/db?key=clientUsers").then(r=>r.json()).catch(()=>({value:[]}));
-                                const cu = dbRes.value || [];
-                                const updated = cu.map((u: {name:string;phone:string;password:string}) =>
-                                  u.name === selectedConsult?.name && u.phone === selectedConsult?.phone
-                                    ? {...u, password: convertPassword} : u
-                                );
-                                await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
-                                setShowConvertForm(false);
-                                showSuccess("✅ 회원 개설 + 비밀번호 설정 완료");
+                              // confirm 없이 직접 저장
+                              const dbRes = await fetch("/api/db?key=clientUsers").then(r=>r.json()).catch(()=>({value:[]}));
+                              const cu: Array<{id:string;name:string;phone:string;email?:string;password:string;createdAt:string}> = dbRes.value || [];
+                              const exists = cu.find(u => u.name === selectedConsult?.name && u.phone === selectedConsult?.phone);
+                              let updated;
+                              if (exists) {
+                                updated = cu.map(u => u.name === selectedConsult?.name && u.phone === selectedConsult?.phone ? {...u, password: convertPassword} : u);
+                              } else {
+                                updated = [...cu, { id: Date.now().toString(), name: selectedConsult!.name, phone: selectedConsult!.phone, email: selectedConsult!.email || "", password: convertPassword, createdAt: new Date().toISOString() }];
                               }
+                              await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({key:"clientUsers", value:updated}) });
+                              setShowConvertForm(false);
+                              setSelectedConsult(null);
+                              setTab("manage");
+                              showSuccess("✅ 회원 개설 + 비밀번호 설정 완료");
                             }} style={{ padding: "9px 16px", backgroundColor: "#7C3AED", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
                               ✅ 개설
                             </button>
