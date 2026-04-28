@@ -188,7 +188,7 @@ function RegisterForm() {
               required
               style={{ width: "100%", padding: "12px 14px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "10px", fontSize: "14px", color: "#F1F5F9", fontFamily: font, boxSizing: "border-box", outline: "none" }}
             />
-            <p style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>비밀번호 분실 시 임시 비밀번호 발송에 사용됩니다</p>
+
           </div>
 
           {/* 비밀번호 */}
