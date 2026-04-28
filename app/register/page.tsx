@@ -43,8 +43,14 @@ function RegisterForm() {
 
     setSubmitting(true);
     try {
-      // clientUsers에서 이름+연락처로 기존 계정 찾아 업데이트, 없으면 신규 생성
-      const clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      // 서버 DB에서 clientUsers 조회, 없으면 localStorage 폴백
+      let clientUsers: Array<{id: string; name: string; phone: string; email?: string; password: string; createdAt: string}> = [];
+      try {
+        const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json());
+        clientUsers = dbRes.value || JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      } catch {
+        clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      }
       const idx = clientUsers.findIndex((u: { name: string; phone: string }) =>
         u.name === tokenData.name && u.phone === tokenData.phone
       );

@@ -53,13 +53,22 @@ function LoginView({ onLogin }: { onLogin: (name: string) => void }) {
     setResetLoading(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
-      const user = users.find((u: {name: string; password: string}) => u.name === name.trim() && u.password === password);
+      // 서버 DB 먼저 조회, 없으면 localStorage 폴백
+      let users: Array<{name: string; phone?: string; password: string}> = [];
+      try {
+        const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json());
+        users = dbRes.value || [];
+        // localStorage도 동기화
+        if (users.length > 0) localStorage.setItem("clientUsers", JSON.stringify(users));
+      } catch {
+        users = JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      }
+      const user = users.find((u) => u.name === name.trim() && u.password === password);
       if (!user) {
         setError("이름 또는 비밀번호가 올바르지 않습니다");
         setLoading(false);

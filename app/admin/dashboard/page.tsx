@@ -265,23 +265,32 @@ export default function AdminDashboard() {
     setTimeout(() => setSuccessBanner(""), 3000);
   };
 
-  const convertToMember = () => {
+  const convertToMember = async () => {
     if (!selectedConsult) return;
     const email = selectedConsult.email;
     if (!email) { alert("이메일 주소가 없어요! 이메일을 먼저 입력해주세요."); return; }
     if (!window.confirm(`${selectedConsult.name} 대표님을 포털 회원으로 등록하시겠어요?\n(비밀번호는 고객이 링크로 직접 설정합니다)`)) return;
     try {
-      // 비밀번호 없이 이름+연락처로만 계정 생성 (비번은 register 링크로 고객이 설정)
-      const clientUsers = JSON.parse(localStorage.getItem("clientUsers") || "[]");
-      const exists = clientUsers.find((u: { name: string; phone: string }) => u.name === selectedConsult.name && u.phone === selectedConsult.phone);
+      // 서버 DB에서 clientUsers 조회
+      const dbRes = await fetch("/api/db?key=clientUsers").then(r => r.json()).catch(() => ({ value: null }));
+      const clientUsers: Array<{id: string; name: string; phone: string; email?: string; password: string; createdAt: string}> = dbRes.value || JSON.parse(localStorage.getItem("clientUsers") || "[]");
+      const exists = clientUsers.find(u => u.name === selectedConsult.name && u.phone === selectedConsult.phone);
       if (!exists) {
         clientUsers.push({
           id: Date.now().toString(),
           name: selectedConsult.name,
           phone: selectedConsult.phone,
-          password: "", // 링크로 직접 설정
+          email: selectedConsult.email || "",
+          password: "",
           createdAt: new Date().toISOString(),
         });
+        // 서버 DB 저장
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "clientUsers", value: clientUsers }),
+        });
+        // localStorage도 동기화
         localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
       }
       setConvertDone(true);
