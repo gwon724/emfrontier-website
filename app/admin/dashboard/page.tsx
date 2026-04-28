@@ -2370,39 +2370,25 @@ ${name} 대표님!
                   {/* 회원 정책자금 관리 */}
                   <div style={{ marginTop: "12px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
                     <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "10px" }}>🏦 정책자금 관리</p>
-                    {/* 자금 드롭다운 추가 */}
+                    {/* 직접 입력 자금 추가 */}
                     <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
-                      <select
+                      <input
                         value={newUserFundName}
-                        onChange={e => {
-                          const selected = getAllFunds().find(f => f.name === e.target.value);
-                          setNewUserFundName(e.target.value);
-                          if (selected) setNewUserFundAmount(`최대 ${Number(selected.maxAmount).toLocaleString()}원`);
-                          else setNewUserFundAmount("");
-                        }}
-                        style={{ flex: 2, minWidth: "160px", padding: "8px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9", cursor: "pointer" }}
-                      >
-                        <option value="">정책자금 선택...</option>
-                        {getAllFunds().filter(f => f.active).map(f => (
-                          <option key={f.id} value={f.name}>[{f.category}] {f.name} (최대 {Number(f.maxAmount).toLocaleString()}원)</option>
-                        ))}
-                        <option value="__custom__">직접 입력...</option>
-                      </select>
-                      {newUserFundName === "__custom__" && (
-                        <input value={newUserFundAmount} onChange={e => setNewUserFundName(e.target.value)}
-                          placeholder="자금명" style={{ flex: 1, padding: "8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }} />
-                      )}
+                        onChange={e => setNewUserFundName(e.target.value)}
+                        placeholder="자금명 직접 입력 (예: 소진공 일반경영안정자금)"
+                        style={{ flex: 2, minWidth: "160px", padding: "8px 10px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
+                      />
                       <input
                         value={newUserFundAmount}
                         onChange={e => setNewUserFundAmount(e.target.value)}
-                        placeholder="승인금액"
+                        placeholder="승인금액 (예: 5,000만원)"
                         style={{ flex: 1, minWidth: "90px", padding: "8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "12px", color: "#F1F5F9" }}
                       />
                       <button
-                        disabled={!newUserFundName || newUserFundName === "__custom__"}
+                        disabled={!newUserFundName.trim()}
                         onClick={async () => {
-                          if (!newUserFundName || newUserFundName === "__custom__") return;
-                          const fund = getAllFunds().find(f => f.name === newUserFundName);
+                          if (!newUserFundName.trim()) return;
+                          const fund = getAllFunds().find(f => f.name === newUserFundName.trim());
                           const newFund = {
                             id: `uf_${Date.now()}`,
                             fundName: newUserFundName,
@@ -3165,33 +3151,14 @@ ${name} 대표님!
                       <div style={{ backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px", marginBottom: "8px" }}>
                         <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA", marginBottom: "12px" }}>📊 자금 현황</p>
 
-                        {/* 자금 추가 폼 - 정책자금 DB 드롭다운 선택 */}
+                        {/* 자금 추가 폼 - 직접 입력 */}
                         <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap" }}>
-                          <select
+                          <input
                             value={newFundName}
-                            onChange={e => {
-                              const selected = getAllFunds().find(f => f.name === e.target.value);
-                              setNewFundName(e.target.value);
-                              if (selected) setNewFundAmount(`최대 ${Number(selected.maxAmount).toLocaleString()}원`);
-                            }}
-                            style={{ ...inp, flex: 2, minWidth: "160px", fontSize: "12px", cursor: "pointer" }}
-                          >
-                            <option value="">정책자금 선택...</option>
-                            {getAllFunds().filter(f => f.active).map(f => (
-                              <option key={f.id} value={f.name}>
-                                [{f.category}] {f.name} (최대 {Number(f.maxAmount).toLocaleString()}원)
-                              </option>
-                            ))}
-                            <option value="__custom__">직접 입력...</option>
-                          </select>
-                          {newFundName === "__custom__" && (
-                            <input
-                              value={newFundAmount}
-                              onChange={e => setNewFundName(e.target.value)}
-                              placeholder="자금명 직접 입력"
-                              style={{ ...inp, flex: 1, minWidth: "120px", fontSize: "12px" }}
-                            />
-                          )}
+                            onChange={e => setNewFundName(e.target.value)}
+                            placeholder="자금명 직접 입력 (예: 소진공 일반경영안정자금)"
+                            style={{ ...inp, flex: 2, minWidth: "160px", fontSize: "12px" }}
+                          />
                           <input
                             value={newFundAmount}
                             onChange={e => setNewFundAmount(e.target.value)}
