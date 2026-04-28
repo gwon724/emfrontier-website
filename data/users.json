@@ -19,32 +19,7 @@
     "businessPeriod": "1년 미만",
     "desiredAmount": "40000000",
     "registeredAt": "2026-04-28T07:18:54.599Z",
-    "funds": [
-      {
-        "id": "uf_1777366485130",
-        "fundName": "테스트자금",
-        "fundId": "",
-        "amount": "5000만원",
-        "status": "승인",
-        "addedAt": "2026-04-28T08:54:45.130Z"
-      },
-      {
-        "id": "uf_1777367388707",
-        "fundName": ".",
-        "fundId": "",
-        "amount": "5000만원",
-        "status": "승인",
-        "addedAt": "2026-04-28T09:09:48.707Z"
-      },
-      {
-        "id": "uf_1777367667467",
-        "fundName": "..",
-        "fundId": "",
-        "amount": "1",
-        "status": "승인",
-        "addedAt": "2026-04-28T09:14:27.467Z"
-      }
-    ],
+    "funds": [],
     "debtDetail": {
       "first": "",
       "second": "",

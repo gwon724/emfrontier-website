@@ -2559,18 +2559,22 @@ ${name} 대표님!
                                         onClick={async () => {
                                           const fid = fund.id;
                                           if (fid.startsWith("uf_")) {
-                                            // userRecord.funds에서 삭제
+                                            // userRecord.funds에서 삭제 후 서버에서 최신 상태 재로드
                                             const serverRes = await fetch("/api/db?key=users").then(r=>r.json()).catch(()=>({value:[]}));
                                             const serverUsers: UserRecord[] = serverRes.value || [];
                                             const freshUser = serverUsers.find(u => u.id === selectedUser.id) || selectedUser;
                                             const type = freshUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>};
                                             const updatedFunds = (type.funds || []).filter(x => x.id !== fid);
                                             const updatedUser = { ...freshUser, funds: updatedFunds } as UserRecord;
-                                            setSelectedUser(updatedUser);
                                             upsertUser(updatedUser);
                                             const allU = getAllUsers();
-                                            setUsers(allU);
                                             await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
+                                            // 서버 저장 후 다시 fetch해서 state 완전 교체
+                                            const freshRes = await fetch("/api/db?key=users").then(r=>r.json());
+                                            const freshUsers: UserRecord[] = freshRes.value || [];
+                                            setUsers(freshUsers);
+                                            const freshSelected = freshUsers.find(u => u.id === selectedUser.id);
+                                            if (freshSelected) setSelectedUser(freshSelected);
                                           } else {
                                             // consultations.funds에서 삭제
                                             const updated = (linkedConsult?.funds || []).filter(f => f.id !== fid);
