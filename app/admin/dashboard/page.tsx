@@ -2791,9 +2791,12 @@ ${name} 대표님!
                                               institution: "",
                                               updatedAt: new Date().toLocaleString("ko-KR"),
                                             };
-                                            // consultations.funds에서 제거 + 미승인 추가
-                                            const updatedFunds = (linkedConsult.funds || []).filter(f => f.id !== fund.id).concat(rejFundNew);
-                                            updateConsultation(linkedConsult.id, { funds: updatedFunds });
+                                            // 가장 최근 상담에 미승인 추가 (linkedConsult 없으면 새로 찾기)
+                                            const targetConsult = linkedConsult || getAllConsultations().filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id))[0];
+                                            if (targetConsult) {
+                                              const updatedFunds = (targetConsult.funds || []).filter(f => f.id !== fund.id).concat(rejFundNew);
+                                              updateConsultation(targetConsult.id, { funds: updatedFunds });
+                                            }
                                             // users.funds에서도 제거 (uf_ 또는 일반 id 모두)
                                             const srvRes2 = await fetch("/api/db?key=users").then(r=>r.json()).catch(()=>({value:[]}));
                                             const srvUsers2: UserRecord[] = srvRes2.value || [];
@@ -2809,7 +2812,7 @@ ${name} 대표님!
                                             await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
                                             setConsultations(fresh);
                                             // 미승인 알림톡 발송
-                                            const rejPh = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult.phone || "";
+                                            const rejPh = (selectedUser as UserRecord & {phone?:string}).phone || linkedConsult?.phone || "";
                                             if (rejPh) {
                                               const rejE = { name: selectedUser.name, phone: rejPh, fundName: fund.fundName, manager: admin?.name, managerPhone: admin?.phone || "01082114291" };
                                               const rr = await fetch("/api/alimtalk", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ consultation: rejE, templateType: "rejected" }) }).then(r=>r.json()).catch(()=>({ok:false}));
