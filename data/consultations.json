@@ -84,7 +84,7 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260428-2459",
-    "status": "상담중",
+    "status": "집행중",
     "adminMemo": "",
     "assignedTo": "admin",
     "consultDate": "",
@@ -120,7 +120,7 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 4:48:54",
+    "updatedAt": "2026. 4. 28. 오후 4:52:01",
     "assignedName": "슈퍼 관리자",
     "assignedAt": "2026-04-28T07:22:12.397Z",
     "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:22:12",
