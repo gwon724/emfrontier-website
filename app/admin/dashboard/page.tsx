@@ -2791,8 +2791,20 @@ ${name} 대표님!
                                               institution: "",
                                               updatedAt: new Date().toLocaleString("ko-KR"),
                                             };
+                                            // consultations.funds에서 제거 + 미승인 추가
                                             const updatedFunds = (linkedConsult.funds || []).filter(f => f.id !== fund.id).concat(rejFundNew);
                                             updateConsultation(linkedConsult.id, { funds: updatedFunds });
+                                            // users.funds에서도 제거 (uf_ 또는 일반 id 모두)
+                                            const srvRes2 = await fetch("/api/db?key=users").then(r=>r.json()).catch(()=>({value:[]}));
+                                            const srvUsers2: UserRecord[] = srvRes2.value || [];
+                                            const uIdx3 = srvUsers2.findIndex(u => u.id === selectedUser.id);
+                                            if (uIdx3 !== -1) {
+                                              const uFunds3 = ((srvUsers2[uIdx3] as UserRecord & {funds?: Array<{id:string}>}).funds || []).filter(f => f.id !== fund.id);
+                                              (srvUsers2[uIdx3] as UserRecord & {funds?: unknown[]}).funds = uFunds3;
+                                              await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: srvUsers2 }) });
+                                              setUsers(srvUsers2);
+                                              setSelectedUser({...selectedUser, funds: uFunds3} as UserRecord);
+                                            }
                                             const fresh = getAllConsultations();
                                             await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "consultations", value: fresh }) });
                                             setConsultations(fresh);
