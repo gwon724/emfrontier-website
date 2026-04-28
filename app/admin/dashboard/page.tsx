@@ -750,6 +750,11 @@ ${name} 대표님!
   const [cBizPeriod, setCBizPeriod] = useState("");
   const [cRevenue, setCRevenue] = useState("");
   const [cDebt, setCDebt] = useState("");
+  const [cDebtFirst, setCDebtFirst] = useState("");
+  const [cDebtSecond, setCDebtSecond] = useState("");
+  const [cDebtCard, setCDebtCard] = useState("");
+  const [cDebtCapital, setCDebtCapital] = useState("");
+  const [cDebtPolicy, setCDebtPolicy] = useState("");
   const [cNice, setCNice] = useState("");
   const [cKcb, setCKcb] = useState("");
   const [cDesiredAmount, setCDesiredAmount] = useState("");
@@ -857,6 +862,8 @@ ${name} 대표님!
     setCAge(c.age || ""); setCGender(c.gender || ""); setCBizType(c.businessType || "");
     setCBizPeriod(c.businessPeriod || ""); setCRevenue(c.annual_revenue || "");
     setCDebt(c.currentDebt || ""); setCNice(c.nice_score || ""); setCKcb(c.kcb_score || "");
+    setCDebtFirst(c.debtDetail?.first || ""); setCDebtSecond(c.debtDetail?.second || "");
+    setCDebtCard(c.debtDetail?.cardLoan || ""); setCDebtCapital(c.debtDetail?.capital || ""); setCDebtPolicy(c.debtDetail?.policy || "");
     setCDesiredAmount(c.desiredAmount || ""); setCInquiry(c.inquiryContent || "");
     setShowConsultDetail(true);
   };
@@ -867,7 +874,9 @@ ${name} 대표님!
       status: cNewStatus, adminMemo: cMemo, assignedTo: cAssigned, consultDate: cDate,
       name: cName, phone: cPhone, email: cEmail, age: cAge, gender: cGender,
       businessType: cBizType, businessPeriod: cBizPeriod,
-      annual_revenue: cRevenue, currentDebt: cDebt, nice_score: cNice, kcb_score: cKcb,
+      annual_revenue: cRevenue, currentDebt: String([cDebtFirst,cDebtSecond,cDebtCard,cDebtCapital,cDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0)),
+      debtDetail: { first:cDebtFirst, second:cDebtSecond, cardLoan:cDebtCard, capital:cDebtCapital, policy:cDebtPolicy },
+      nice_score: cNice, kcb_score: cKcb,
       desiredAmount: cDesiredAmount, inquiryContent: cInquiry,
     });
     // 서버에 즉시 동기화
@@ -2082,7 +2091,6 @@ ${name} 대표님!
                           ["업종", cBizType, setCBizType, "text"],
                           ["업력", cBizPeriod, setCBizPeriod, "text"],
                           ["연매출(원)", cRevenue, setCRevenue, "number"],
-                          ["기대출 합계(원)", cDebt, setCDebt, "number"],
                           ["NICE점수", cNice, setCNice, "number"],
                           ["KCB점수", cKcb, setCKcb, "number"],
                           ["희망금액", cDesiredAmount, setCDesiredAmount, "text"],
@@ -2097,6 +2105,32 @@ ${name} 대표님!
                             />
                           </div>
                         ))}
+                      </div>
+
+                      {/* 기대출 5종 입력 */}
+                      <div style={{ marginTop: "10px" }}>
+                        <p style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "8px" }}>🏦 기대출 상세 (종류별)</p>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+                          {([
+                            ["1금융권", cDebtFirst, setCDebtFirst],
+                            ["2금융권", cDebtSecond, setCDebtSecond],
+                            ["카드론", cDebtCard, setCDebtCard],
+                            ["캐피탈", cDebtCapital, setCDebtCapital],
+                            ["정책자금", cDebtPolicy, setCDebtPolicy],
+                          ] as [string, string, (v:string)=>void][]).map(([label, val, setter]) => (
+                            <div key={label} style={{ padding: "6px 8px", backgroundColor: "#0F172A", borderRadius: "8px" }}>
+                              <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>{label}</p>
+                              <input type="number" value={val} onChange={e => setter(e.target.value)} placeholder="0"
+                                style={{ ...inp, width: "100%", fontSize: "12px", padding: "4px 8px" }} />
+                            </div>
+                          ))}
+                          <div style={{ padding: "6px 8px", backgroundColor: "#1E3A5F", borderRadius: "8px", border: "1px solid #3B82F6" }}>
+                            <p style={{ fontSize: "10px", color: "#93C5FD", marginBottom: "3px" }}>합계</p>
+                            <p style={{ fontSize: "13px", fontWeight: "800", color: "#60A5FA" }}>
+                              {[cDebtFirst,cDebtSecond,cDebtCard,cDebtCapital,cDebtPolicy].reduce((s,v)=>s+(Number(v)||0),0).toLocaleString()}원
+                            </p>
+                          </div>
+                        </div>
                       </div>
                       <div style={{ marginTop: "8px" }}>
                         <p style={{ fontSize: "10px", color: "#64748B", marginBottom: "3px" }}>문의 내용</p>
