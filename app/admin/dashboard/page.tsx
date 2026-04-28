@@ -2414,11 +2414,11 @@ ${name} 대표님!
                       </button>
                     </div>
                     {/* 자금 목록 */}
-                    {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).length === 0 ? (
+                    {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").length === 0 ? (
                       <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "12px 0" }}>등록된 자금이 없어요.</p>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).map((f, idx) => (
+                        {((selectedUser as UserRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").map((f, idx) => (
                           <div key={f.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1E3A8A", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                             <div>
                               <p style={{ fontSize: "13px", fontWeight: "700", color: "#60A5FA" }}>{f.fundName}</p>
@@ -2513,11 +2513,11 @@ ${name} 대표님!
                             + 추가
                           </button>
                         </div>
-                        {(!linkedConsult.funds || linkedConsult.funds.length === 0) ? (
+                        {(!linkedConsult.funds || linkedConsult.funds.filter(f => (f.status as string) === "승인").length === 0) ? (
                           <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>
                         ) : (
                           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {linkedConsult.funds.map(fund => {
+                            {linkedConsult.funds.filter(fund => (fund.status as string) === "승인").map(fund => {
                               const borderColor = FUND_STATUS_COLORS[fund.status] ? "#334155" : "#334155";
                               return (
                                 <div key={fund.id} style={{ backgroundColor: "#1E293B", borderRadius: "8px", padding: "10px 12px", border: `1px solid ${borderColor}` }}>

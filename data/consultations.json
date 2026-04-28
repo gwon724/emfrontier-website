@@ -120,7 +120,7 @@
       "fund_027",
       "fund_004"
     ],
-    "updatedAt": "2026. 4. 28. 오후 5:47:29",
+    "updatedAt": "2026. 4. 28. 오후 5:53:10",
     "assignedName": "슈퍼 관리자",
     "assignedAt": "2026-04-28T07:22:12.397Z",
     "assignLog": "슈퍼 관리자(admin) 배정 - 2026. 4. 28. 오후 4:22:12",
@@ -128,18 +128,10 @@
     "alimtalkSentAt": "2026-04-28T07:22:13.333Z",
     "funds": [
       {
-        "id": "f_1777365320240",
-        "fundName": "테스트 자금",
-        "amount": "5천만원",
-        "status": "접수대기",
-        "institution": "",
-        "updatedAt": "2026. 4. 28. 오후 5:35:20"
-      },
-      {
         "id": "f_1777366049994",
         "fundName": "테스트",
         "amount": "10000000",
-        "status": "접수대기",
+        "status": "심사대기",
         "institution": "",
         "updatedAt": "2026. 4. 28. 오후 5:47:29"
       }
