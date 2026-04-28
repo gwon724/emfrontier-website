@@ -2471,11 +2471,12 @@ ${name} 대표님!
                     // 이름으로 매칭 후 최신 상담 우선
                     const userConsults = consultations.filter(c => c.name === selectedUser.name).sort((a,b) => b.id.localeCompare(a.id));
                     const linkedConsult = userConsults[0];
-                    if (!linkedConsult) return null;
+                    // linkedConsult 없어도 userRecord.funds 승인 자금은 표시
                     return (
                       <div style={{ marginTop: "8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "12px", padding: "14px" }}>
                         <p style={{ fontSize: "13px", fontWeight: "800", color: "#10B981", marginBottom: "10px" }}>📊 승인완료 정책자금</p>
-                        {/* 자금 추가 폼 */}
+                        {/* 자금 추가 폼 (linkedConsult 있을때만) */}
+                        {linkedConsult && (
                         <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
                           <input
                             value={newFundName}
@@ -2512,10 +2513,11 @@ ${name} 대표님!
                             + 추가
                           </button>
                         </div>
+                        )}
                         {(() => {
                           type UF = {id:string;fundName:string;amount:string;status:string;addedAt?:string;institution?:string;updatedAt?:string};
                           const approvedFromUser = ((selectedUser as UserRecord & {funds?: UF[]}).funds || []).filter(f => f.status === "승인");
-                          const approvedFromConsult = (linkedConsult.funds || []).filter(f => (f.status as string) === "승인");
+                          const approvedFromConsult = (linkedConsult?.funds || []).filter(f => (f.status as string) === "승인");
                           const allApproved = [...approvedFromUser, ...approvedFromConsult];
                           if (allApproved.length === 0) return <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "10px 0" }}>등록된 자금 현황이 없어요.</p>;
                           return (
