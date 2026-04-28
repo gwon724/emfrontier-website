@@ -148,7 +148,7 @@ export default function Dashboard() {
           <div className="cd-header-inner">
             <div className="cd-header-left">
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "invert(1)" }} />
+                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }} />
                 <p className="name">엠프론티어</p>
               </div>
               <p className="welcome">{user.name}님 환영합니다</p>

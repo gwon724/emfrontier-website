@@ -131,7 +131,7 @@ export default function AdminAccounts() {
           <div className="ap-header-inner">
             <div style={{ display: "flex", alignItems: "center", minWidth: 0, overflow: "hidden" }}>
               <div className="ap-brand">
-                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
+                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
                   <p className="t1">엠프론티어</p>
                   <p className="t2">계정 관리</p>

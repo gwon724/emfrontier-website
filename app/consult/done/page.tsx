@@ -261,7 +261,7 @@ export default function ConsultDonePage() {
       <div style={{ backgroundColor: "#1E3A8A", padding: "0 24px", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: "900px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", height: "60px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <img src={LOGO_B64} alt="엠프론티어" width={36} height={36} style={{ objectFit: "contain", filter: "invert(1)" }} />
+            <img src={LOGO_B64} alt="엠프론티어" width={36} height={36} style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }} />
             <div>
               <p style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>엠프론티어</p>
               <p style={{ fontSize: "11px", color: "#93C5FD" }}>AI 기업분석 & 정책자금 추천</p>

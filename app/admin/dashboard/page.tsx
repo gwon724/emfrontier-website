@@ -1258,7 +1258,7 @@ ${name} 대표님!
           <div className="dash-header-inner">
             <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, overflow: "hidden" }}>
               <div className="dash-brand">
-                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
+                <img src={LOGO_B64} alt="EF" width={30} height={30} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0 }} />
                 <div className="dash-brand-text">
                   <p className="t1">엠프론티어</p>
                   <p className="t2">관리자 대시보드</p>

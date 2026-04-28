@@ -200,7 +200,7 @@ export default function AdminConsultationsPage() {
           <div className="cp-header-inner">
             <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, overflow: "hidden" }}>
               <Link href="/admin/dashboard" className="cp-brand">
-                <img src={LOGO_B64} alt="EF" width={28} height={28} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
+                <img src={LOGO_B64} alt="EF" width={28} height={28} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
                   <p className="t1">엠프론티어</p>
                   <p className="t2">상담 관리</p>

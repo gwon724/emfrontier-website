@@ -158,7 +158,7 @@ export default function ConsultPage() {
       <header className="ct-header">
         <div className="ct-header-inner">
           <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-            <img src={LOGO_B64} alt="엠프론티어" width={30} height={30} style={{ objectFit: "contain", filter: "invert(1)", flexShrink: 0 }} />
+            <img src={LOGO_B64} alt="엠프론티어" width={30} height={30} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", flexShrink: 0 }} />
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: "14px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>엠프론티어</p>
               <p style={{ fontSize: "9px", color: "#60A5FA", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>정책자금 전문 컨설팅</p>
@@ -548,7 +548,7 @@ export default function ConsultPage() {
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <img src={LOGO_B64} alt="엠프론티어" width={22} height={22} style={{ objectFit: "contain", filter: "invert(1)" }} />
+              <img src={LOGO_B64} alt="엠프론티어" width={22} height={22} style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }} />
               <p style={{ fontSize: "14px", fontWeight: "800", color: "#FFFFFF" }}>엠프론티어</p>
             </div>
             <p style={{ fontSize: "11px", color: "#475569" }}>경영컨설팅업 정식 등록 · 법인사업자 2024년 설립</p>
