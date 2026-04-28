@@ -1043,7 +1043,8 @@ ${name} 대표님!
     const q = cSearch.trim().toLowerCase();
     const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q);
     const matchGrade = !cGradeFilter || calcConsultGrade(c).grade === cGradeFilter;
-    return c.status === "접수대기" && matchSearch && matchGrade;
+    const isPortalMember = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === c.phone?.replace(/-/g,""));
+    return c.status === "접수대기" && matchSearch && matchGrade && !isPortalMember;
   });
 
   const filteredMine = consultations.filter(c => {
@@ -1054,7 +1055,9 @@ ${name} 대표님!
     const isMine = admin?.role === "superadmin"
       ? c.status !== "접수대기"
       : c.status !== "접수대기" && c.assignedTo === admin?.username;
-    return isMine && matchSearch && matchStatus && matchGrade;
+    // 포털 개설된 고객은 상담탭에서 제외
+    const isPortalMember = clientPortalUsers.some(p => p.phone?.replace(/-/g,"") === c.phone?.replace(/-/g,""));
+    return isMine && matchSearch && matchStatus && matchGrade && !isPortalMember;
   });
 
   const filteredConsults = consultTab === "waiting" ? filteredWaiting : filteredMine;
