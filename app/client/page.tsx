@@ -404,7 +404,7 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             </div>
 
             {/* 회원 정책자금 목록 (admin에서 추가한 자금) */}
-            {userRecord && (userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds && ((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).length > 0 && (
+            {userRecord && ((userRecord as typeof userRecord & {funds?: Array<{id:string;fundName:string;amount:string;status:string;addedAt:string}>}).funds || []).filter(f => f.status !== "승인" && f.status !== "부결" && f.status !== "보완").length > 0 && (
               <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #1E3A8A" }}>
                 <p style={{ fontSize: "14px", fontWeight: "800", color: "#60A5FA", marginBottom: "14px" }}>🏦 진행중인 정책자금</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -429,28 +429,31 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
             )}
 
             {/* 자금 현황 */}
-            {consult.funds && consult.funds.filter(f => (f.status as string) === "승인").length > 0 && (
-              <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
-                <p style={{ fontSize: "14px", fontWeight: "800", color: "#34D399", marginBottom: "14px" }}>🏦 승인완료 정책자금</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {consult.funds.filter(fund => (fund.status as string) === "승인").map(fund => (
-                    <div key={fund.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px" }}>
-                      <div>
-                        <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
-                        {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
+            {(() => {
+              type UF = {id:string;fundName:string;amount:string;status:string;addedAt:string};
+              const approvedUser = ((userRecord as typeof userRecord & {funds?: UF[]})?.funds || []).filter(f => f.status === "승인");
+              const approvedConsult = (consult.funds || []).filter(f => (f.status as string) === "승인");
+              const allApproved = [...approvedUser, ...approvedConsult];
+              if (allApproved.length === 0) return null;
+              return (
+                <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #166534" }}>
+                  <p style={{ fontSize: "14px", fontWeight: "800", color: "#34D399", marginBottom: "14px" }}>🏦 승인완료 정책자금</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {allApproved.map(fund => (
+                      <div key={fund.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#052E1C", borderRadius: "10px", padding: "12px 14px", border: "1px solid #166534" }}>
+                        <div>
+                          <p style={{ fontSize: "14px", fontWeight: "800", color: "#F1F5F9", marginBottom: "2px" }}>{fund.fundName}</p>
+                          {fund.amount && <p style={{ fontSize: "12px", color: "#94A3B8" }}>{fund.amount}만원</p>}
+                        </div>
+                        <span style={{ padding: "4px 12px", borderRadius: "999px", backgroundColor: "#052E1C", color: "#34D399", fontSize: "12px", fontWeight: "800", flexShrink: 0, border: "1px solid #166534" }}>
+                          승인완료
+                        </span>
                       </div>
-                      <span style={{ padding: "4px 12px", borderRadius: "999px",
-                        backgroundColor: (fund.status as string) === "승인" ? "#052E1C" : (fund.status as string) === "부결" ? "#450A0A" : (fund.status as string) === "보완" ? "#1C1800" : "#0F172A",
-                        color: (fund.status as string) === "승인" ? "#34D399" : (fund.status as string) === "부결" ? "#EF4444" : (fund.status as string) === "보완" ? "#FBBF24" : "#60A5FA",
-                        fontSize: "12px", fontWeight: "800", flexShrink: 0,
-                        border: `1px solid ${(fund.status as string) === "승인" ? "#166534" : (fund.status as string) === "부결" ? "#DC2626" : (fund.status as string) === "보완" ? "#92400E" : "#1E3A8A"}` }}>
-                        {fund.status}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* 서류 제출 */}
             <div style={{ backgroundColor: "#1E293B", borderRadius: "16px", padding: "20px", marginBottom: "14px", border: "1px solid #334155" }}>
