@@ -228,14 +228,10 @@ function PortalView({ clientName, onLogout }: { clientName: string; onLogout: ()
         const found = matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null;
         setConsult(found);
       } else {
-        const all = getAllConsultations();
-        const matched = all.filter(c => c.name === clientName);
-        setConsult(matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null);
+        setConsult(null);
       }
     }).catch(() => {
-      const all = getAllConsultations();
-      const matched = all.filter(c => c.name === clientName);
-      setConsult(matched.sort((a,b) => b.id.localeCompare(a.id))[0] || null);
+      setConsult(null);
     });
     // users DB에서 회원 정책자금 로드
     fetch("/api/db?key=users").then(r => r.json()).then(j => {
