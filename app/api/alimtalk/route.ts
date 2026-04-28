@@ -27,7 +27,7 @@ const TEMPLATE_IDS: Record<string, string> = {
   rejected:        "KA01TP260417161958704ibbzfHzxy5y",
   remind:          "KA01TP2604171621062160gbxFR1tGo1",
   fund_execute:    "KA01TP260417162409846tyV1faRd6EY",
-  extra_apply:     "KA01TP260417162532938wspDWZfLnZb",
+  extra_apply:     "KA01TP260428042553990I8zTwD6Zul7",
   review:          "KA01TP2604171626327389q6Avs8y6ip",
   new_fund:        "KA01TP260417162743447PU5rbPLrIOM",
 };
@@ -446,7 +446,8 @@ ${name} 대표님!
 `[엠프론티어] 재신청 가능 안내
 
 안녕하세요 ${name} 대표님. 
-이전에 정책자금 상담을 신청하신 이력 기준, 재신청 제한이 종료되어 안내드립니다.
+정책자금 신청하신 이력 기준, 재신청 제한이 종료되어 안내드립니다.
+추가로 요청하신 신청 가능 일정 보내드립니다.
 
 📅 ${reapplyDate}부터 재신청 가능 
 💼 ${recommend}
