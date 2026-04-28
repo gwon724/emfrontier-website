@@ -1863,6 +1863,33 @@ ${name} 대표님!
                               )}
                               <button onClick={(e) => { e.stopPropagation(); openConsult(c); }}
                                 style={{ padding: "6px 14px", backgroundColor: "#2563EB", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>상세</button>
+                              {/* 내 고객 탭 재배정 */}
+                              {consultTab === "mine" && (
+                                <>
+                                  <select
+                                    value={waitingAssignMap[c.id] || ""}
+                                    onChange={e => setWaitingAssignMap(p => ({ ...p, [c.id]: e.target.value }))}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ padding: "6px 8px", backgroundColor: "#0F172A", border: "1px solid #334155", borderRadius: "8px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer", fontFamily: font, maxWidth: "110px" }}
+                                  >
+                                    <option value="">담당자 선택</option>
+                                    {adminList.map(a => (
+                                      <option key={a.username} value={a.username}>{a.name}</option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    disabled={!waitingAssignMap[c.id] || isAssigning}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      const targetAdm = adminList.find(a => a.username === waitingAssignMap[c.id]);
+                                      if (!targetAdm) return;
+                                      await handleAssign(c, targetAdm);
+                                    }}
+                                    style={{ padding: "6px 10px", backgroundColor: waitingAssignMap[c.id] ? "#6366F1" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: waitingAssignMap[c.id] ? "pointer" : "not-allowed" }}>
+                                    🔄 재배정
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -2077,19 +2104,46 @@ ${name} 대표님!
                       {linkedConsults.map(c => {
                         const sc = CONSULT_STATUS_COLORS[c.status] || CONSULT_STATUS_COLORS["접수대기"];
                         return (
-                          <div key={c.id} onClick={() => { setSelectedUser(null); setUName(""); openConsult(c); }}
-                            style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155", cursor: "pointer" }}
-                            onMouseEnter={e=>(e.currentTarget.style.borderColor="#60A5FA")}
-                            onMouseLeave={e=>(e.currentTarget.style.borderColor="#334155")}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <div>
-                                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-                                  <span style={{ fontSize: "11px", backgroundColor: sc.darkBg, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>{c.status}</span>
-                                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{c.createdAt?.slice(0,10)}</span>
+                          <div key={c.id} style={{ backgroundColor: "#0F172A", borderRadius: "10px", padding: "12px 14px", border: "1px solid #334155" }}>
+                            <div onClick={() => { setSelectedUser(null); setUName(""); openConsult(c); }}
+                              style={{ cursor: "pointer", marginBottom: "8px" }}
+                              onMouseEnter={e=>(e.currentTarget.style.opacity="0.8")}
+                              onMouseLeave={e=>(e.currentTarget.style.opacity="1")}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div>
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "11px", backgroundColor: sc.darkBg, color: sc.darkText, padding: "2px 8px", borderRadius: "999px", fontWeight: "700" }}>{c.status}</span>
+                                    <span style={{ fontSize: "11px", color: "#94A3B8" }}>{c.createdAt?.slice(0,10)}</span>
+                                    {c.assignedName && <span style={{ fontSize: "11px", color: "#60A5FA" }}>👤 {c.assignedName}</span>}
+                                  </div>
+                                  <p style={{ fontSize: "12px", color: "#CBD5E1" }}>💼 {c.businessType||"-"} · 💰 {c.desiredAmount||"-"}</p>
                                 </div>
-                                <p style={{ fontSize: "12px", color: "#CBD5E1" }}>💼 {c.businessType||"-"} · 💰 {c.desiredAmount||"-"}</p>
+                                <span style={{ fontSize: "11px", color: "#60A5FA" }}>상세 →</span>
                               </div>
-                              <span style={{ fontSize: "11px", color: "#60A5FA" }}>상세 →</span>
+                            </div>
+                            {/* 담당자 배정 UI */}
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }} onClick={e => e.stopPropagation()}>
+                              <select
+                                value={waitingAssignMap[c.id] || ""}
+                                onChange={e => setWaitingAssignMap(p => ({ ...p, [c.id]: e.target.value }))}
+                                style={{ flex: 1, padding: "6px 8px", backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", fontSize: "11px", color: "#F1F5F9", cursor: "pointer", fontFamily: font }}
+                              >
+                                <option value="">{c.assignedName ? `현재: ${c.assignedName}` : "담당자 미배정"}</option>
+                                {adminList.map(a => (
+                                  <option key={a.username} value={a.username}>{a.name}</option>
+                                ))}
+                              </select>
+                              <button
+                                disabled={!waitingAssignMap[c.id] || assigningId === c.id}
+                                onClick={async () => {
+                                  const targetAdm = adminList.find(a => a.username === waitingAssignMap[c.id]);
+                                  if (!targetAdm) return;
+                                  await handleAssign(c, targetAdm);
+                                  setWaitingAssignMap(p => { const n = {...p}; delete n[c.id]; return n; });
+                                }}
+                                style={{ padding: "6px 10px", backgroundColor: waitingAssignMap[c.id] ? "#6366F1" : "#334155", color: "#FFF", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: waitingAssignMap[c.id] ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>
+                                {assigningId === c.id ? "⏳" : "✅ 배정"}
+                              </button>
                             </div>
                           </div>
                         );

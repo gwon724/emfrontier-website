@@ -88,6 +88,38 @@ function RegisterForm() {
         });
       }
       localStorage.setItem("clientUsers", JSON.stringify(clientUsers));
+      // users DB에도 동기화 (어드민 회원 탭에서 보이게)
+      try {
+        const usersRes = await fetch("/api/db?key=users").then(r => r.json());
+        const allUsers = usersRes.value || [];
+        const userIdx = allUsers.findIndex((u: {name: string; phone?: string; email?: string}) =>
+          u.name === tokenData.name && (u.phone === tokenData.phone || u.email === email)
+        );
+        if (userIdx === -1) {
+          allUsers.push({
+            id: `user_${Date.now()}`,
+            email,
+            password,
+            name: tokenData.name,
+            phone: tokenData.phone,
+            age: "",
+            gender: "남성",
+            annual_revenue: "",
+            debt_policy: "0",
+            debt_bank1: "0",
+            debt_bank2: "0",
+            debt_card: "0",
+            nice_score: "",
+            kcb_score: "",
+            registeredAt: new Date().toISOString(),
+          });
+          await fetch("/api/db", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "users", value: allUsers }),
+          });
+        }
+      } catch { /* ignore */ }
       // 서버 DB 동기화
       await fetch("/api/db", {
         method: "POST",

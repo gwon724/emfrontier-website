@@ -15,7 +15,17 @@
     "role": "superadmin",
     "id": "1776773831744",
     "createdAt": "2026. 4. 21. 오후 9:17:11",
-    "lastLogin": "2026. 4. 28. 오후 2:41:10",
+    "lastLogin": "2026. 4. 28. 오후 3:18:54",
     "telegramChatId": "5500296822"
+  },
+  {
+    "username": "test",
+    "password": "test123",
+    "name": "test",
+    "phone": "01000000000",
+    "role": "admin",
+    "id": "1777357108503",
+    "createdAt": "2026. 4. 28. 오후 3:18:28",
+    "lastLogin": "2026. 4. 28. 오후 3:18:46"
   }
 ]

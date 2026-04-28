@@ -79,9 +79,9 @@
     "inquiryContent": "",
     "privacyAgreed": true,
     "id": "CS-20260421-5713",
-    "status": "상담중",
+    "status": "접수완료",
     "adminMemo": "",
-    "assignedTo": "",
+    "assignedTo": "son4291",
     "consultDate": "",
     "createdAt": "2026. 4. 21. 오후 8:07:36",
     "aiAnalysis": {
@@ -118,15 +118,18 @@
       "fund_004",
       "fund_035"
     ],
-    "updatedAt": "2026. 4. 28. 오후 2:49:31",
-    "alimtalkStatus": "sent",
-    "alimtalkSentAt": "2026-04-21T12:50:01.194Z",
+    "updatedAt": "2026. 4. 28. 오후 3:22:04",
+    "alimtalkStatus": "failed",
     "debtDetail": {
       "first": "",
       "second": "",
       "cardLoan": "",
       "capital": "",
       "policy": ""
-    }
+    },
+    "assignedName": "손권찬",
+    "assignedAt": "2026-04-28T06:22:04.120Z",
+    "assignLog": "손권찬(son4291) 배정 - 2026. 4. 28. 오후 3:22:04",
+    "alimtalkError": "보유 잔액이 부족하여 발송에 실패하였습니다.\n[보유잔액: 0, 보유포인트: 1, 보유예치금: 0]"
   }
 ]
