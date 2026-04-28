@@ -3222,7 +3222,7 @@ ${name} 대표님!
                                   // 진행단계별 자동 알림톡
                                   const STEP_TEMPLATE: Record<string, string> = {
                                     "상담예약": "consult_reserve",
-                                    "서류요청": "docs_request_link",
+                                    "서류요청": "docs_request",
                                     "자금 신청": "fund_apply",
                                     "리마인드": "remind",
                                     "상담종결": "consult_done",
