@@ -3221,6 +3221,7 @@ ${name} 대표님!
                                   setConsultations(all);
                                   // 진행단계별 자동 알림톡
                                   const STEP_TEMPLATE: Record<string, string> = {
+                                    "접수확인": "consult_reserve",
                                     "상담예약": "consult_reserve",
                                     "서류요청": "docs_request",
                                     "자금 신청": "fund_apply",
