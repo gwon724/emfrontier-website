@@ -2505,27 +2505,35 @@ ${name} 대표님!
                                   const allU = getAllUsers();
                                   setUsers(allU);
                                   await fetch("/api/db", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ key: "users", value: allU }) });
-                                  // 승인 시 승인완료 알림톡 자동 발송
-                                  if (newStatus === "승인") {
+                                  // 상태별 알림톡 자동 발송
+                                  const STATUS_ALIM: Record<string, string> = {
+                                    "승인": "approved",
+                                    "심사중": "fund_reviewing",
+                                  };
+                                  const alimType = STATUS_ALIM[newStatus];
+                                  if (alimType) {
                                     const uPhone = (selectedUser as UserRecord & {phone?:string}).phone || getAllConsultations().find(c => c.name === selectedUser.name)?.phone || "";
                                     if (uPhone) {
+                                      const thisFund = type2.funds?.find(x => x.id === fundId);
                                       const enriched = {
                                         name: selectedUser.name,
                                         phone: uPhone,
                                         id: selectedUser.id,
                                         manager: admin?.name,
                                         managerPhone: admin?.phone,
-                                        fundName: type2.funds?.find(x => x.id === fundId)?.fundName || "-",
-                                        amount: type2.funds?.find(x => x.id === fundId)?.amount || "-",
-                                        execAmount: type2.funds?.find(x => x.id === fundId)?.amount || "-",
+                                        fundName: thisFund?.fundName || "-",
+                                        amount: thisFund?.amount || "-",
+                                        fundLimit: thisFund?.amount || "-",
+                                        execAmount: thisFund?.amount || "-",
                                         execDate: new Date().toLocaleDateString("ko-KR"),
                                       };
                                       const alimRes = await fetch("/api/alimtalk", {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ consultation: enriched, templateType: "approved" }),
+                                        body: JSON.stringify({ consultation: enriched, templateType: alimType }),
                                       }).then(r => r.json()).catch(() => ({ ok: false }));
-                                      showSuccess(alimRes.ok ? "✅ 승인완료 알림톡 자동 발송!" : "✅ 상태 변경 완료! (알림톡 실패)");
+                                      const label = newStatus === "승인" ? "승인완료" : "심사중";
+                                      showSuccess(alimRes.ok ? `✅ [${label}] 알림톡 자동 발송!` : "✅ 상태 변경 완료! (알림톡 실패)");
                                     } else { showSuccess("✅ 상태 변경 완료!"); }
                                   } else { showSuccess("✅ 상태 변경 완료!"); }
                                 }}
