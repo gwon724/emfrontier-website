@@ -2700,7 +2700,7 @@ ${name} 대표님!
 
                 {/* 📍 진행단계 클릭 변경 */}
                 {(() => {
-                  const STEPS: ConsultStatus[] = ["접수대기", "접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "종결"];
+                  const STEPS: ConsultStatus[] = ["접수확인", "상담예약", "서류요청", "자금 신청", "승인완료", "미승인", "리마인드", "상담종결"];
                   const curIdx = STEPS.indexOf((latestConsult?.status ?? "접수대기") as ConsultStatus);
                   return (
                     <div style={{ backgroundColor: "#1E293B", borderRadius: "12px", border: "1px solid #334155", padding: "14px 16px", marginBottom: "10px" }}>

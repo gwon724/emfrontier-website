@@ -3105,21 +3105,25 @@ export function markTokenUsed(token: string): void {
 // ────────────────────────────────────────────
 
 export type ConsultStatus =
+  | "접수확인"
+  | "상담예약"
+  | "서류요청"
+  | "자금 신청"
+  | "승인완료"
+  | "미승인"
+  | "리마인드"
+  | "상담종결"
+  // legacy 상태 (구 데이터 호환)
   | "접수대기"
   | "접수완료"
   | "상담중"
   | "서류진행"
   | "심사중"
-  | "승인완료"
+  | "승인진행"
   | "집행중"
   | "사후관리"
   | "종결"
   | "상담취소"
-  // legacy 상태 (구 데이터 호환)
-  | "서류요청"
-  | "승인진행"
-  | "자금집행"
-  | "상담예약"
   | "상담완료"
   | "신청진행";
 
@@ -3184,42 +3188,49 @@ export interface Consultation {
 }
 
 export const CONSULT_STATUS_LIST: ConsultStatus[] = [
-  "접수대기", "접수완료", "상담중", "서류진행", "심사중", "승인완료", "집행중", "사후관리", "종결",
+  "접수확인", "상담예약", "서류요청", "자금 신청", "승인완료", "미승인", "리마인드", "상담종결",
 ];
 
 // 클라이언트 포털용 단계별 상태 색상
 export const CONSULT_STATUS_SIMPLE_COLORS: Record<string, string> = {
+  "접수확인": "#94A3B8",
+  "상담예약": "#3B82F6",
+  "서류요청": "#8B5CF6",
+  "자금 신청": "#F59E0B",
+  "승인완료": "#10B981",
+  "미승인":   "#EF4444",
+  "리마인드": "#F59E0B",
+  "상담종결": "#64748B",
+  // legacy
   "접수대기": "#94A3B8",
   "접수완료": "#3B82F6",
   "상담중":   "#F59E0B",
   "서류진행": "#8B5CF6",
   "심사중":   "#EF4444",
-  "승인완료": "#10B981",
-  "집행중":   "#06B6D4",
-  "사후관리": "#34D399",
-  "종결":     "#64748B",
-  // legacy
-  "서류요청": "#8B5CF6",
   "승인진행": "#10B981",
-  "자금집행": "#06B6D4",
+  "집행중":   "#06B6D4",
 };
 
 export const CONSULT_STATUS_COLORS: Record<ConsultStatus, { bg: string; text: string; border: string; darkBg: string; darkText: string }> = {
+  "접수확인": { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#94A3B8" },
+  "상담예약": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
+  "서류요청": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
+  "자금 신청": { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D", darkBg: "#3B2A00",   darkText: "#F59E0B" },
+  "승인완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
+  "미승인":   { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
+  "리마인드": { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D", darkBg: "#3B2A00",   darkText: "#FBBF24" },
+  "상담종결": { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#64748B" },
+  // legacy
   "접수대기": { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#94A3B8" },
   "접수완료": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
   "상담중":   { bg: "#FEF3C7", text: "#92400E", border: "#FCD34D", darkBg: "#3B2A00",   darkText: "#F59E0B" },
   "서류진행": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
   "심사중":   { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
-  "승인완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
+  "승인진행": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
   "집행중":   { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
   "사후관리": { bg: "#D1FAE5", text: "#065F46", border: "#A7F3D0", darkBg: "#022C22",   darkText: "#34D399" },
   "종결":     { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1", darkBg: "#1E293B",   darkText: "#64748B" },
   "상담취소": { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", darkBg: "#450A0A",   darkText: "#EF4444" },
-  // legacy
-  "서류요청": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#8B5CF6" },
-  "승인진행": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#10B981" },
-  "자금집행": { bg: "#CFFAFE", text: "#155E75", border: "#67E8F9", darkBg: "#082F49",   darkText: "#06B6D4" },
-  "상담예약": { bg: "#DBEAFE", text: "#1D4ED8", border: "#93C5FD", darkBg: "#1E3A5F",   darkText: "#60A5FA" },
   "상담완료": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", darkBg: "#052E1C",   darkText: "#34D399" },
   "신청진행": { bg: "#EDE9FE", text: "#6D28D9", border: "#C4B5FD", darkBg: "#2E1B5E",   darkText: "#A78BFA" },
 };
