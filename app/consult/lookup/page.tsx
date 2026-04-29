@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LOGO_B64,
   lookupConsultations, getConsultationById,
@@ -10,6 +10,11 @@ import { LOGO_B64,
 const font = FONT;
 
 export default function ConsultLookupPage() {
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq?: (...args: unknown[]) => void }).fbq!("track", "Lead");
+    }
+  }, []);
   const [mode, setMode] = useState<"name" | "id">("name");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
